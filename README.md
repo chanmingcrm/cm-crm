@@ -34,10 +34,11 @@
 
 ## 🌐 地址说明
 
-| 说明   | 地址                           | 
-|------|------------------------------|
-| 官网地址 | 🌐<http://www.woscosmos.com> |
-| 文档地址 | 🌐<http://doc.woscosmos.com> |
+| 说明    | 地址                           | 
+|-------|------------------------------|
+| 官网地址  | 🌐<http://www.woscosmos.com> |
+| CRM地址 | 🌐<http://crm.woscosmos.com> |
+| 文档地址  | 🌐<http://doc.woscosmos.com> |
 
 ## 🔍 仓库说明
 
