@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.sys.account.mapper.SysAccountMapper">
+
+    <select id="selectMPage"
+            resultType="com.platform.mesh.upms.biz.modules.sys.account.domain.vo.SysAccountVO">
+        SELECT
+            a.*,
+            a.account_id AS open_id,
+            u.nick_name AS user_name,
+            u.phone
+        FROM
+        sys_account a
+        LEFT JOIN sys_user u ON a.user_id = u.user_id
+        <where>
+            a.del_flag != ${pageDTO.delFlag}
+            <if test="pageDTO.userId != null">
+                AND a.user_id = ${pageDTO.userId}
+            </if>
+            <if test="pageDTO.userId != null">
+                AND a.open_id = ${pageDTO.openId}
+            </if>
+            <if test="pageDTO.userName != null and pageDTO.userName != '' ">
+                AND u.nick_name LIKE CONCAT('%',${pageDTO.userName},'%')
+            </if>
+            <if test="pageDTO.nickName != null and pageDTO.nickName != '' ">
+                AND a.nick_name LIKE CONCAT('%',${pageDTO.nickName},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="getPassAccountByPhone"
+            resultType="com.platform.mesh.upms.biz.modules.sys.account.domain.po.SysAccount">
+        SELECT
+            a.*
+        FROM
+            sys_account a
+                LEFT JOIN sys_user u ON a.user_id = u.user_id
+        WHERE
+            u.phone = #{phone}
+          AND a.source_flag = #{sourceFlag}
+    </select>
+</mapper>

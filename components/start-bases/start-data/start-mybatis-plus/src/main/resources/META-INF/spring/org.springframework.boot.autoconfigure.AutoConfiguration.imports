@@ -1,0 +1,4 @@
+com.platform.mesh.mybatis.plus.configuration.MyBatisPlusAutoConfiguration
+com.platform.mesh.mybatis.plus.handler.DataScopeHandler
+com.platform.mesh.mybatis.plus.handler.DataMetaObjectHandler
+com.platform.mesh.mybatis.plus.handler.FormatTableNameHandler

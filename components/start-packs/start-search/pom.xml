@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>start-packs</artifactId>
+        <groupId>com.platform</groupId>
+        <version>3.5.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <artifactId>start-search</artifactId>
+    <version>3.5.0</version>
+    <description>搜索模块</description>
+
+    <dependencies>
+
+        <!--Mybatis-plus-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-mybatis-plus</artifactId>
+        </dependency>
+
+        <!--elasticsearch-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-es</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

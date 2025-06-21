@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.bpm.biz.modules.inst.node.mapper.BpmInstNodeMapper">
+
+
+    <select id="selectInstNodeByInstProcessId"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.node.domain.vo.BpmInstNodeVO">
+        SELECT
+            bin.*,
+            btn.node_name
+        FROM
+            bpm_inst_node bin
+        LEFT JOIN bpm_temp_node btn ON bin.temp_node_id = btn.id
+        WHERE
+            bin.inst_process_id = #{instProcessId}
+    </select>
+
+    <select id="getInstNodeData"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.node.domain.bo.BpmInstNodeBO">
+        SELECT
+            bin.*,
+            bdi.module_id,
+            bdi.data_id,
+            bdi.data_name,
+            bdi.process_name AS inst_process_name
+        FROM
+            bpm_inst_node bin
+                LEFT JOIN bpm_data_inst_rel bdi ON bdi.inst_process_id = bin.inst_process_id
+        WHERE
+            bin.id = #{instNodeId}
+    </select>
+</mapper>

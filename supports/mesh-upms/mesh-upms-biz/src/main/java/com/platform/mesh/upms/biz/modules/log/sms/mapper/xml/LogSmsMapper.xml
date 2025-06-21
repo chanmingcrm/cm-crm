@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.log.sms.mapper.LogSmsMapper">
+
+
+    <select id="checkCanSend" resultType="java.lang.Integer">
+        SELECT
+            IF(SUM( CASE WHEN create_time >= DATE_SUB( NOW(), INTERVAL 3 MINUTE ) THEN 1 ELSE 0 END ) > #{minLimit},1,0) +
+            IF(SUM( CASE WHEN create_time >= DATE_SUB( NOW(), INTERVAL 1 DAY ) THEN 1 ELSE 0 END ) > #{dayLimit},1,0) AS count
+        FROM
+            log_sms
+        WHERE
+            sms_phone = #{phone}
+            <if test=" smsFlag != null ">
+                AND sms_flag = #{smsFlag}
+            </if>
+    </select>
+</mapper>

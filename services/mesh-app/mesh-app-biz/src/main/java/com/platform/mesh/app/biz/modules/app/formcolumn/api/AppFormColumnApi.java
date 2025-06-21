@@ -1,0 +1,76 @@
+package com.platform.mesh.app.biz.modules.app.formcolumn.api;
+
+import com.platform.mesh.app.api.modules.app.domain.bo.AppFormColumnBO;
+import com.platform.mesh.app.biz.modules.app.formcolumn.domain.vo.AppFormColumnVO;
+import com.platform.mesh.app.biz.modules.app.formcolumn.service.IAppFormColumnService;
+import com.platform.mesh.core.application.controller.BaseController;
+import com.platform.mesh.utils.result.Result;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+
+/**
+ * 约定当前controller 只引入当前service
+ * @description 表单字段关联信息
+ * @author 蝉鸣
+ */
+@Hidden
+@Tag(description = "AppFormColumnApi", name = "表单字段关联")
+@RestController
+public class AppFormColumnApi extends BaseController{
+    @Autowired
+    private IAppFormColumnService appFormColumnService;
+
+    /**
+     * 功能描述:
+     * 〈获取当前表单字段关联信息〉
+     * @param formId formId
+     * @return 正常返回:{@link Result<List<AppFormColumnBO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取当前表单字段平铺结构关联信息")
+    @GetMapping("/api/app/form/column/list/{moduleId}/{formId}")
+    public Result<List<AppFormColumnBO>> getFormColumnList(@PathVariable("moduleId")Long moduleId
+            , @PathVariable("formId")Long formId) {
+        List<AppFormColumnBO> appFormColumnBOS = appFormColumnService.getFormColumnBOList(moduleId,formId);
+        return Result.success(appFormColumnBOS);
+    }
+
+    /**
+     * 功能描述:
+     * 〈根据moduleId 表单类型快速获取默认字段信息〉
+     * @param moduleId moduleId
+     * @param formType formType
+     * @return 正常返回:{@link Result<List<AppFormColumnBO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "根据moduleId 业务字段类型快速获取默认字段信息")
+    @PostMapping("/api/app/form/column/fast/form/type/{moduleId}/{formType}")
+    public Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@PathVariable("moduleId")Long moduleId, @PathVariable("formType")Integer formType) {
+        return Result.success(appFormColumnService.fastColumnBOByModuleAndFormType(moduleId,formType));
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取当前表单字段关联信息〉
+     * @param formId formId
+     * @return 正常返回:{@link Result<List<AppFormColumnVO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取当前表单字段树结构关联信息")
+    @GetMapping("/api/app/form/column/tree/{moduleId}/{formId}")
+    public Result<List<AppFormColumnVO>> getFormColumnTree(@PathVariable("moduleId")Long moduleId
+            ,@PathVariable("formId")Long formId) {
+        List<AppFormColumnVO> appFormColumnVOs = appFormColumnService.getFormColumnTree(moduleId,formId);
+        return Result.success(appFormColumnVOs);
+    }
+
+}

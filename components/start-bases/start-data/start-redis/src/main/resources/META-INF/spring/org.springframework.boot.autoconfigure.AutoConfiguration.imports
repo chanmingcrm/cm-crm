@@ -1,0 +1,3 @@
+com.platform.mesh.redis.service.RedisService
+com.platform.mesh.redis.service.configure.RCacheConfiguration
+com.platform.mesh.redis.service.configure.RedisTemplateConfiguration

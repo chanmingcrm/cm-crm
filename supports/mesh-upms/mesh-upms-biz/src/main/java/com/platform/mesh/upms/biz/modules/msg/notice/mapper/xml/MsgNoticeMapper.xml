@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.msg.notice.mapper.MsgNoticeMapper">
+    <select id="getAllHandleNotice"
+            resultType="com.platform.mesh.upms.biz.modules.msg.notice.domain.po.MsgNotice">
+        SELECT
+            *
+        FROM
+            msg_notice
+        WHERE
+            NOW() &lt; notice_end_time
+    </select>
+
+    <delete id="clearNotice">
+        DELETE
+        FROM
+            msg_notice
+        WHERE
+            NOW() &gt; notice_end_time
+           OR notice_end_time IS NULL
+    </delete>
+</mapper>

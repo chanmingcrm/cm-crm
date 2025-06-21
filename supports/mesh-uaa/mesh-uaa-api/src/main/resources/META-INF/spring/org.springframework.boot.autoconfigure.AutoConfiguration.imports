@@ -1,0 +1,2 @@
+com.platform.mesh.uaa.api.modules.token.feign.factory.RemoteTokenFallbackFactory
+com.platform.mesh.uaa.api.modules.client.feign.factory.RemoteOauth2RegisteredClientFallbackFactory

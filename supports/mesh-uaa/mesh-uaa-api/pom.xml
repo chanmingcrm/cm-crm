@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mesh-uaa</artifactId>
+        <groupId>com.platform</groupId>
+        <version>3.5.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mesh-uaa-api</artifactId>
+    <version>3.5.0</version>
+    <description>认证服务</description>
+
+
+    <dependencies>
+
+        <!--feign-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-rpc-feign</artifactId>
+        </dependency>
+        <!--Swagger-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-swagger</artifactId>
+        </dependency>
+
+    </dependencies>
+</project>

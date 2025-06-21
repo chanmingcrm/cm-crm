@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.sys.user.mapper.SysUserMapper">
+
+    <select id="selectMPage" resultType="com.platform.mesh.upms.biz.modules.sys.user.domain.po.SysUser">
+        SELECT DISTINCT
+            u.*
+        FROM
+            sys_user u
+        <where>
+            <if test="pageDTO.nickName != null and pageDTO.nickName != ''">
+                AND u.nick_name LIKE CONCAT( '%', ${pageDTO.nickName}, '%' )
+            </if>
+            <if test="pageDTO.idCard != null and pageDTO.idCard != ''">
+                AND u.id_card LIKE CONCAT( '%', ${pageDTO.idCard}, '%' )
+            </if>
+            <if test="pageDTO.gender != null">
+                AND u.gender = ${pageDTO.gender}
+            </if>
+            <if test="pageDTO.userFlag != null">
+                AND u.user_flag = ${pageDTO.userFlag}
+            </if>
+        </where>
+
+    </select>
+</mapper>

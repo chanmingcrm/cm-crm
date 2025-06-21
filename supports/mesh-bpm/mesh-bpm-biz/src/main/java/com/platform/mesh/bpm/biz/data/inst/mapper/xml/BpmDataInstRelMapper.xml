@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.bpm.biz.data.inst.mapper.BpmDataInstRelMapper">
+
+    <select id="checkDataRelHasRun" resultType="com.platform.mesh.bpm.biz.data.inst.domain.po.BpmDataInstRel">
+        SELECT
+            bdir.*,
+            bip.run_flag
+        FROM
+            bpm_data_inst_rel bdir
+        LEFT JOIN bpm_inst_process bip ON bdir.inst_process_id = bip.id
+        <where>
+            bdir.data_id = #{dataId}
+            AND bip.run_flag = #{runFlag}
+            <if test="filterProcessId">
+                AND bdir.temp_process_id = #{tempProcessId}
+            </if>
+        </where>
+    </select>
+</mapper>

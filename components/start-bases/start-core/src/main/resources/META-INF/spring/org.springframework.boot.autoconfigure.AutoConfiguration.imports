@@ -1,0 +1,2 @@
+com.platform.mesh.core.config.JacksonConfig
+com.platform.mesh.core.properties.EnvironmentProperty

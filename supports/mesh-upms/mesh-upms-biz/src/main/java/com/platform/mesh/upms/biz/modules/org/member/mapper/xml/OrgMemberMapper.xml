@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.org.member.mapper.OrgMemberMapper">
+
+
+    <select id="selectMemberPage"
+            resultType="com.platform.mesh.upms.biz.modules.org.member.domain.vo.OrgMemberVO">
+        SELECT
+            GROUP_CONCAT(l.id) AS level_id,
+            GROUP_CONCAT(l.level_name) AS level_name,
+            GROUP_CONCAT(p.id) AS post_id,
+            GROUP_CONCAT(p.post_name) AS post_name,
+            MAX(m.id) AS id,
+            ANY_VALUE(mur.user_id) AS user_id,
+            ANY_VALUE(m.member_name) AS member_name
+        FROM
+            org_member m
+                LEFT JOIN org_member_user_rel mur ON m.id = mur.member_id
+                LEFT JOIN org_member_post_rel mpr ON m.id = mpr.member_id
+                LEFT JOIN org_post p ON p.id = mpr.post_id
+                LEFT JOIN org_level l ON l.id = mpr.level_id
+        <where>
+            <if test="orgMemberPageDTO.memberName != null ">
+                AND m.member_name LIKE CONCAT('%',#{orgMemberPageDTO.memberName},'%')
+            </if>
+            <if test="orgMemberPageDTO.levelIds !=null and orgMemberPageDTO.levelIds.size()>0">
+                AND l.id IN
+                <foreach collection="orgMemberPageDTO.levelIds" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="orgMemberPageDTO.postIds !=null and orgMemberPageDTO.postIds.size()>0">
+                AND p.id IN
+                <foreach collection="orgMemberPageDTO.postIds" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY m.id
+    </select>
+
+    <select id="getMemberInfoByUserId" resultType="com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO">
+        SELECT
+            l.id AS level_id,
+            l.level_name,
+            pds.post_id,
+            pds.data_id,
+            pds.data_scope,
+            pds.data_flag
+        FROM
+            org_member_user_rel mur
+                LEFT JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
+                LEFT JOIN org_post_data_scope pds ON mpr.post_id = pds.post_id
+                LEFT JOIN org_level l ON mpr.level_id = l.id
+        WHERE
+            mur.user_id = #{userId}
+    </select>
+
+    <select id="getOrgMemberByUserIds"
+            resultType="com.platform.mesh.upms.biz.modules.org.member.domain.po.OrgMember">
+        SELECT
+            om.*
+        FROM
+            org_member_user_rel omur
+        LEFT JOIN org_member om ON omur.member_id = om.id
+        WHERE
+            omur.user_id IN
+        <foreach collection="userIds" item="user" open="(" close=")" separator=",">
+            #{user}
+        </foreach>
+    </select>
+
+    <select id="getMemberVOByUserId"
+            resultType="com.platform.mesh.upms.biz.modules.sys.user.domain.vo.SysMemberVO">
+        SELECT
+        om.id AS member_id,
+        om.member_name,
+        omur.user_id AS user_id
+        FROM
+        org_member_user_rel omur
+        LEFT JOIN org_member om ON omur.member_id = om.id
+        WHERE
+        omur.user_id = #{userId}
+    </select>
+
+</mapper>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.bpm.biz.modules.inst.process.mapper.BpmInstProcessMapper">
+
+    <sql id="scope">
+        bip.inst_root_id = #{todoBo.instRootId}
+        <if test="(todoBo.moduleIds != null and todoBo.moduleIds.size() > 0)">
+            AND dir.module_id IN
+            <foreach collection="todoBo.moduleIds" item="module" open="(" close=")" separator=",">
+                #{module}
+            </foreach>
+        </if>
+        <if test="(todoBo.userIds != null and todoBo.userIds.size() > 0)">
+            AND(bina.audit_data_id IN
+            <foreach collection="todoBo.userIds" item="user" open="(" close=")" separator=",">
+                #{user}
+            </foreach>
+            AND bina.audit_data_type IN
+            <foreach collection="todoBo.userTypes" item="userType" open="(" close=")" separator=",">
+                #{userType}
+            </foreach>
+            )
+        </if>
+        <if test="(todoBo.orgIds != null and todoBo.orgIds.size() > 0)">
+            AND(bina.audit_data_id IN
+            <foreach collection="todoBo.orgIds" item="org" open="(" close=")" separator=",">
+                #{org}
+            </foreach>
+            AND bina.audit_data_type IN
+            <foreach collection="todoBo.orgTypes" item="orgType" open="(" close=")" separator=",">
+                #{orgType}
+            </foreach>
+            )
+        </if>
+        <if test="(todoBo.roleIds != null and todoBo.roleIds.size() > 0)">
+            AND(bina.audit_data_id IN
+            <foreach collection="todoBo.roleIds" item="role" open="(" close=")" separator=",">
+                #{role}
+            </foreach>
+            AND bina.audit_data_type IN
+            <foreach collection="todoBo.roleTypes" item="roleType" open="(" close=")" separator=",">
+                #{roleType}
+            </foreach>
+            )
+        </if>
+    </sql>
+
+    <select id="getProcessInstTodo"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessOaVO">
+        SELECT
+        bip.*,
+        bip.id AS process_id,
+        dir.module_id,
+        dir.form_id,
+        dir.data_id,
+        dir.data_name
+        FROM
+            bpm_inst_node_audit bina
+        LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
+        LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
+        WHERE
+        <include refid="scope"/>
+        AND bip.run_flag = #{todoBo.runFlag} AND bip.inst_root_id = #{todoBo.instRootId}
+        ORDER BY bip.create_time DESC
+    </select>
+
+    <select id="getProcessInstDone"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessOaVO">
+        SELECT
+        bip.*,
+        bip.id AS process_id,
+        dir.module_id,
+        dir.form_id,
+        dir.data_id,
+        dir.data_name
+        FROM
+        bpm_inst_node_audit bina
+        LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
+        LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
+        WHERE
+        <include refid="scope"/>
+        AND bip.run_flag = #{todoBo.runFlag} AND bip.inst_root_id = #{todoBo.instRootId}
+        ORDER BY bip.create_time DESC
+    </select>
+
+    <select id="getProcessInstEnd"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessOaVO">
+        SELECT
+        bip.*,
+        bip.id AS process_id,
+        dir.module_id,
+        dir.form_id,
+        dir.data_id,
+        dir.data_name
+        FROM
+        bpm_inst_node_audit bina
+        LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
+        LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
+        WHERE
+        <include refid="scope"/>
+        AND bip.run_flag = #{todoBo.runFlag} AND bip.inst_root_id = #{todoBo.instRootId}
+        ORDER BY bip.create_time DESC
+    </select>
+
+    <select id="getProcessInstFollow"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessOaVO">
+        SELECT
+        bip.*,
+        bip.id AS process_id,
+        dir.module_id,
+        dir.form_id,
+        dir.data_id,
+        dir.data_name
+        FROM
+        bpm_inst_node_audit bina
+        LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
+        LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
+        WHERE
+        <include refid="scope"/>
+        OR (
+            bip.create_user_id = #{todoBo.userId}
+            <if test="(todoBo.moduleIds != null and todoBo.moduleIds.size() > 0)">
+                AND dir.module_id IN
+                <foreach collection="todoBo.moduleIds" item="module" open="(" close=")" separator=",">
+                    #{module}
+                </foreach>
+            </if>
+            )
+        ORDER BY bip.create_time DESC
+    </select>
+
+</mapper>

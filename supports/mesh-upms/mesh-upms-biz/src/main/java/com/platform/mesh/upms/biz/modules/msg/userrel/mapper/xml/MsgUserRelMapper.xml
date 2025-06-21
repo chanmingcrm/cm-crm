@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.msg.userrel.mapper.MsgUserRelMapper">
+
+    <select id="selectMPage"
+            resultType="com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.MsgUserRelVO">
+        SELECT
+            mur.id,
+            mb.id AS msg_id,
+            mb.module_id,
+            mb.module_name,
+            mb.data_id,
+            mb.msg_flag,
+            mb.msg_type,
+            mb.msg_title,
+            mb.msg_body,
+            mb.msg_href
+        FROM msg_user_rel mur
+        LEFT JOIN msg_base mb ON mur.msg_id = mb.id
+        WHERE
+            mur.user_id = #{pageDTO.userId}
+            AND mur.del_flag = #{pageDTO.delFlag}
+        <if test="pageDTO.msgFlag != null and pageDTO.msgFlag != 0 ">
+            AND mb.msg_flag = #{pageDTO.msgFlag}
+        </if>
+        <if test="pageDTO.readFlag != null and pageDTO.readFlag != 0 ">
+            AND mur.read_flag = #{pageDTO.readFlag}
+        </if>
+        ORDER BY mb.create_time DESC
+    </select>
+
+    <select id="selectUnReadMsgCount" resultType="com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadModuleVO">
+        SELECT
+            mb.msg_flag,
+            mb.module_id,
+            COUNT(1) AS un_read_count
+        FROM
+            msg_user_rel mur
+                LEFT JOIN msg_base mb ON mb.id = mur.msg_id
+        WHERE
+            mur.user_id = #{userId}
+          AND mur.read_flag = #{readFlag}
+          AND mur.del_flag = #{delFlag}
+        GROUP BY mb.msg_flag,mb.module_id
+    </select>
+
+</mapper>

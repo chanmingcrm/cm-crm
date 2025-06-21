@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.org.levelpostrel.mapper.OrgLevelPostRelMapper">
+
+
+    <select id="selectPageRel"
+            resultType="com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.vo.OrgLevelPostRelVO">
+        SELECT
+        olpr.*,
+        ol.level_name,
+        op.post_name
+        FROM
+        org_level_post_rel olpr
+        LEFT JOIN org_level ol ON ol.id = olpr.level_id
+        LEFT JOIN org_post op ON op.id = olpr.post_id
+        <where>
+            <if test=" pageDTO.levelId != null ">
+                olpr.level_id  =  #{pageDTO.levelId}
+            </if>
+            <if test=" pageDTO.postId != null ">
+                AND olpr.post_id  = #{pageDTO.postId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getLevelPostRelByPostId"
+            resultType="com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.vo.OrgLevelPostRelVO">
+        SELECT
+            olpr.*,
+            ol.level_name,
+            op.post_name
+        FROM
+            org_level_post_rel olpr
+                LEFT JOIN org_level ol ON ol.id = olpr.level_id
+                LEFT JOIN org_post op ON op.id = olpr.post_id
+            WHERE olpr.post_id = #{postId}
+    </select>
+</mapper>

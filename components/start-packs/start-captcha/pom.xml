@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.platform</groupId>
+        <artifactId>start-packs</artifactId>
+        <version>3.5.0</version>
+    </parent>
+
+    <artifactId>start-captcha</artifactId>
+    <version>3.5.0</version>
+    <description>验证码服务模块</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+
+        <!-- 基础引用 -->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-core</artifactId>
+        </dependency>
+
+        <!--验证码-->
+        <dependency>
+            <groupId>cloud.tianai.captcha</groupId>
+            <artifactId>tianai-captcha-springboot-starter</artifactId>
+        </dependency>
+    </dependencies>
+</project>

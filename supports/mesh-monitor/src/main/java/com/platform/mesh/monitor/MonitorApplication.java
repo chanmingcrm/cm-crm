@@ -1,0 +1,61 @@
+package com.platform.mesh.monitor;
+
+import de.codecentric.boot.admin.server.config.EnableAdminServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
+import org.springframework.context.annotation.Bean;
+
+/**
+ * @description 网关启动程序
+ * @author 蝉鸣
+ */
+@EnableAdminServer
+@SpringBootApplication
+public class MonitorApplication {
+
+	private static final Logger log = LoggerFactory.getLogger(MonitorApplication.class);
+
+	public static void main(String[] args) {
+		SpringApplication application = new SpringApplication(MonitorApplication.class);
+		application.setApplicationStartup(new BufferingApplicationStartup(2048));
+		application.run(args);
+	}
+
+	@Bean
+	public CustomRunner customRunner() {
+		return new CustomRunner();
+	}
+
+	/**
+	 * 工程启动后执行
+	 */
+	public static class CustomRunner implements CommandLineRunner {
+		//工程启动后执行步骤
+		@Override
+		public void run(String... args) {
+
+			//案例：打印启动成功图例
+			this.printInfoAfterStart();
+			//其他：例如执行数据脚本,初始任务等等
+			//...
+		}
+		public void printInfoAfterStart(){
+			log.info("""
+                    \s
+                     ~~~~~~~~ ﾞ(ლˊڡ´)ლ 来起开车火小  ﾞﾉ(◠‿◠♥)    .        .   .  . .- .- ----. \s
+                         __                                         '      ' ' - - -----ˎ'. )    \s
+                      ___||_=========____  ___--------------------__          -:--;      \\_/     \s
+                       |..|_i_|..|_i_|..|   | |_!_||_!_||_!_||_!_| |  ___ooo  .]__''_^_n__U__    \s
+                       |                |   | |___||___||___||___| | [ˎˎˎˎˎˎ\\ ).. _).. _).. _)ɔ  \s
+                     i_!________________!ˎi_|______________________|ˎ[______⅃ˎ|_'___________/_ˎ  \s
+                         (o)(o)-(o)(o)          (o)^(o)--(o)^(o)      (o)(o)   (@)(@)==(@)(@)_;\\ \s
+                    ""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~""\"~"\"""");
+		}
+
+	}
+
+}

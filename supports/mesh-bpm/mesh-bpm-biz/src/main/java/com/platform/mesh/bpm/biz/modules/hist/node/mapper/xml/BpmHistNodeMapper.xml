@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.bpm.biz.modules.hist.node.mapper.BpmHistNodeMapper">
+
+
+    <select id="selectHistNodeByInstProcessId"
+            resultType="com.platform.mesh.bpm.biz.modules.hist.node.domain.vo.BpmHistNodeVO">
+        SELECT
+            bhn.*,
+            btn.node_name
+        FROM
+            bpm_hist_node bhn
+        LEFT JOIN bpm_temp_node btn ON bhn.temp_node_id = btn.id
+        WHERE
+            bhn.inst_process_id = #{instProcessId}
+    </select>
+</mapper>

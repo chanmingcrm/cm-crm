@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.sys.userrolerel.mapper.SysUserRoleRelMapper">
+
+    <select id="selectPageRel"
+            resultType="com.platform.mesh.upms.biz.modules.sys.userrolerel.domain.vo.SysUserRoleRelVO">
+        SELECT
+            surr.*,
+            su.nick_name,
+            sr.role_name
+        FROM
+            sys_user_role_rel surr
+                LEFT JOIN sys_user su ON su.user_id = surr.user_id
+                LEFT JOIN sys_role sr ON sr.id = surr.role_id
+        <where >
+            <if test=" pageDTO.userId != null ">
+                surr.user_id  = #{pageDTO.userId}
+            </if>
+            <if test=" pageDTO.roleId != null ">
+                AND surr.role_id  =  #{pageDTO.roleId}
+            </if>
+        </where>
+    </select>
+</mapper>

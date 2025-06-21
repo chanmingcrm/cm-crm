@@ -1,0 +1,13 @@
+
+
+CREATE DATABASE mesh_app;
+
+CREATE DATABASE mesh_bpm;
+
+CREATE DATABASE mesh_crm;
+
+CREATE DATABASE mesh_tmp;
+
+CREATE DATABASE mesh_uaa;
+
+CREATE DATABASE mesh_upms;

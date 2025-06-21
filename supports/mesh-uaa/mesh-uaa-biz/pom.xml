@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>mesh-uaa</artifactId>
+        <groupId>com.platform</groupId>
+        <version>3.5.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mesh-uaa-biz</artifactId>
+    <version>3.5.0</version>
+    <description>认证服务中心</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-cloud</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-boot</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-authorization-server</artifactId>
+        </dependency>
+
+        <!--Auth API-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-uaa-api</artifactId>
+        </dependency>
+
+        <!--JustAuth-->
+        <dependency>
+            <groupId>me.zhyd.oauth</groupId>
+            <artifactId>JustAuth</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <!-- 需要以服务方式运行的包，按照以下进行build plugin的配置，以便支持docker打包；-->
+    <!-- 而仅作为依赖的工具型代码包，类似于start-core之类的包，则不需要这样配置，甚至不需要<build>部分内容 -->
+    <!-- 如果当前包中包含，例如：字体、证书等资源，需要配置maven-resources-plugin，以防止重要静态资源文件被spring boot重新编码 -->
+    <build>
+        <plugins>
+            <!-- spring boot 默认插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- docker打包插件 -->
+<!--            <plugin>-->
+<!--                <groupId>io.fabric8</groupId>-->
+<!--                <artifactId>docker-maven-plugin</artifactId>-->
+<!--            </plugin>-->
+            <!-- 拷贝插件 -->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-antrun-plugin</artifactId>-->
+<!--            </plugin>-->
+        </plugins>
+    </build>
+
+</project>

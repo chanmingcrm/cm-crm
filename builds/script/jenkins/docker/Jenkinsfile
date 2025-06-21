@@ -1,0 +1,342 @@
+/*
+1、脚本中尽量使用双引号，单引号中使用变量会出问题
+*/
+// ==================== ↓↓↓↓↓↓ 全局配置 ↓↓↓↓↓↓ ====================
+def GIT_AUTH = "jenkins_gitlab"
+def GIT_URL = "http://192.168.0.7:9980/product/platform/pc/mesh-platform.git"
+def DOCKER_AUTH = "jenkins_docker"
+def DOCKER_URL = "registry.cn-hangzhou.aliyuncs.com"
+def DOCKER_NAMESPACE = "demo111111111"
+def PROJECT_NAME = "mesh-platform"
+// ==================== ↓↓↓↓↓↓ 动态变量 ↓↓↓↓↓↓ ====================
+def SERVICE_NAMES = "${PROJECT_SERVICE_NAME}".split(',')
+def SSH_SERVERS = "${PUBLISH_SSH_SERVER}".split(',')
+def REMOTE_DIR = "/opt/${JOB_NAME}"
+def ETH_VALUE = ""
+def CURRENT_TIME = ""
+def PROJECT_GIT_BRANCH = "${PROJECT_GIT_BRANCH}"
+
+pipeline {
+    agent any
+    tools {
+        jdk 'jdk-21'  // 对应全局工具配置中的名称
+    }
+    options {
+        //设置在项目打印日志时带上对应时间
+        timestamps()
+        //不允许同时执行流水线，被用来防止同时访问共享资源等
+        disableConcurrentBuilds()
+        // 设置流水线运行超过n分钟，Jenkins将中止流水线
+        timeout(time: 15, unit: 'MINUTES')
+        // 表示保留20次构建历史
+        buildDiscarder(logRotator(numToKeepStr: "20"))
+    }
+
+    stages {
+        stage('初始化准备') {
+            steps {
+                script {
+                    echo '========== 初始化准备 =========='
+                    // 确定网卡类型
+                    ETH_VALUE = sh(
+                        script: """(
+                            [[ "${JAVA_OPTS}" = *'-Dspring.cloud.nacos.discovery.ip'* ]] &&
+                            echo enp5s0 || echo eth0
+                        )""",
+                        returnStdout: true
+                    ).trim()
+
+                    // 获取当前时间
+                    CURRENT_TIME = sh(
+                        script: 'date +"%Y-%m-%d %H:%M:%S"',
+                        returnStdout: true
+                    ).trim()
+
+                    // 打印关键信息
+                    echo """
+                    | 项目信息:
+                    | 任务名: ${JOB_NAME}
+                    | 工作空间: ${WORKSPACE}
+                    | 服务列表: ${SERVICE_NAMES}
+                    | Git 分支: ${PROJECT_GIT_BRANCH}
+                    | 构造ID: ${BUILD_ID}
+                    | 目标服务器: ${SSH_SERVERS}
+                    | 使用网卡: ${ETH_VALUE}
+                    | 当前时间: ${CURRENT_TIME}
+                    """
+                }
+            }
+        }
+
+        stage('拉取代码') {
+            steps {
+                script {
+                    echo '========== 拉取代码 =========='
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "${PROJECT_GIT_BRANCH}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            // 添加子模块支持（如果需要）
+                            [$class: 'SubmoduleOption',
+                             disableSubmodules: false,
+                             parentCredentials: true,
+                             recursiveSubmodules: true,
+                             reference: '',
+                             trackingSubmodules: false]
+                        ],
+                        userRemoteConfigs: [[
+                            credentialsId: "${GIT_AUTH}",
+                            url: "${GIT_URL}"
+                        ]]
+                    ])
+
+                    // 验证代码拉取结果
+                    def gitCommit = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    echo "当前代码提交: ${gitCommit}"
+                }
+            }
+        }
+
+        stage('构建部署包') {
+            steps {
+                script {
+                    echo '========== 构建部署包 =========='
+
+                    sh 'pwd'
+                    def gitDiff = sh(script: 'git diff --name-only HEAD~1 HEAD', returnStdout: true).trim()
+                    if (gitDiff) {
+                        // 有代码变更，执行 install
+                        sh 'mvn clean install -Dmaven.test.skip=true'
+                    }
+                    // 创建统一的构建目录
+                    sh 'mkdir -p ./build/server'
+
+                    // 遍历所有服务
+                    SERVICE_NAMES.each { serviceName ->
+                        echo "处理服务: ${serviceName}"
+
+                        def moduleConfig = getModuleConfig(serviceName)
+                        def modulePath = moduleConfig.path
+                        def jarName = moduleConfig.jarName
+                        if (!gitDiff) {
+                            // 无变更，执行 package
+                            sh "mvn -f ${modulePath} clean package -Dmaven.test.skip=true"
+                        }
+                        def targetDir = "./build/server/${moduleConfig.name}"
+                        // 创建目标目录
+                        sh "mkdir -p ${targetDir}"
+                        // 复制 JAR 文件
+                        if (fileExists("${modulePath}/target/${jarName}")) {
+                            sh "cp ${modulePath}/target/${jarName} ${targetDir}/${moduleConfig.name}.jar"
+                            echo "成功复制 ${jarName} 到 ${targetDir}"
+                        } else {
+                            error "错误: 找不到 ${modulePath}/target/${jarName}"
+                        }
+                    }
+                }
+            }
+        }
+//
+//         stage('构建镜像') {
+//             environment {
+//                 // 定义Docker认证配置
+//                 DOCKER_CONFIG = credentials('docker-hub-credentials')
+//             }
+//             steps {
+//                 script {
+//                     echo '========== 构建镜像 =========='
+//                     // 登录Docker仓库（使用凭证）
+//                     sh """
+//                         docker login -u ${DOCKER_CONFIG_USR} -p ${DOCKER_CONFIG_PSW} ${DOCKER_URL}
+//                     """
+//                     // 并行构建各服务镜像
+//                     def buildSteps = [:]
+//                     SERVICE_NAMES.each { serviceName ->
+//                         buildSteps["build-${serviceName}"] = {
+//                             try {
+//                                 // 定义镜像标签
+//                                 def imageTag = "${DOCKER_URL}/${DOCKER_NAMESPACE}/${PROJECT_NAME}:${serviceName}_${GIT_BRANCH_TAG}"
+//                                 echo "开始构建服务: ${serviceName} => ${imageTag}"
+//                                 // 清理旧容器和镜像
+//                                 sh """
+//                                     # 停止并删除容器
+//                                     docker ps -aq --filter "name=${PROJECT_NAME}-${serviceName}" | xargs -r docker stop | xargs -r docker rm || true
+//
+//                                     # 删除旧镜像
+//                                     docker images -q ${DOCKER_URL}/${DOCKER_NAMESPACE}/${PROJECT_NAME}:${serviceName}_* | uniq | xargs -r docker rmi --force || true
+//                                 """
+//                                 // 构建新镜像
+//                                 sh """
+//                                     cd ${WORKSPACE}/docker && \
+//                                     docker build \
+//                                         --file Dockerfile \
+//                                         --build-arg JAVA_OPTS='${JAVA_OPTS}' \
+//                                         --build-arg APP_NAME=${serviceName} \
+//                                         --build-arg APP_PORT=${servicePort} \
+//                                         --tag ${imageTag} \
+//                                         --no-cache \
+//                                         .
+//                                 """
+//                                 // 推送镜像
+//                                 sh """
+//                                     docker push ${imageTag} && \
+//                                     echo "镜像推送成功: ${imageTag}"
+//                                 """
+//                             } catch (Exception e) {
+//                                 error "构建服务 ${serviceName} 失败: ${e.getMessage()}"
+//                             }
+//                         }
+//                     }
+//                     // 并行执行构建
+//                     parallel buildSteps
+//                     // 登出Docker仓库
+//                     sh "docker logout ${DOCKER_URL}"
+//                 }
+//             }
+//         }
+
+        stage('部署到服务器') {
+            when {
+                expression { SSH_SERVERS.size() > 0 }
+            }
+            steps {
+                script {
+                    echo '========== 部署到服务器 =========='
+
+                    SSH_SERVERS.each { serverName ->
+                        echo "部署到服务器: ${serverName}"
+
+                        SERVICE_NAMES.each { serviceName ->
+                            def moduleConfig = getModuleConfig(serviceName)
+
+                            sshPublisher(
+                                publishers: [
+                                    sshPublisherDesc(
+                                        configName: "${serverName}",
+                                        transfers: [
+                                            sshTransfer(
+                                                cleanRemote: false,
+                                                excludes: '',
+                                                execCommand: """
+                                                #!/bin/bash
+
+                                                echo '=== 开始部署 ${moduleConfig.name} ==='
+                                                cd "${REMOTE_DIR}/build/script/docker" || {
+                                                    echo "错误：无法进入目录 ${REMOTE_DIR}/build/script/docker"
+                                                    exit 1
+                                                }
+                                                # 1. 停止并清理旧容器
+                                                if docker ps -a --format '{{.Names}}' | grep -q "^${moduleConfig.name}"; then
+                                                    echo "-> 停止并删除旧容器..."
+                                                    docker stop "${moduleConfig.name}" >/dev/null 2>&1 || true
+                                                    docker rm -f "${moduleConfig.name}" >/dev/null 2>&1 || true
+                                                fi
+                                                # 2. 清理旧镜像
+                                                if docker images --format '{{.Repository}}' | grep -q "^${moduleConfig.name}"; then
+                                                    echo "-> 删除旧镜像..."
+                                                    docker rmi -f "${moduleConfig.name}" >/dev/null 2>&1 || true
+                                                fi
+                                                # 3. 执行部署脚本
+                                                docker compose build --no-cache ${moduleConfig.name}
+                                                docker compose up -d --force-recreate ${moduleConfig.name}
+
+                                                # 4. 检查进程状态
+                                                sleep 5
+                                                if docker compose ps | grep -q "${moduleConfig.name}.*Up"; then
+                                                  echo "服务启动成功"
+                                                else
+                                                  echo "服务启动失败"
+                                                  exit 1
+                                                fi
+                                                """,
+                                                execTimeout: 180000, // 3分钟超时
+                                                sourceFiles: "build/server/${moduleConfig.name}/**,build/script/docker/server/Dockerfile,build/script/server/docker-compose.yml",
+                                                remoteDirectory: "${REMOTE_DIR}",
+                                                removePrefix: ""
+                                            )
+                                        ],
+                                        usePromotionTimestamp: false,
+                                        verbose: true
+                                    )
+                                ]
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // 构建结果
+    post {
+        success {
+            script {
+                echo '========== 部署成功 =========='
+                currentBuild.description = "部署成功 - ${PROJECT_GIT_BRANCH}"
+                // 可以添加通知逻辑，如邮件、Slack等
+            }
+        }
+        failure {
+            script {
+                echo '========== 部署失败 =========='
+                currentBuild.description = "部署失败 - ${PROJECT_GIT_BRANCH}"
+                // 可以添加失败通知逻辑
+            }
+        }
+        always {
+            script {
+                echo '========== 清理工作空间 =========='
+                // 清理临时文件等
+            }
+        }
+    }
+}
+
+// 获取模块配置信息的方法
+def getModuleConfig(serviceName) {
+    def config = [:]
+    switch(serviceName) {
+        case 'gateway':
+            config.name = 'mesh-gateway'
+            config.path = 'supports/mesh-gateway'
+            config.jarName = 'mesh-gateway.jar'
+            break
+        case 'uaa':
+            config.name = 'mesh-uaa'
+            config.path = 'supports/mesh-uaa/mesh-uaa-biz'
+            config.jarName = 'mesh-uaa-biz.jar'
+            break
+        case 'upms':
+            config.name = 'mesh-upms'
+            config.path = 'supports/mesh-upms/mesh-upms-biz'
+            config.jarName = 'mesh-upms-biz.jar'
+            break
+        case 'bpm':
+            config.name = 'mesh-bpm'
+            config.path = 'supports/mesh-bpm/mesh-bpm-biz'
+            config.jarName = 'mesh-bpm-biz.jar'
+            break
+        case 'app':
+            config.name = 'mesh-app'
+            config.path = 'services/mesh-app/mesh-app-biz'
+            config.jarName = 'mesh-app-biz.jar'
+            break
+        case 'crm':
+            config.name = 'mesh-crm'
+            config.path = 'services/mesh-crm/mesh-crm-biz'
+            config.jarName = 'mesh-crm-biz.jar'
+            break
+        case 'tmp':
+            config.name = 'mesh-tmp'
+            config.path = 'services/mesh-tmp/mesh-tmp-biz'
+            config.jarName = 'mesh-tmp-biz.jar'
+            break
+        // 添加其他服务的配置
+        default:
+            error "未知的服务名称: ${serviceName}"
+    }
+    return config
+}

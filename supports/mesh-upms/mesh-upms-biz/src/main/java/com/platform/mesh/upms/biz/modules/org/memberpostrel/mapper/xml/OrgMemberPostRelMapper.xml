@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.org.memberpostrel.mapper.OrgMemberPostRelMapper">
+
+    <select id="selectLevelPage"
+            resultType="com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.vo.OrgMemberLevelVO">
+        SELECT
+            l2.id AS root_id,
+            l2.level_name AS root_name,
+            l3.id AS level_id,
+            l3.level_name
+        FROM
+            (
+                SELECT DISTINCT
+                    mpr.level_root_id,
+                    mpr.level_id
+                FROM
+                    sys_account a
+                        LEFT JOIN org_member_user_rel mur ON a.user_id = mur.user_id
+                        LEFT JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
+                WHERE
+                    a.account_id = #{accountId}
+            ) l1
+                LEFT JOIN org_level l2 ON l1.level_root_id = l2.id
+                LEFT JOIN org_level l3 ON l1.level_id = l3.id
+    </select>
+
+    <select id="selectPageRel"
+            resultType="com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.vo.OrgMemberPostRelPageVO">
+        SELECT
+        ompr.*,
+        ol.level_name,
+        om.member_name,
+        op.post_name
+        FROM
+        org_member_post_rel ompr
+        LEFT JOIN org_level ol ON ol.id = ompr.level_id
+        LEFT JOIN org_member om ON om.id = ompr.member_id
+        LEFT JOIN org_post op ON op.id = ompr.post_id
+        <where>
+            <if test=" pageDTO.memberId != null ">
+                ompr.member_id  =  #{pageDTO.memberId}
+            </if>
+            <if test=" pageDTO.postId != null ">
+                AND ompr.post_id  = #{pageDTO.postId}
+            </if>
+            <if test=" pageDTO.levelId != null ">
+                AND ompr.level_id  = #{pageDTO.levelId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

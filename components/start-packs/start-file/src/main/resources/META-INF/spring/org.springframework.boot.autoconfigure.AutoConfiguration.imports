@@ -1,0 +1,4 @@
+com.platform.mesh.file.oss.configuration.StaticFileSourceConfiguration
+com.platform.mesh.file.oss.modules.local.configuration.LocalOssAutoConfiguration
+com.platform.mesh.file.oss.modules.aws.configuration.AwsOssAutoConfiguration
+

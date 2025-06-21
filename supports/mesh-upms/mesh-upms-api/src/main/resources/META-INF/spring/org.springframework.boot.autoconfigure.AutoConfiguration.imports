@@ -1,0 +1,8 @@
+com.platform.mesh.upms.api.modules.dict.base.feign.factory.RemoteDictFallbackFactory
+com.platform.mesh.upms.api.modules.sys.log.feign.factory.RemoteLogFallbackFactory
+com.platform.mesh.upms.api.modules.sys.user.feign.factory.RemoteUserFallbackFactory
+com.platform.mesh.upms.api.modules.org.member.feign.factory.RemoteOrgMemberFallbackFactory
+com.platform.mesh.upms.api.modules.msg.feign.factory.RemoteMsgFallbackFactory
+com.platform.mesh.upms.api.modules.doc.feign.factory.RemoteDocFallbackFactory
+com.platform.mesh.upms.api.modules.event.listener.SysMsgNoticeListener
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.app.biz.modules.app.formcolumn.mapper.AppFormColumnMapper">
+
+
+    <resultMap id="resultMap" type="com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn">
+        <result property="id" column="id" javaType="java.lang.Long" jdbcType="BIGINT"/>
+        <result property="parentId" column="parent_id" javaType="java.lang.Long" jdbcType="BIGINT"/>
+        <result property="moduleId" column="module_id" javaType="java.lang.Long" jdbcType="BIGINT"/>
+        <result property="formId" column="form_id" javaType="java.lang.Long" jdbcType="BIGINT"/>
+        <result property="compType" column="comp_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="compMac" column="comp_mac" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="esInit" column="es_init" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="esKind" column="es_kind" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="columnHash" column="column_hash" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="columnMac" column="column_mac" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="columnName" column="column_name" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="columnDesc" column="column_desc" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="columnType" column="column_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="columnTips" column="column_tips" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="prefixValue" column="prefix_value" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="suffixValue" column="suffix_value" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="maxValue" column="max_value" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="minValue" column="min_value" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="degreeValue" column="degree_value" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="defaultDataType" column="default_data_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="defaultDataValue" column="default_data_value" javaType="java.lang.Object" jdbcType="VARCHAR" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="setDataType" column="set_data_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="setDataValue" column="set_data_value" javaType="java.lang.Object" jdbcType="VARCHAR" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="relDataType" column="rel_data_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="relDataValue" column="rel_data_value" javaType="java.lang.Object" jdbcType="VARCHAR" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="relTransDataType" column="rel_trans_data_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="relTransDataValue" column="rel_trans_data_value" javaType="java.lang.Object" jdbcType="VARCHAR" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="uniqueFlag" column="unique_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="emptyFlag" column="empty_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="multiFlag" column="multi_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="hiddenFlag" column="hidden_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="deleteFlag" column="delete_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="xAddr" column="x_addr" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="yAddr" column="y_addr" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="stylePercent" column="style_percent" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="styleCss" column="style_css" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result property="styleSvg" column="style_svg" javaType="java.lang.String" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="getFormColumnSortList" resultMap="resultMap">
+        SELECT
+            DISTINCT
+            IFNULL(afcs.x_addr,afc.x_addr) x_addr,
+            IFNULL(afcs.y_addr,afc.y_addr) y_addr,
+            IFNULL(afct.column_name,afc.column_name) column_name,
+            afc.*
+        FROM
+            app_form_column afc
+            LEFT JOIN
+            app_form_column_tenant afct ON afct.column_id = afc.id
+            LEFT JOIN
+            app_form_column_sorting afcs ON afc.id = afcs.column_id
+        WHERE
+            afc.module_id = #{moduleId}
+            AND afc.form_id = #{formId}
+        ORDER BY y_addr,x_addr;
+    </select>
+
+    <delete id="deleteLossColumn">
+        DELETE
+        FROM
+            app_form_column
+        WHERE
+            module_id = #{moduleId} AND form_id = #{formId}
+            AND (parent_id NOT IN ( SELECT id FROM ( SELECT id FROM app_form_column WHERE module_id = #{moduleId} AND form_id = #{formId}) a ) AND parent_id != 0)
+    </delete>
+</mapper>

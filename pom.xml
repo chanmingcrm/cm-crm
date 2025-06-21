@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.platform</groupId>
+        <artifactId>dependency-pom</artifactId>
+        <version>3.5.0</version>
+        <relativePath>configurations/dependency-pom/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>mesh-platform</artifactId>
+    <packaging>pom</packaging>
+    <version>3.5.0</version>
+
+
+    <modules>
+        <module>configurations</module>
+        <module>components</module>
+        <module>supports</module>
+        <module>services</module>
+    </modules>
+
+
+    <profiles>
+        <!-- 开发环境 -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <!-- 默认环境 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!--当前环境-->
+                <profile.name>dev</profile.name>
+                <!--代码构建控制-->
+                <!--跳过构建源代码包-->
+                <skip.build.source.package>true</skip.build.source.package>
+                <!--不copy代码包到docker构建目录-->
+                <skip.copy.docker.resource>false</skip.copy.docker.resource>
+                <!--不执行git commit 构建-->
+                <skip.build.git.commit.info>false</skip.build.git.commit.info>
+                <!--Nacos服务发现地址-->
+                <discovery.server-addr>127.0.0.1:8848</discovery.server-addr>
+                <!--Nacos服务发现地址命名空间,用于支持多环境.这里必须使用ID，不能使用名称,默认为空-->
+                <discovery.namespace>single</discovery.namespace>
+                <!--Nacos服务发现地址分组,用于支持多环境.这里必须使用ID，不能使用名称,默认为空-->
+                <discovery.group>DEFAULT_GROUP</discovery.group>
+                <!--Nacos配置中心地址-->
+                <config.server-addr>127.0.0.1:8848</config.server-addr>
+                <!--Nacos配置中心命名空间,用于支持多环境.这里必须使用ID，不能使用名称,默认为空-->
+                <config.namespace>single</config.namespace>
+                <!--Nacos配置中心分组,用于支持多环境.这里必须使用ID，不能使用名称,默认为空-->
+                <config.group>DEFAULT_GROUP</config.group>
+                <!--Nacos配置文件后缀-->
+                <config.file-extension>yaml</config.file-extension>
+                <!--Sentinel服务地址-->
+                <sentinel.server-addr>127.0.0.1:8858</sentinel.server-addr>
+            </properties>
+        </profile>
+
+    </profiles>
+
+    <build>
+        <finalName>${project.name}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/*.ico</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.ico</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot-dependencies.version}</version>
+                    <configuration>
+                        <finalName>${project.build.finalName}</finalName>
+                        <layers>
+                            <enabled>true</enabled>
+                        </layers>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!--打包jar 与git commit 关联插件-->
+<!--            <plugin>-->
+<!--                <groupId>io.github.git-commit-id</groupId>-->
+<!--                <artifactId>git-commit-id-maven-plugin</artifactId>-->
+<!--                <version>${git.commit.plugin}</version>-->
+<!--            </plugin>-->
+            <!--代码格式插件，默认使用spring 规则-->
+            <plugin>
+                <groupId>io.spring.javaformat</groupId>
+                <artifactId>spring-javaformat-maven-plugin</artifactId>
+                <version>${spring.checkstyle.plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <parameters>true</parameters>
+                    <encoding>UTF-8</encoding>
+                    <!-- 启用 -parameters 编译器标志 -->
+                    <compilerArgument>-parameters</compilerArgument>
+                </configuration>
+            </plugin>
+            <!--忽略测试文件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <skipTests>${skip.build.source.package}</skipTests>
+                    <testFailureIgnore>${skip.build.source.package}</testFailureIgnore>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <configuration>
+                    <skipSource>${skip.build.source.package}</skipSource>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
+
+
+</project>

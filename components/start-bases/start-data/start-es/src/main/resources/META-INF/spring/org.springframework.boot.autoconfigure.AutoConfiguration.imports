@@ -1,0 +1,3 @@
+com.platform.mesh.es.configuration.ElasticsearchAutoConfiguration
+com.platform.mesh.es.service.impl.EsIndexServiceImpl
+com.platform.mesh.es.service.impl.EsDocServiceImpl

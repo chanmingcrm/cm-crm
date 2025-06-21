@@ -1,0 +1,242 @@
+/*
+1、脚本中尽量使用双引号，单引号中使用变量会出问题
+*/
+// ==================== ↓↓↓↓↓↓ 全局配置 ↓↓↓↓↓↓ ====================
+def GIT_AUTH = "jenkins_gitlab"
+def GIT_URL = "http://192.168.0.7:9980/product/platform/pc/mesh-platform.git"
+def PROJECT_NAME = "mesh-platform"
+// ==================== ↓↓↓↓↓↓ 动态变量 ↓↓↓↓↓↓ ====================
+def SERVICE_NAMES = "${PROJECT_SERVICE_NAME}".split(',')
+def SSH_SERVERS = "${PUBLISH_SSH_SERVER}".split(',')
+def REMOTE_DIR = "/opt/${JOB_NAME}"
+def ETH_VALUE = ""
+def CURRENT_TIME = ""
+def GIT_TAG_NAME = ""
+
+pipeline {
+    agent any
+
+    options {
+        //设置在项目打印日志时带上对应时间
+        timestamps()
+        //不允许同时执行流水线，被用来防止同时访问共享资源等
+        disableConcurrentBuilds()
+        // 设置流水线运行超过n分钟，Jenkins将中止流水线
+        timeout(time: 15, unit: 'MINUTES')
+        // 表示保留20次构建历史
+        buildDiscarder(logRotator(numToKeepStr: "20"))
+    }
+
+    stages {
+        stage('初始化准备') {
+            steps {
+                script {
+                    echo '========== 初始化准备 =========='
+                    // 确定网卡类型
+                    ETH_VALUE = sh(
+                        script: """(
+                            [[ "${JAVA_OPTS}" = *'-Dspring.cloud.nacos.discovery.ip'* ]] &&
+                            echo enp5s0 || echo eth0
+                        )""",
+                        returnStdout: true
+                    ).trim()
+
+                    // 获取当前时间
+                    CURRENT_TIME = sh(
+                        script: 'date +"%Y-%m-%d %H:%M:%S"',
+                        returnStdout: true
+                    ).trim()
+
+                    // 处理 Git 分支名
+                    GIT_TAG_NAME = GIT_BRANCH.replaceAll('origin/', '')
+
+                    // 打印关键信息
+                    echo """
+                    | 项目信息:
+                    | 任务名: ${JOB_NAME}
+                    | 工作空间: ${WORKSPACE}
+                    | 服务列表: ${SERVICE_NAMES}
+                    | Git 分支: ${GIT_TAG_NAME}
+                    | 构造ID: ${BUILD_ID}
+                    | 目标服务器: ${SSH_SERVERS}
+                    | 使用网卡: ${ETH_VALUE}
+                    | 当前时间: ${CURRENT_TIME}
+                    """
+                }
+            }
+        }
+
+        stage('拉取代码') {
+            steps {
+                script {
+                    echo '========== 拉取代码 =========='
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "${GIT_BRANCH}"]],
+                        doGenerateSubmoduleConfigurations: false,
+                        extensions: [
+                            // 添加子模块支持（如果需要）
+                            [$class: 'SubmoduleOption',
+                             disableSubmodules: false,
+                             parentCredentials: true,
+                             recursiveSubmodules: true,
+                             reference: '',
+                             trackingSubmodules: false]
+                        ],
+                        userRemoteConfigs: [[
+                            credentialsId: "${GIT_AUTH}",
+                            url: "${GIT_URL}"
+                        ]]
+                    ])
+
+                    // 验证代码拉取结果
+                    def gitCommit = sh(
+                        script: 'git rev-parse --short HEAD',
+                        returnStdout: true
+                    ).trim()
+                    echo "当前代码提交: ${gitCommit}"
+                }
+            }
+        }
+
+        stage('构建部署包') {
+            steps {
+                script {
+                    echo '========== 构建部署包 =========='
+
+                    // 创建统一的构建目录
+                    sh 'mkdir -p ./build/server'
+
+                    // 遍历所有服务
+                    SERVICE_NAMES.each { serviceName ->
+                        echo "处理服务: ${serviceName}"
+
+                        def moduleConfig = getModuleConfig(serviceName)
+                        def modulePath = moduleConfig.path
+                        def jarName = moduleConfig.jarName
+                        def targetDir = "./build/server/${moduleConfig.name}"
+
+                        // 创建目标目录
+                        sh "mkdir -p ${targetDir}"
+
+                        // 复制运行脚本
+                        sh """
+                        cp ./build/script/shell/run.sh ${targetDir}/
+                        chmod +x ${targetDir}/run.sh
+                        """
+
+                        // 复制 JAR 文件
+                        if (fileExists("${modulePath}/target/${jarName}")) {
+                            sh "cp ${modulePath}/target/${jarName} ${targetDir}/${moduleConfig.name}.jar"
+                            echo "成功复制 ${jarName} 到 ${targetDir}"
+                        } else {
+                            error "错误: 找不到 ${modulePath}/target/${jarName}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('部署到服务器') {
+            when {
+                expression { SSH_SERVERS.size() > 0 }
+            }
+            steps {
+                script {
+                    echo '========== 部署到服务器 =========='
+
+                    SSH_SERVERS.each { serverName ->
+                        echo "部署到服务器: ${serverName}"
+
+                        SERVICE_NAMES.each { serviceName ->
+                            def moduleConfig = getModuleConfig(serviceName)
+
+                            sshPublisher(
+                                publishers: [
+                                    sshPublisherDesc(
+                                        configName: "${serverName}",
+                                        transfers: [
+                                            sshTransfer(
+                                                cleanRemote: false,
+                                                excludes: '',
+                                                execCommand: """
+                                                #!/bin/bash
+
+                                                echo '=== 开始部署 ${moduleConfig.name} ==='
+                                                cd ${REMOTE_DIR}/build/server/${moduleConfig.name}
+
+                                                # 执行部署脚本
+                                                chmod +x run.sh
+                                                ./run.sh start ${moduleConfig.name}
+
+                                                # 检查进程状态
+                                                sleep 5
+                                                if pgrep -f "${moduleConfig.name}" >/dev/null; then
+                                                    echo "服务启动成功"
+                                                else
+                                                    echo "服务启动失败"
+                                                    exit 1
+                                                fi
+                                                """,
+                                                execTimeout: 180000, // 3分钟超时
+                                                sourceFiles: "build/server/${moduleConfig.name}/**",
+                                                remoteDirectory: "${REMOTE_DIR}",
+                                                removePrefix: ""
+                                            )
+                                        ],
+                                        usePromotionTimestamp: false,
+                                        verbose: true
+                                    )
+                                ]
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // 构建结果
+    post {
+        success {
+            script {
+                echo '========== 部署成功 =========='
+                currentBuild.description = "部署成功 - ${GIT_TAG_NAME}"
+                // 可以添加通知逻辑，如邮件、Slack等
+            }
+        }
+        failure {
+            script {
+                echo '========== 部署失败 =========='
+                currentBuild.description = "部署失败 - ${GIT_TAG_NAME}"
+                // 可以添加失败通知逻辑
+            }
+        }
+        always {
+            script {
+                echo '========== 清理工作空间 =========='
+                // 清理临时文件等
+            }
+        }
+    }
+}
+
+// 获取模块配置信息的方法
+def getModuleConfig(serviceName) {
+    def config = [:]
+    switch(serviceName) {
+        case 'gateway':
+            config.name = 'mesh-gateway'
+            config.path = 'supports/mesh-gateway'
+            config.jarName = 'mesh-gateway.jar'
+            break
+        case 'upms':
+            config.name = 'mesh-upms'
+            config.path = 'supports/mesh-upms/mesh-upms-biz'
+            config.jarName = 'mesh-upms-biz.jar'
+            break
+        // 添加其他服务的配置
+        default:
+            error "未知的服务名称: ${serviceName}"
+    }
+    return config
+}

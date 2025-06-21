@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.app.biz.modules.app.formcolumnsorting.mapper.AppFormColumnSortingMapper">
+
+
+    <select id="getFormColumnSortingInfoByFormId"
+            resultType="com.platform.mesh.app.biz.modules.app.formcolumnsorting.domain.vo.AppFormColumnSortingVO">
+        SELECT
+            afc.module_id,
+            afc.form_id,
+            afc.id AS column_id,
+            afc.column_name,
+            IFNULL(afcs.x_addr,afc.x_addr) x_addr,
+            IFNULL(afcs.y_addr,afc.y_addr) y_addr
+        FROM
+            app_form_column afc
+            LEFT JOIN
+            app_form_column_sorting afcs ON afc.id = afcs.column_id
+        WHERE
+            afc.form_id = #{formId}
+        ORDER BY y_addr,x_addr;
+    </select>
+</mapper>

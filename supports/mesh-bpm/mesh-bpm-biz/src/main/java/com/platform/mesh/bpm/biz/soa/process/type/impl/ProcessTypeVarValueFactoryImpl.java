@@ -1,0 +1,136 @@
+package com.platform.mesh.bpm.biz.soa.process.type.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import com.platform.mesh.bpm.biz.modules.hist.process.domain.vo.BpmHistProcessInfoVO;
+import com.platform.mesh.bpm.biz.modules.hist.varvalue.domain.po.BpmHistVarValue;
+import com.platform.mesh.bpm.biz.modules.hist.varvalue.domain.vo.BpmHistVarValueVO;
+import com.platform.mesh.bpm.biz.modules.hist.varvalue.service.IBpmHistVarValueService;
+import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
+import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.dto.BpmInstNodeSubDTO;
+import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
+import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
+import com.platform.mesh.bpm.biz.modules.inst.varvalue.domain.po.BpmInstVarValue;
+import com.platform.mesh.bpm.biz.modules.inst.varvalue.service.IBpmInstVarValueService;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
+import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
+import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
+import com.platform.mesh.utils.reflect.ObjFieldUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * 约定当前模块Manual 不引入当前模块Service,Manual是供Service引入，避免循环引入依赖
+ * @description 处理功能细化
+ * @author 蝉鸣
+ */
+@Service
+public class ProcessTypeVarValueFactoryImpl implements ProcessTypeService {
+
+    private final static Logger log = LoggerFactory.getLogger(ProcessTypeVarValueFactoryImpl.class);
+
+    @Autowired
+    private IBpmInstVarValueService bpmInstVarValueService;
+
+    @Autowired
+    private IBpmHistVarValueService bpmHistVarValueService;
+
+    /**
+     * 功能描述:
+     * 〈过程类型〉
+     * @return 正常返回:{@link ProcessTypeEnum}
+     * @author 蝉鸣
+     */
+    @Override
+    public ProcessTypeEnum processType() {
+        return ProcessTypeEnum.VAR_VALUE;
+    }
+
+    /**
+     * 功能描述:
+     * 〈添加模板〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void addTemp(BpmTempProcessDesignDTO addDTO) {
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取模板〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void getTemp(BpmTempProcessDesignVO getVO) {
+    }
+
+    /**
+     * 功能描述:
+     * 〈删除模板〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void delTemp(Long tempProcessId) {
+    }
+
+    /**
+     * 功能描述:
+     * 〈初始化实例〉
+     * @param instProcess instProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void initInst(BpmInstProcess instProcess) {
+    }
+
+    /**
+     * 功能描述:
+     * 〈添加流程实例子项〉
+     * @param addSubDTO addSubDTO
+     * @author 蝉鸣
+     */
+    @Override
+    public void addInstSub(BpmInstNodeSubDTO addSubDTO){
+
+    }
+
+    /**
+     * 功能描述:
+     * 〈添加历史记录〉
+     * @param instNode instNode
+     * @author 蝉鸣
+     */
+    @Override
+    public void addHist(BpmInstNode instNode){
+        List<BpmInstVarValue> varValues = bpmInstVarValueService.selectVarValueByInstNodeId(instNode.getId());
+        List<BpmHistVarValue> bpmHistVarValues = BeanUtil.copyToList(varValues, BpmHistVarValue.class, ObjFieldUtil.ignoreDefault());
+        bpmHistVarValueService.saveBatch(bpmHistVarValues);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取流程实例〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void getInst(BpmInstProcessDesignVO getVO) {
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取实例历史〉
+     * @param getVO getVO
+     * @author 蝉鸣
+     */
+    @Override
+    public void getHist(BpmHistProcessInfoVO getVO) {
+        List<BpmHistVarValue> histVarValues = bpmHistVarValueService.lambdaQuery()
+                .eq(BpmHistVarValue::getInstProcessId, getVO.getInstProcessId())
+                .list();
+        getVO.setVarValueVOs(BeanUtil.copyToList(histVarValues, BpmHistVarValueVO.class));
+    }
+}

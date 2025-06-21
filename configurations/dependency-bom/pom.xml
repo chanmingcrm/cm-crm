@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.platform</groupId>
+    <artifactId>dependency-bom</artifactId>
+    <version>3.5.0</version>
+    <packaging>pom</packaging>
+
+
+
+    <properties>
+        <!--JDK 版本-->
+        <java.version>21</java.version>
+        <!--Maven Plugin 相关组件 顶层pom 中版本保持一致-->
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <!--项目编码-->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!--Spring 家族-->
+        <!-- SAS版本 -->
+        <spring-security-oauth2-authorization-server.version>1.5.0</spring-security-oauth2-authorization-server.version>
+        <!-- 服务监控 -->
+        <spring-boot-admin.version>3.5.0</spring-boot-admin.version>
+
+        <!-- 应用开发辅助工具组件 -->
+        <!-- okhttp -->
+        <okhttp.version>4.12.0</okhttp.version>
+        <!-- aviator 表达式引擎 -->
+        <aviator.version>5.4.3</aviator.version>
+        <!-- 模板引擎 -->
+        <velocity.version>2.3</velocity.version>
+
+        <!-- 文档生成 -->
+        <swagger.version>2.2.30</swagger.version>
+        <springdoc.version>2.8.8</springdoc.version>
+        <knife4j.version>4.5.0</knife4j.version>
+
+        <!-- 阿里巴巴开源工具依赖 -->
+        <!-- FastExcel -->
+        <fastexcel.version>1.2.0</fastexcel.version>
+        <!-- fastjson2 -->
+        <fastjson2.version>2.0.57</fastjson2.version>
+
+
+        <!--第三方starter-->
+        <!-- mybatis-plus -->
+        <!-- 多数据源 -->
+        <dynamic-datasource.version>4.3.1</dynamic-datasource.version>
+        <!-- ORM -->
+        <mybatis-plus-boot.version>3.5.12</mybatis-plus-boot.version>
+
+        <!-- redisson -->
+        <redisson.version>3.49.0</redisson.version>
+
+        <!-- Elasticsearch -->
+        <elasticsearch-java.version>9.0.2</elasticsearch-java.version>
+
+        <!-- 国内开源通用组件 -->
+        <hutool.version>5.8.38</hutool.version>
+        <justAuth.version>1.16.7</justAuth.version>
+        <tianai-captcha.version>1.5.2</tianai-captcha.version>
+        <xxl-job.version>3.1.0</xxl-job.version>
+
+        <!-- commons -->
+        <commons-io.version>2.19.0</commons-io.version>
+        <commons-compress.version>1.27.1</commons-compress.version>
+
+        <!--start-file版本-->
+        <!-- 文档解析 -->
+        <tika-core.version>3.2.0</tika-core.version>
+        <!-- 图片处理 -->
+        <thumbnailator.version>0.4.20</thumbnailator.version>
+        <!-- 对象存储 -->
+        <awssdk-s3.version>2.31.63</awssdk-s3.version>
+        <!-- 短信发送 -->
+        <sms4j.version>3.3.5</sms4j.version>
+
+        <!--项目版本-->
+        <platform.version>3.5.0</platform.version>
+
+    </properties>
+
+
+
+    <!--依赖版本声明-->
+    <dependencyManagement>
+        <dependencies>
+            <!-- ================================spring家族服务开始================================ -->
+            <!-- spring 认证鉴权服务器 -->
+            <!-- Spring Authorization Server -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-oauth2-authorization-server</artifactId>
+                <version>${spring-security-oauth2-authorization-server.version}</version>
+            </dependency>
+
+            <!-- SpringBoot Admin -->
+            <dependency>
+                <groupId>de.codecentric</groupId>
+                <artifactId>spring-boot-admin-starter-server</artifactId>
+                <version>${spring-boot-admin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.codecentric</groupId>
+                <artifactId>spring-boot-admin-starter-client</artifactId>
+                <version>${spring-boot-admin.version}</version>
+            </dependency>
+            <!-- ================================spring家族服务结束================================ -->
+
+            <!-- ================================第三方starter服务开始================================ -->
+            <!-- 应用开发辅助工具组件 -->
+            <!-- okhttp -->
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>${okhttp.version}</version>
+            </dependency>
+
+            <!-- aviator 表达式引擎 -->
+            <dependency>
+                <groupId>com.googlecode.aviator</groupId>
+                <artifactId>aviator</artifactId>
+                <version>${aviator.version}</version>
+            </dependency>
+
+            <!-- 模板引擎 -->
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity-engine-core</artifactId>
+                <version>${velocity.version}</version>
+            </dependency>
+
+            <!-- knife4j -->
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-gateway-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
+
+            <!-- excel工具 -->
+            <dependency>
+                <groupId>cn.idev.excel</groupId>
+                <artifactId>fastexcel</artifactId>
+                <version>${fastexcel.version}</version>
+            </dependency>
+            <!-- 阿里巴巴开源工具依赖 -->
+            <!--json工具-->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2-extension-spring6</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
+
+            <!-- mybatis-plus -->
+            <!-- 多数据源 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+                <version>${dynamic-datasource.version}</version>
+            </dependency>
+            <!-- ORM -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-jsqlparser</artifactId>
+                <version>${mybatis-plus-boot.version}</version>
+            </dependency>
+
+            <!--redisson-->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+
+            <!--elasticsearch-->
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>${elasticsearch-java.version}</version>
+            </dependency>
+
+            <!-- 国内开源通用组件 -->
+            <!--hutool-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <!--JustAuth-->
+            <dependency>
+                <groupId>me.zhyd.oauth</groupId>
+                <artifactId>JustAuth</artifactId>
+                <version>${justAuth.version}</version>
+            </dependency>
+            <!--验证码-->
+            <dependency>
+                <groupId>cloud.tianai.captcha</groupId>
+                <artifactId>tianai-captcha-springboot-starter</artifactId>
+                <version>${tianai-captcha.version}</version>
+            </dependency>
+            <!--任务调度-->
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job.version}</version>
+            </dependency>
+
+            <!-- commons常用工具类 -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>${commons-compress.version}</version>
+            </dependency>
+
+            <!--start-file版本-->
+            <!-- 文档解析Tika -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-core.version}</version>
+            </dependency>
+            <!-- 图片处理 https://github.com/coobird/thumbnailator -->
+            <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
+            </dependency>
+            <!-- 对象存储 -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${awssdk-s3.version}</version>
+            </dependency>
+
+            <!-- 短信框架 -->
+            <dependency>
+                <groupId>org.dromara.sms4j</groupId>
+                <artifactId>sms4j-spring-boot-starter</artifactId>
+                <version>${sms4j.version}</version>
+            </dependency>
+
+            <!-- ================================第三方starter服务结束================================ -->
+
+            <!-- ================================自定义服务开始================================ -->
+
+            <!--start-cloud-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-cloud</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-boot-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-boot</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-web-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-web</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--公共安全配置模块-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-authorization-server</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-resource-server</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-security-core</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--通用工具-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-utils</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--日志模块-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-log</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--通用核心-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-core</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!-- 接口文档模块 -->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-swagger</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!-- elasticsearch -->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-es</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--Redis缓存模块-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-redis</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!-- jdbc -->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-mybatis-plus</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--多数据源-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-datasource</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!-- 数据权限 -->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-datascope</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-rpc-feign-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-rpc-feign</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-search-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-search</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-packs-captcha-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-captcha</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-packs-file-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-file</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-packs-job-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-job</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--短信中心-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-message-sms</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+            <!-- ================================自定义服务结束================================ -->
+
+            <!-- =================================服务API开始================================= -->
+            <!-- ===============================基础服务API开始================================ -->
+            <!--认证授权 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-uaa-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--系统服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-upms-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--应用服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-app-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--流程服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-bpm-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+            <!-- ===============================基础服务API结束================================ -->
+
+            <!-- ===============================业务服务API开始================================ -->
+
+            <!--客户关系服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-crm-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+
+            <!--任务计划服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-tmp-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+
+            <!-- ===============================业务服务API结束================================ -->
+            <!-- =================================服务API结束================================= -->
+
+
+        </dependencies>
+    </dependencyManagement>
+</project>

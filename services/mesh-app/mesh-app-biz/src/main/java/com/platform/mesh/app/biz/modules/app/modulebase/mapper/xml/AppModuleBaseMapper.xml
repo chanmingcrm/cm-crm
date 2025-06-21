@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.app.biz.modules.app.modulebase.mapper.AppModuleBaseMapper">
+
+    <resultMap id="idMap" type="com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelDictVO">
+        <result property="dictId" column="rel_data_value" javaType="java.lang.Long" jdbcType="VARCHAR" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+    </resultMap>
+
+    <select id="selectMPage"
+            resultType="com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase">
+        SELECT
+        IFNULL(ambt.module_name,amb.module_name) module_name,
+        amb.*
+        FROM
+        app_module_base amb
+        LEFT JOIN
+        app_module_base_tenant ambt ON ambt.module_id = amb.id
+        <where>
+            <if test=" pageDTO.parentId != null ">
+                AND amb.parent_id = #{pageDTO.parentId}
+            </if>
+            <if test=" pageDTO.appId != null ">
+                AND amb.app_id = #{pageDTO.appId}
+            </if>
+            <if test=" pageDTO.delFlag != null ">
+                AND amb.del_flag = #{pageDTO.delFlag}
+            </if>
+            <if test=" pageDTO.moduleName!=null and pageDTO.moduleName!='' ">
+                AND amb.module_name LIKE CONCAT('%',#{pageDTO.moduleName},'%')
+            </if>
+            <if test=" pageDTO.moduleType!=null and pageDTO.moduleType.size() > 0 ">
+                AND amb.module_type IN
+                <foreach collection="pageDTO.moduleType" item="moduleType" open="(" close=")" separator=",">
+                    #{moduleType}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRelDictPage" resultMap="idMap">
+        SELECT
+            distinct rel_data_value
+        FROM
+            app_form_column
+        WHERE
+            module_id = #{pageDTO.moduleId}
+            AND comp_mac IN
+            <foreach collection="dictComps" item="comp" open="(" close=")" separator=",">
+                #{comp}
+            </foreach>
+            AND rel_data_value IS NOT NULL
+    </select>
+</mapper>
