@@ -64,7 +64,9 @@
         <td><img src="./builds/assets/intro/ui_image.png" alt="图片模式"/></td>
     </tr>
   </table>
+
 - 多账户
+
   同一个用户可以创建多个登录账号，支持不同类型的登录方式。[**参考文档**](http://doc.woscosmos.com/zh/tutorial/third/dingtalk.html)
   ![](builds/assets/intro/account.png)
   例如：**账号1**：手机/密码，**账号2**：手机/验证码，**账号3**：邮箱/密码，**账号4**：钉钉登录，**账号5**：企微登录，**账号6**：飞书登录。
