@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.platform</groupId>
+        <artifactId>mesh-ai</artifactId>
+        <version>4.1.0</version>
+    </parent>
+
+    <artifactId>mesh-ai-biz</artifactId>
+    <version>4.1.0</version>
+    <description>AI管理服务</description>
+
+    <properties>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!--AI集成版本-->
+        <spring-ai.version>2.0.0</spring-ai.version>
+        <openai-java.version>4.50.0</openai-java.version>
+        <alibaba-ai.version>2.0.0-M1.1</alibaba-ai.version>
+        <mcp-security.version>0.1.14</mcp-security.version>
+        <coze-sdk-java.version>0.4.2</coze-sdk-java.version>
+        <dashscope-sdk-java.version>2.22.29</dashscope-sdk-java.version>
+        <appbuilder-sdk-java.version>0.9.1</appbuilder-sdk-java.version>
+
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-cloud</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-boot</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-resource-server</artifactId>
+        </dependency>
+
+        <!-- job -->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-job</artifactId>
+        </dependency>
+
+        <!--通用搜索-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-search</artifactId>
+        </dependency>
+
+        <!--通用核心-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-ai-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-crm-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-upms-api</artifactId>
+        </dependency>
+
+        <!--MCP 服务端-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+        </dependency>
+        <!--MCP 安全扩展，显式锁定与 Spring AI 2.0.x 兼容的版本-->
+        <dependency>
+            <groupId>org.springaicommunity</groupId>
+            <artifactId>mcp-server-security</artifactId>
+            <version>${mcp-security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+
+        <!--文档解析Tika-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-tika-document-reader</artifactId>
+        </dependency>
+
+        <!--AI集成-->
+        <!--OpenAI-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-openai</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.openai</groupId>
+            <artifactId>openai-java-client-okhttp</artifactId>
+            <version>${openai-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-model</artifactId>
+        </dependency>
+        <!--deepseek-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-deepseek</artifactId>
+        </dependency>
+<!--        &lt;!&ndash;通义千问&ndash;&gt;-->
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-dashscope</artifactId>
+            <version>${alibaba-ai.version}</version>
+        </dependency>
+
+        <!--向量存储：仅限小型或则测试使用,中大型应用使用PgVector、Milvus 或专用向量数据库-->
+        <dependency>
+            <!-- Redis：https://redis.io/docs/latest/develop/get-started/vector-database/ -->
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-redis-store</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>7.4.1</version>
+        </dependency>
+        <!--向量存储：ES-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-elasticsearch-store</artifactId>
+        </dependency>
+        <!--向量存储：Milvus-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.ai</groupId>-->
+<!--            <artifactId>spring-ai-starter-vector-store-milvus</artifactId>-->
+<!--            <version>${spring-ai.version}</version>-->
+<!--        </dependency>-->
+
+        <!--Coze智能体 SDK-->
+        <dependency>
+            <groupId>com.coze</groupId>
+            <artifactId>coze-api</artifactId>
+            <version>${coze-sdk-java.version}</version>
+        </dependency>
+        <!--百炼智能体 SDK-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dashscope-sdk-java</artifactId>
+            <version>${dashscope-sdk-java.version}</version>
+        </dependency>
+        <!--千帆智能体 SDK-->
+        <dependency>
+            <groupId>com.baidubce</groupId>
+            <artifactId>appbuilder</artifactId>
+            <version>${appbuilder-sdk-java.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>netty-server</artifactId>
+            <!-- 排除swagger依赖冲突 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>io.swagger.core.v3</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.swagger</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <!-- 需要以服务方式运行的包，按照以下进行build plugin的配置，以便支持docker打包；-->
+    <!-- 而仅作为依赖的工具型代码包，类似于start-core之类的包，则不需要这样配置，甚至不需要<build>部分内容 -->
+    <!-- 如果当前包中包含，例如：字体、证书等资源，需要配置maven-resources-plugin，以防止重要静态资源文件被spring boot重新编码 -->
+    <build>
+        <plugins>
+            <!-- spring boot 默认插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- docker打包插件 -->
+            <!--            <plugin>-->
+            <!--                <groupId>io.fabric8</groupId>-->
+            <!--                <artifactId>docker-maven-plugin</artifactId>-->
+            <!--            </plugin>-->
+        </plugins>
+    </build>
+</project>

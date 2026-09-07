@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.ai.knowledge.mapper.AiKnowledgeMapper">
+
+
+    <select id="selectMPage" resultType="com.platform.mesh.ai.biz.modules.ai.knowledge.domain.vo.AiKnowledgeVO">
+        SELECT
+            k.*,
+            m.model_name
+        FROM
+            ai_knowledge k
+            LEFT JOIN ai_model m ON k.model_id = m.id
+        ORDER BY
+            k.create_time DESC
+    </select>
+</mapper>

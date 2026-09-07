@@ -35,7 +35,7 @@ public class GlobalExceptionAdviceHandler {
 	 */
 	@ExceptionHandler(Exception.class)
 	public Result<Object> handleException(Exception e) {
-		log.error(e.getLocalizedMessage(), e);
+		log.error(e.getMessage(), e);
 		Throwable cause = e.getCause();
 		if (cause instanceof BaseException baseException) {
             return Result.restResult(baseException.getModule(),baseException.getCode(),baseException.getDesc(),baseException.getArgs());

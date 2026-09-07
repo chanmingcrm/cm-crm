@@ -6,6 +6,7 @@ import com.platform.mesh.app.biz.modules.app.modulebase.domain.dto.AppModuleBase
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.dto.AppModuleRelPageDTO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelDictVO;
+import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelVO;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +23,8 @@ public interface AppModuleBaseMapper extends BaseMapper<AppModuleBase> {
             , @Param("dictComps") List<String> dictComps);
 
     MPage<AppModuleBase> selectMPage(MPage<AppModuleBase> moduleBaseMPage,@Param("pageDTO") AppModuleBasePageDTO pageDTO);
+
+    AppModuleBase getModuleBaseInfoById(@Param("moduleId") Long moduleId);
+
+    List<AppModuleRelVO> selectRelModuleList(@Param("pageDTO") AppModuleRelPageDTO pageDTO);
 }

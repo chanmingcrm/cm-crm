@@ -2,10 +2,14 @@ package com.platform.mesh.crm.biz.modules.crm.precustomer.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.dto.CheckDTO;
 import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.po.CrmPreCustomer;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.AbatractVO;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO;
 import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CrmPreCustomerVO;
 import com.platform.mesh.crm.biz.modules.crm.precustomer.service.ICrmPreCustomerService;
 import com.platform.mesh.crm.biz.modules.crm.precustomerdata.domain.po.CrmPreCustomerData;
@@ -108,7 +112,7 @@ public class CrmPreCustomerController extends BaseController{
     @Log(moduleName = "客户关系客户对象管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/customer/edit")
     public Result<CrmPreCustomerVO> editPreCustomer(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreCustomer crmPreCustomer = crmPreCustomerService.editData(dataEditDTO, CrmPreCustomer.class);
+        CrmPreCustomer crmPreCustomer = crmPreCustomerService.editData(dataEditDTO, CrmPreCustomer.class, CrmPreCustomerData.class);
         return Result.success(BeanUtil.copyProperties(crmPreCustomer,CrmPreCustomerVO.class));
     }
     
@@ -178,8 +182,12 @@ public class CrmPreCustomerController extends BaseController{
     @Operation(summary = "导入客户关系客户对象")
     @Log(moduleName = "客户关系客户对象管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/customer/import")
-    public Result<Boolean> importPreCustomer(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreCustomerService.importData(moduleId,formId,file, CrmPreCustomer.class, CrmPreCustomerData.class));
+    public Result<ImportVO> importPreCustomer(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreCustomerService.importData(importDTO, CrmPreCustomer.class, CrmPreCustomerData.class));
     }
 
    /**
@@ -197,6 +205,31 @@ public class CrmPreCustomerController extends BaseController{
                 return crmPreCustomerService.selectEsPage(exportDTO);
             } ,exportDTO.getHeadDTOS(),exportDTO.getModuleName(),response
         );
+    }
+
+   /**
+     * 功能描述:
+     * 〈查重客户关系客户对象〉
+     * @param checkDTO checkDTO
+     * @author 蝉鸣
+     */
+    @Operation(summary = "查重客户关系客户对象")
+    @PostMapping("/crm/pre/customer/check")
+    public Result<List<CheckVO>> checkPreCustomer(@RequestBody CheckDTO checkDTO) {
+        List<CheckVO> page = crmPreCustomerService.checkPreCustomer(checkDTO);
+        return Result.success(page);
+    }
+
+   /**
+     * 功能描述:
+     * 〈摘要〉
+     * @param customerId customerId
+     * @author 蝉鸣
+     */
+    @Operation(summary = "摘要")
+    @PostMapping("/crm/pre/customer/abstract/{customerId}")
+    public Result<AbatractVO> abstractPreCustomer(@PathVariable Long customerId) {
+        return Result.success(crmPreCustomerService.abstractPreCustomer(customerId));
     }
 
 }

@@ -1,10 +1,7 @@
 package com.platform.mesh.app.biz.modules.app.formcolumnsetprocess.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
-import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.dto.AppFormColumnSetEventDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.po.AppFormColumnSetEvent;
-import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.vo.AppFormColumnSetEventVO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetprocess.domain.po.AppFormColumnSetProcess;
 
 import java.util.Map;
@@ -26,4 +23,5 @@ public interface IAppFormColumnSetProcessService extends IService<AppFormColumnS
      * @author 蝉鸣
      */
     void copyFormColumnSetProcess(Long sourceModuleId, Long targetModuleId, Map<Long, AppFormColumnSetEvent> copyEvent);
+
 }

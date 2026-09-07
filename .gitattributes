@@ -1,1 +1,3 @@
 *.tsx linguist-language=Java
+builds/script/sql/pub-gitee/*.sql text eol=lf
+builds/script/sql/pub-gitee/baseline/*.sql text eol=lf

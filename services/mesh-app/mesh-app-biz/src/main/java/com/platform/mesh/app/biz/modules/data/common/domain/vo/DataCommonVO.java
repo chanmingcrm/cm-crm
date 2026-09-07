@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段数据VO")
+@Schema(description ="表单字段数据VO")
 public class DataCommonVO extends AppVO {
 
     /**

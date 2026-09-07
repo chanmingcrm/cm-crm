@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.ondemand.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.ondemand.domain.po.CrmOnDemand;
 import com.platform.mesh.crm.biz.modules.crm.ondemand.domain.vo.CrmOnDemandVO;
 import com.platform.mesh.crm.biz.modules.crm.ondemand.service.ICrmOnDemandService;
@@ -113,7 +110,7 @@ public class CrmOnDemandController extends BaseController{
     @Log(moduleName = "客户关系需求整理管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/demand/edit")
     public Result<CrmOnDemandVO> editOnDemand(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnDemand crmOnDemand = crmOnDemandService.editData(dataEditDTO, CrmOnDemand.class);
+        CrmOnDemand crmOnDemand = crmOnDemandService.editData(dataEditDTO, CrmOnDemand.class, CrmOnDemandData.class);
         return Result.success(BeanUtil.copyProperties(crmOnDemand, CrmOnDemandVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmOnDemandController extends BaseController{
     @Operation(summary = "导入客户关系需求整理")
     @Log(moduleName = "客户关系需求整理管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/demand/import")
-    public Result<Boolean> importOnDemand(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnDemandService.importData(moduleId,formId,file, CrmOnDemand.class, CrmOnDemandData.class));
+    public Result<ImportVO> importOnDemand(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnDemandService.importData(importDTO, CrmOnDemand.class, CrmOnDemandData.class));
     }
     
     /**

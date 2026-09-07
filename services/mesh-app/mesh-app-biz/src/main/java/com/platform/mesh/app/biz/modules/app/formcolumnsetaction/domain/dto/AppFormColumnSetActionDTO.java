@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段动作DTO")
+@Schema(description ="表单字段动作DTO")
 public class AppFormColumnSetActionDTO extends BaseDTO {
 
     /**

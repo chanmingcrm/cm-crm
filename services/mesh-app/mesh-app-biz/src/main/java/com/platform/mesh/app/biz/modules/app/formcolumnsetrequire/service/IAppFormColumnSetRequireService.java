@@ -1,7 +1,7 @@
 package com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.vo.AppFormColumnSetEventVO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.dto.AppFormColumnSetRequireDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.dto.AppFormColumnSetRequireQueryDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
@@ -80,8 +80,15 @@ public interface IAppFormColumnSetRequireService extends IService<AppFormColumnS
      * 〈复制字段请求〉
      * @param sourceModuleId sourceModuleId
      * @param targetModuleId targetModuleId
-     * @param copyColumn copyColumn
      * @author 蝉鸣
      */
-    void copyFormColumnSetRequire(Long sourceModuleId, Long targetModuleId, Map<Long, AppFormColumn> copyColumn);
+    Map<Long, AppFormColumnSetRequire> copyFormColumnSetRequire(Long sourceModuleId, Long targetModuleId);
+
+    /**
+     * 功能描述:
+     * 〈查询用于Ai创建的添加接口〉
+     * @return 正常返回:{@link List<AppFormColumnSetEventVO>}
+     * @author 蝉鸣
+     */
+    List<AppFormColumnSetRequireVO> selectAddRequire();
 }

@@ -15,13 +15,19 @@ import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessVO
 import com.platform.mesh.bpm.biz.modules.inst.variable.domain.po.BpmInstVariable;
 import com.platform.mesh.bpm.biz.modules.inst.variable.domain.vo.BpmInstVariableVO;
 import com.platform.mesh.bpm.biz.modules.inst.variable.service.IBpmInstVariableService;
+import com.platform.mesh.bpm.biz.modules.temp.action.domain.po.BpmTempAction;
+import com.platform.mesh.bpm.biz.modules.temp.event.domain.po.BpmTempEvent;
 import com.platform.mesh.bpm.biz.modules.temp.line.domain.dto.BpmTempLineDTO;
+import com.platform.mesh.bpm.biz.modules.temp.line.domain.po.BpmTempLine;
+import com.platform.mesh.bpm.biz.modules.temp.line.service.IBpmTempLineService;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessVO;
 import com.platform.mesh.bpm.biz.modules.temp.variable.domain.po.BpmTempVariable;
 import com.platform.mesh.bpm.biz.modules.temp.variable.domain.vo.BpmTempVariableVO;
 import com.platform.mesh.bpm.biz.modules.temp.variable.service.IBpmTempVariableService;
+import com.platform.mesh.bpm.biz.soa.event.rel.enums.EventRelEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.core.enums.logic.type.LogicTypeEnum;
@@ -31,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -51,6 +58,9 @@ public class ProcessTypeVariableFactoryImpl implements ProcessTypeService {
 
     @Autowired
     private IBpmInstVariableService bpmInstVariableService;
+
+    @Autowired
+    private IBpmTempLineService bpmTempLineService;
 
     @Autowired
     private IBpmInstLineService bpmInstLineService;
@@ -200,5 +210,40 @@ public class ProcessTypeVariableFactoryImpl implements ProcessTypeService {
     @Override
     public void getHist(BpmHistProcessInfoVO getVO) {
 
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+        List<BpmTempVariable> bpmTempVariables = bpmTempVariableService.selectVariablesByTempProcessIdId(sourceProcess.getId());
+        if(CollUtil.isEmpty(bpmTempVariables)){
+            return;
+        }
+        List<BpmTempLine> bpmTempLines = bpmTempLineService.selectLinesByTemplateId(targetProcess.getId());
+        if(CollUtil.isEmpty(bpmTempLines)){
+            return;
+        }
+        Map<String, BpmTempLine> lineMap = bpmTempLines.stream().collect(Collectors.toMap(BpmTempLine::getLineHash, Function.identity()));
+        bpmTempVariables.forEach(bpmTempVariable -> {
+            bpmTempVariable.setId(null);
+            bpmTempVariable.setTempProcessId(targetProcess.getId());
+            bpmTempVariable.setCreateTime(LocalDateTime.now());
+            bpmTempVariable.setCreateUserId(targetProcess.getCreateUserId());
+            bpmTempVariable.setUpdateTime(LocalDateTime.now());
+            bpmTempVariable.setUpdateUserId(targetProcess.getUpdateUserId());
+            bpmTempVariable.setScopeOrgId(targetProcess.getScopeOrgId());
+            bpmTempVariable.setScopeUserId(targetProcess.getScopeUserId());
+            if(lineMap.containsKey(bpmTempVariable.getTempLineHash())){
+                BpmTempLine bpmTempLine = lineMap.get(bpmTempVariable.getTempLineHash());
+                bpmTempVariable.setTempLineId(bpmTempLine.getId());
+            }
+        });
+        bpmTempVariableService.saveBatch(bpmTempVariables);
     }
 }

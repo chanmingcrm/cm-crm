@@ -9,6 +9,7 @@ import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleBaseVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleFastPageVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelDictVO;
+import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelVO;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.api.modules.dict.base.domian.bo.DictBaseBO;
 
@@ -52,7 +53,7 @@ public interface IAppModuleBaseService extends IService<AppModuleBase> {
 
     /**
      * 功能描述:
-     * 〈根据表单名称获取模块信息:此方法主要用于定时任务执行需要〉
+     * 〈根据表单名称获取模块信息:此方法主要用于定时任务执行需要忽略数据权限隔离〉
      * @param appTables appTables
      * @return 正常返回:{@link List<AppModuleBase>}
      * @author 蝉鸣
@@ -116,11 +117,11 @@ public interface IAppModuleBaseService extends IService<AppModuleBase> {
     /**
      * 功能描述:
      * 〈初始化模块ES〉
-     * @param moduleBaseId moduleBaseId
+     * @param tableSchema tableSchema
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
-    List<AppModuleBase> initModuleBaseEs(Long moduleBaseId);
+    List<AppModuleBase> initModuleBaseEs(String tableSchema);
 
     /**
      * 功能描述:
@@ -149,4 +150,12 @@ public interface IAppModuleBaseService extends IService<AppModuleBase> {
      */
     MPage<AppModuleRelDictVO> selectRelDictPage(AppModuleRelPageDTO appModuleRelPageDTO);
 
+    /**
+     * 功能描述:
+     * 〈查询当前模块关联的模块信息〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link List<AppModuleRelVO>}
+     * @author 蝉鸣
+     */
+    List<AppModuleRelVO> selectRelModuleList(AppModuleRelPageDTO pageDTO);
 }

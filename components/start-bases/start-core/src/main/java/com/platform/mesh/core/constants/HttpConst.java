@@ -82,11 +82,11 @@ public interface HttpConst {
 	/**
 	 *  application/json; charset=utf-8
 	 */
-	String APPLICATION_JSON_CHARSET = "application/json; charset=UTF-8";
+	String APPLICATION_JSON_CHARSET = "application/json;charset=utf-8";
 	/**
 	 *  下载
 	 */
-	String APPLICATION_STREAM_CHARSET = "application/octet-stream; charset=UTF-8";
+	String APPLICATION_STREAM_CHARSET = "application/octet-stream;charset=utf-8";
 	/**
 	 *  excel导出
 	 */
@@ -100,7 +100,7 @@ public interface HttpConst {
 	/**
 	 *  文件头前缀
 	 */
-	String FILE_NAME_PREFIX = "attachment; filename=";
+	String FILE_NAME_PREFIX = "attachment;filename=";
 
 	/**
 	 *  Excel文件头前缀
@@ -144,5 +144,10 @@ public interface HttpConst {
 	 * 请求header
 	 */
 	String HEADER_FROM_IN = REQUEST_SOURCE + "=" + INNER;
+
+	/**
+	 * MCP 内部工具调用路径
+	 */
+	String INTERNAL_MCP_TOOL_INVOKE_PATH = "/api/internal/mcp/tools/invoke";
 
 }

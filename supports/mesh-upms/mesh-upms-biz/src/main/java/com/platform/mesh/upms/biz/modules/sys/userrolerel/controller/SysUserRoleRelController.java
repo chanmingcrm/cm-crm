@@ -1,11 +1,9 @@
 package com.platform.mesh.upms.biz.modules.sys.userrolerel.controller;
 
 import com.platform.mesh.core.application.controller.BaseController;
-import com.platform.mesh.log.annotation.Log;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
+import com.platform.mesh.log.annotation.Log;
 import com.platform.mesh.mybatis.plus.extention.MPage;
-import com.platform.mesh.upms.biz.modules.sys.role.domain.dto.SysRolePageDTO;
-import com.platform.mesh.upms.biz.modules.sys.role.domain.vo.SysRoleVO;
 import com.platform.mesh.upms.biz.modules.sys.userrolerel.domain.dto.SysUserRoleRelDTO;
 import com.platform.mesh.upms.biz.modules.sys.userrolerel.domain.dto.SysUserRoleRelPageDTO;
 import com.platform.mesh.upms.biz.modules.sys.userrolerel.domain.vo.SysUserRoleRelVO;
@@ -74,7 +72,6 @@ public class SysUserRoleRelController extends BaseController {
 	public Result<Boolean> deleteUserRole(@PathVariable(value = "relId")Long relId) {
 		return Result.success(sysUserRoleRelService.deleteUserRole(relId));
 	}
-
 
 }
 

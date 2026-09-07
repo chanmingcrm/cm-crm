@@ -7,11 +7,13 @@ import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
-import com.platform.mesh.bpm.biz.soa.process.pass.enums.ProcessPassEnum;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessPassEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +79,7 @@ public class ProcessTypeBaseFactoryImpl implements ProcessTypeService {
         IBpmInstProcessService instProcessService = SpringContextHolderUtil.getBean(IBpmInstProcessService.class);
         instProcess.setRunFlag(ProcessRunEnum.STAND.getValue());
         instProcess.setPassFlag(ProcessPassEnum.INIT.getValue());
+        instProcess.setCommitFlag(YesOrNoEnum.YES.getValue());
         instProcessService.save(instProcess);
     }
 
@@ -119,6 +122,18 @@ public class ProcessTypeBaseFactoryImpl implements ProcessTypeService {
      */
     @Override
     public void getHist(BpmHistProcessInfoVO getVO) {
+
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
 
     }
 }

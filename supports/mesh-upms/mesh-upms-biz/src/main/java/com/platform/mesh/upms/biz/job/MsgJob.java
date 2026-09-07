@@ -38,7 +38,7 @@ public class MsgJob {
     public void msgNoticeClearJobHandler() throws Exception {
         log.info(">>>消息提醒定时清理任务开始执行！！！");
         XxlJobHelper.log(">>>消息提醒定时清理任务开始执行！！！");
-        msgNoticeService.handleNotice();
+        msgNoticeService.clearNotice();
     }
 
 }

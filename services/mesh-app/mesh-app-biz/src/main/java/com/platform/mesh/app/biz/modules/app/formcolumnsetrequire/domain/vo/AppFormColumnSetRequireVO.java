@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段请求VO")
+@Schema(description ="表单字段请求VO")
 public class AppFormColumnSetRequireVO extends BaseVO {
 
 
@@ -32,6 +32,12 @@ public class AppFormColumnSetRequireVO extends BaseVO {
      */
     @Schema(description = "模块ID")
     private Long moduleId;
+
+    /**
+     * 模块名称
+     */
+    @Schema(description = "模块名称")
+    private String moduleName;
 
 
     /**

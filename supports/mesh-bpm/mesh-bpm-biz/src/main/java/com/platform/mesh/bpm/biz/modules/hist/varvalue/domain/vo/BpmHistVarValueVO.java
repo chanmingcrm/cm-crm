@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.util.List;
-
 
 /**
  * @description 变量值VO
@@ -21,30 +19,32 @@ import java.util.List;
 public class BpmHistVarValueVO extends BaseVO {
 
     /**
-     * id
+     * ID
      */
-    @Schema(description = "")
+    @Schema(description = "ID")
     private Long id;
 
     /**
-     * 父id
+     * 流程实例ID
      */
-    @Schema(description = "")
-    private Long parentId;
-    /**
-    * 层级标识
-    */
-    @Schema(description = "层级标识")
-    private Integer levelFlag;
-    /**
-    * 名称
-    */
-    @Schema(description = "名称")
-    private String name;
+    @Schema(description = "流程实例ID")
+    private Long instProcessId;
 
     /**
-     * 子组织
+     * 流程实例节点ID
      */
-    @Schema(description = "子组织")
-    private List<BpmHistVarValueVO> children;
+    @Schema(description = "流程实例节点ID")
+    private Long instNodeId;
+
+    /**
+     * 流程实例变量名称
+     */
+    @Schema(description = "流程实例变量名称")
+    private String variableName;
+
+    /**
+     * 流程实例变量值
+     */
+    @Schema(description = "流程实例变量值")
+    private String variableValue;
 }

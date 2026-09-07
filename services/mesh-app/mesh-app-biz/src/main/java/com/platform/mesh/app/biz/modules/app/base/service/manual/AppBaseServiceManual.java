@@ -75,6 +75,7 @@ public class AppBaseServiceManual{
         appMenuBO.setOperateType(operateTypeEnum.getValue());
         appMenuBO.setTitle(appBase.getAppName());
         appMenuBO.setMenuType(MenuTypeEnum.APP.getValue());
+        appMenuBO.setIcon(appBase.getAppLogo());
         remoteSysMenuService.addOrEditMenu(appMenuBO);
     }
 

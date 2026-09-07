@@ -4,19 +4,26 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalDTO;
+import com.platform.mesh.core.exception.BaseException;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalAddDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalEditDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalPageDTO;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.po.CrmAllGoal;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.vo.CrmAllGoalVO;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.exception.CrmAllGoalExceptionEnum;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.mapper.CrmAllGoalMapper;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.service.ICrmAllGoalService;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.service.manual.CrmAllGoalServiceManual;
+import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Month;
+import java.util.List;
 
 
 /**
@@ -43,17 +50,47 @@ public class CrmAllGoalServiceImpl extends ServiceImpl<CrmAllGoalMapper, CrmAllG
 
     /**
      * 功能描述:
+     * 〈获取目标分页〉
+     * @return 正常返回:{@link MPage<CrmAllGoal>}
+     * @author 蝉鸣
+     */
+    @Override
+    public MPage<CrmAllGoal> selectPage(CrmAllGoalPageDTO pageDTO) {
+        MPage<CrmAllGoal> allGoalMPage = MPageUtil.pageEntityToMPage(pageDTO, CrmAllGoal.class);
+        return this.lambdaQuery()
+                .eq(ObjectUtil.isNotEmpty(pageDTO.getModuleId()), CrmAllGoal::getModuleId, pageDTO.getModuleId())
+                .eq(ObjectUtil.isNotEmpty(pageDTO.getDataId()), CrmAllGoal::getDataId, pageDTO.getDataId())
+                .eq(ObjectUtil.isNotEmpty(pageDTO.getDataFlag()), CrmAllGoal::getDataFlag, pageDTO.getDataFlag())
+                .eq(ObjectUtil.isNotEmpty(pageDTO.getYearTime()), CrmAllGoal::getYearTime, pageDTO.getYearTime())
+                .page(allGoalMPage);
+    }
+
+    /**
+     * 功能描述:
      * 〈新增客户关系目标〉
      * @param allGoalDTO allGoalDTO
      * @return 正常返回:{@link CrmAllGoalVO}
      * @author 蝉鸣
      */
     @Override
-    public CrmAllGoalVO addGoal(CrmAllGoalDTO allGoalDTO) {
+    @Transactional(rollbackFor = BaseException.class)
+    public CrmAllGoalVO addGoal(CrmAllGoalAddDTO allGoalDTO) {
+        if(CollUtil.isEmpty(allGoalDTO.getDataList())){
+            throw CrmAllGoalExceptionEnum.ADD_NO_ARGS.getBaseException();
+        }
+        if(ObjectUtil.isEmpty(allGoalDTO.getDataFlag())){
+            throw CrmAllGoalExceptionEnum.ADD_NO_ARGS.getBaseException();
+        }
         CrmAllGoal crmAllGoal = BeanUtil.copyProperties(allGoalDTO, CrmAllGoal.class);
         BigDecimal dayGoal = crmAllGoalServiceManual.getAddDayGoal(crmAllGoal);
-        crmAllGoal.setDayGoal(dayGoal);
-        this.save(crmAllGoal);
+        List<CrmAllGoal> crmAllGoals = allGoalDTO.getDataList().stream().map(dataDTO -> {
+            CrmAllGoal allGoal = BeanUtil.copyProperties(crmAllGoal, CrmAllGoal.class);
+            allGoal.setDayGoal(dayGoal);
+            allGoal.setDataId(dataDTO.getId());
+            allGoal.setDataName(dataDTO.getName());
+            return allGoal;
+        }).toList();
+        this.saveBatch(crmAllGoals);
         return BeanUtil.copyProperties(crmAllGoal, CrmAllGoalVO.class);
     }
 
@@ -65,10 +102,10 @@ public class CrmAllGoalServiceImpl extends ServiceImpl<CrmAllGoalMapper, CrmAllG
      * @author 蝉鸣
      */
     @Override
-    public CrmAllGoalVO editGoal(CrmAllGoalDTO allGoalDTO) {
+    public CrmAllGoalVO editGoal(CrmAllGoalEditDTO allGoalDTO) {
         if(ObjectUtil.isEmpty(allGoalDTO.getId())){
             //获取字段名称
-            String fieldName = ObjFieldUtil.getFieldName(CrmAllGoalDTO::getId);
+            String fieldName = ObjFieldUtil.getFieldName(CrmAllGoalAddDTO::getId);
             throw CrmAllGoalExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(fieldName));
         }
         CrmAllGoal crmAllGoal = BeanUtil.copyProperties(allGoalDTO, CrmAllGoal.class);

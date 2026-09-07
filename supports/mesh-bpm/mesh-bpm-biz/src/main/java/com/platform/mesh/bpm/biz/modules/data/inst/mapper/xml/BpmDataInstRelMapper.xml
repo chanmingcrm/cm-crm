@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.bpm.biz.modules.data.inst.mapper.BpmDataInstRelMapper">
+    <select id="checkDataRelHasRun" resultType="com.platform.mesh.bpm.biz.modules.data.inst.domain.po.BpmDataInstRel">
+        SELECT
+            bdir.*,
+            bip.run_flag
+        FROM
+            bpm_data_inst_rel bdir
+        LEFT JOIN bpm_inst_process bip ON bdir.inst_process_id = bip.id
+        <where>
+            bdir.data_id = #{dataId}
+            AND bip.run_flag = #{runFlag}
+            <if test="filterProcessId">
+                AND bdir.temp_process_id = #{tempProcessId}
+            </if>
+        </where>
+    </select>
+
+    <select id="getRunDataNumByModuleSchema" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            CONCAT('bpm','_',dir.module_schema) AS name,
+            COUNT( dir.data_id ) AS value
+        FROM
+            bpm_inst_process p
+                LEFT JOIN bpm_inst_node_audit ina ON p.id = ina.inst_process_id
+                LEFT JOIN bpm_data_inst_rel dir ON p.id = dir.inst_process_id
+        WHERE
+        dir.module_schema IS NOT NULL
+        AND dir.del_flag &lt;&gt; 2
+        AND (p.run_flag = #{pageDTO.processRunFlag} OR p.pass_flag = #{pageDTO.processRunFlag})
+        AND ina.audit_data_id IN
+        <foreach collection="pageDTO.auditDataIds" item="auditDataId" open="(" close=")" separator=",">
+            #{auditDataId}
+        </foreach>
+        GROUP BY
+            dir.module_schema
+        ORDER BY
+            MAX(p.create_time) ASC
+    </select>
+
+    <select id="getRunDataIdsByModuleSchema" resultType="java.lang.Long">
+        SELECT
+            dir.data_id
+        FROM
+            bpm_inst_process p
+                LEFT JOIN bpm_inst_node_audit ina ON p.id = ina.inst_process_id
+                LEFT JOIN bpm_data_inst_rel dir ON p.id = dir.inst_process_id
+        WHERE
+             dir.module_schema = #{pageDTO.moduleSchema}
+          AND (p.run_flag = #{pageDTO.processRunFlag} OR p.pass_flag = #{pageDTO.processRunFlag})
+          AND ina.audit_data_id IN
+            <foreach collection="pageDTO.auditDataIds" item="auditDataId" open="(" close=")" separator=",">
+                #{auditDataId}
+            </foreach>
+        GROUP BY dir.data_id
+        ORDER BY MAX(p.create_time) ASC
+    </select>
+
+
+    <select id="getDataInstRelByDataId"
+            resultType="com.platform.mesh.bpm.biz.modules.data.inst.domain.vo.BpmDataInstRelVO">
+        SELECT
+            d.* ,
+            p.run_flag AS processRunFlag,
+            p.pass_flag AS nodePassFlag,
+            p.commit_flag AS commitFlag
+        FROM
+            bpm_data_inst_rel d
+                LEFT JOIN bpm_inst_process p ON d.inst_process_id = p.id
+        WHERE
+            data_id = #{dataId}
+    </select>
+
+    <delete id="delBpmDataRel">
+        UPDATE bpm_data_inst_rel
+        SET del_flag = 2
+        WHERE module_id = #{moduleId}
+        AND data_id IN
+        <foreach collection="dataIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

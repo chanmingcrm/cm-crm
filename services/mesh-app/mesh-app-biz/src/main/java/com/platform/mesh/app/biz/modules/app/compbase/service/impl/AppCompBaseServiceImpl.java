@@ -3,6 +3,7 @@ package com.platform.mesh.app.biz.modules.app.compbase.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch._types.mapping.Property;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.app.biz.modules.app.compbase.domain.dto.AppCompBaseDTO;
@@ -78,6 +79,8 @@ public class AppCompBaseServiceImpl extends ServiceImpl<AppCompBaseMapper, AppCo
                 appCompBase.setEsKind(Property.Kind.Keyword.name());
             }
         }
+        //转换下划线
+        appCompBase.setCompMac(StrUtil.toUnderlineCase(appCompBase.getCompMac()));
         this.save(appCompBase);
         return BeanUtil.copyProperties(appCompBase, AppCompBaseVO.class);
     }
@@ -97,6 +100,8 @@ public class AppCompBaseServiceImpl extends ServiceImpl<AppCompBaseMapper, AppCo
             throw AppCompBaseExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(fieldName));
         }
         AppCompBase appCompBase = BeanUtil.copyProperties(compBaseDTO, AppCompBase.class);
+        //转换下划线
+        appCompBase.setCompMac(StrUtil.toUnderlineCase(appCompBase.getCompMac()));
         this.updateById(appCompBase);
         return BeanUtil.copyProperties(appCompBase, AppCompBaseVO.class);
     }

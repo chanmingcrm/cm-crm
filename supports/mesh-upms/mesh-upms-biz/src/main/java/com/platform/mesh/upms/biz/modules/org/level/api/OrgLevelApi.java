@@ -2,7 +2,9 @@ package com.platform.mesh.upms.biz.modules.org.level.api;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.core.application.controller.BaseController;
+
 import com.platform.mesh.security.annotation.AuthIgnore;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgLevelBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgInfoBO;
@@ -41,7 +43,11 @@ public class OrgLevelApi extends BaseController {
 	@Operation(summary = "获取组织信息缓存")
 	@GetMapping("/api/org/level/info/{levelId}")
 	public Result<SysOrgInfoBO> getOrgInfoByLevelId(@PathVariable("levelId") Long levelId) {
+		//开启取消租户隔离设定
+		
 		SysOrgInfoBO sysOrgInfoBO = orgLevelService.getOrgInfoByLevelId(levelId);
+		//关闭租户隔离设定
+		
 		return Result.success(sysOrgInfoBO);
 	}
 

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.bpm.biz.modules.data.form.mapper.BpmDataFormRelMapper">
+
+
+    <select id="getDataFormRelByFormId"
+            resultType="com.platform.mesh.bpm.biz.modules.data.form.domain.po.BpmDataFormRel">
+        SELECT
+            tp.process_name,
+            tp.process_version,
+            dfr.*
+        FROM
+            bpm_data_form_rel dfr
+                LEFT JOIN bpm_temp_process tp ON dfr.temp_process_id = tp.id
+            <where>
+                <if test="relDTO.parentModuleId != null">
+                    AND parent_module_id = #{relDTO.parentModuleId}
+                </if>
+                <if test="relDTO.moduleId != null">
+                    AND module_id = #{relDTO.moduleId}
+                </if>
+                <if test="relDTO.formId != null">
+                    AND form_id = #{relDTO.formId}
+                </if>
+            </where>
+
+    </select>
+</mapper>

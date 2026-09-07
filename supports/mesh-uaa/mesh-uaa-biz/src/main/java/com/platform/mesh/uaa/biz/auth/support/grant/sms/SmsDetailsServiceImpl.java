@@ -1,12 +1,15 @@
 package com.platform.mesh.uaa.biz.auth.support.grant.sms;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.security.constants.GrantTypeConstant;
+import com.platform.mesh.security.exception.SecurityExceptionEnum;
 import com.platform.mesh.security.service.BaseUserDetailsService;
 import com.platform.mesh.uaa.biz.auth.exception.AuthExceptionEnum;
 import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysAccountInfoBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysUserBO;
+import com.platform.mesh.upms.api.modules.sys.user.enums.ActiveFlagEnum;
 import com.platform.mesh.upms.api.modules.sys.user.feign.RemoteUserService;
 import com.platform.mesh.utils.result.Result;
 import com.platform.mesh.utils.result.ResultUtil;
@@ -15,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * @description 自定义手机登录处理
@@ -56,6 +61,10 @@ public class SmsDetailsServiceImpl implements BaseUserDetailsService {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String accountCode) {
+		Boolean checked = checkSmsCode(accountCode);
+		if(!checked){
+			throw SecurityExceptionEnum.SECURITY_SMS_CODE_INVALID.getBaseException();
+		}
 		//获取用户信息
 		Result<SysAccountInfoBO> userResult = remoteUserService.getUserInfoByAccountCode(accountCode, SourceFlagEnum.SMS.getValue());
 		//校验用户信息

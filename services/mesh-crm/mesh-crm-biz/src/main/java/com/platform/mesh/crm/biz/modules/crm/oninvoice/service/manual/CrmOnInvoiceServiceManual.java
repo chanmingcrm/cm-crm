@@ -1,18 +1,16 @@
 package com.platform.mesh.crm.biz.modules.crm.oninvoice.service.manual;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
-import com.platform.mesh.app.api.modules.app.util.AppUtil;
 import com.platform.mesh.crm.biz.modules.crm.oninvoicedata.domain.po.CrmOnInvoiceData;
 import com.platform.mesh.crm.biz.modules.crm.oninvoicedata.service.ICrmOnInvoiceDataService;
+import com.platform.mesh.crm.biz.modules.crm.onorder.service.ICrmOnOrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
-
 
 
 /**
@@ -28,6 +26,9 @@ public class CrmOnInvoiceServiceManual{
     @Autowired
     private ICrmOnInvoiceDataService crmOnInvoiceDataService;
 
+    @Autowired
+    private ICrmOnOrderService crmOnOrderService;
+
 
     /**
      * 功能描述:
@@ -39,47 +40,21 @@ public class CrmOnInvoiceServiceManual{
         if(CollUtil.isEmpty(onInvoiceDataList)){
             return;
         }
+        CrmOnInvoiceData data = CollUtil.getFirst(onInvoiceDataList);
+        //删除旧数据
+        crmOnInvoiceDataService.lambdaUpdate().eq(CrmOnInvoiceData::getDataId,data.getDataId()).remove();
         //批量新增信息
         crmOnInvoiceDataService.saveBatch(onInvoiceDataList);
     }
 
     /**
      * 功能描述:
-     * 〈DB Data 数据批量修改〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
+     * 〈同步订单开票金额〉
+     * @param orderId orderId
+     * @param invoiceMoney invoiceMoney
      * @author 蝉鸣
      */
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //查询已经存在的新增数据
-        List<CrmOnInvoiceData> onInvoiceDataList = crmOnInvoiceDataService.lambdaQuery().eq(CrmOnInvoiceData::getModuleId, dataEditSimpDTO.getModuleId())
-                .eq(CrmOnInvoiceData::getDataId, dataId).list();
-        if(CollUtil.isEmpty(onInvoiceDataList)) {
-            return;
-        }
-        AppUtil.editDbData(onInvoiceDataList, dataEditSimpDTO);
-        if(CollUtil.isEmpty(onInvoiceDataList)){
-            return;
-        }
-        crmOnInvoiceDataService.updateBatchById(onInvoiceDataList);
-    }
-
-    /**
-     * 功能描述:
-     * 〈转移Data数据权限必须重写〉
-     * @param dataIds dataIds
-     * @param scopeUserId scopeUserId
-     * @param scopeOrgId scopeOrgId
-     * @author 蝉鸣
-     */
-    public void transDbDataBatch(List<Long> dataIds, Long scopeUserId, Long scopeOrgId) {
-        if(CollUtil.isEmpty(dataIds) || ObjectUtil.isEmpty(scopeUserId) || ObjectUtil.isEmpty(scopeOrgId)) {
-            return;
-        }
-        crmOnInvoiceDataService.lambdaUpdate()
-                .set(CrmOnInvoiceData::getScopeUserId, scopeUserId)
-                .set(CrmOnInvoiceData::getScopeOrgId, scopeOrgId)
-                .in(CrmOnInvoiceData::getDataId, dataIds)
-                .update();
+    public void updateInvoiceMoney(Long orderId, BigDecimal invoiceMoney) {
+        crmOnOrderService.updateInvoiceMoney(orderId,invoiceMoney);
     }
 }

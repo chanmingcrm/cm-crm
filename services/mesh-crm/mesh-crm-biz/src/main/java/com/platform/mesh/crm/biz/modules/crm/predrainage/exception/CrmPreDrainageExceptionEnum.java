@@ -19,6 +19,9 @@ public enum CrmPreDrainageExceptionEnum implements BaseExceptionEnum<CrmPreDrain
      ADD_NO_INVALID("crm_pre_drainage",501, null,  "客户关系活动引流参数异常"),
      ADD_EXISTS_INVALID("crm_pre_drainage",502, null,  "客户关系活动引流已经存在"),
      ADD_MODULE_INVALID("crm_pre_drainage",503, null,  "客户关系活动引流存储与模块信息不一致"),
+     ADD_MODULE_TODO_FOLLOW("crm_pre_drainage",504, null,  "有新的线索信息需要联系"),
+     ADD_MODULE_SYNC_DATA_NO_TOKEN("crm_pre_drainage",505, null,  "同步信息未获取正确授权"),
+     ADD_MODULE_SYNC_DATA_NO_FIELD("crm_pre_drainage",506, null,  "同步信息未设置对应字段映射"),
     ;
 
     /**

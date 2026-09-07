@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.modules.crm.predrainagethird.mapper.CrmPreDrainageThirdMapper">
+
+    <update id="transThirdData">
+        UPDATE crm_pre_drainage_third
+        SET
+        module_id = #{dbTransResBO.toModuleId},
+        data_id = CASE
+        <foreach collection="dbTransResBO.dataMap" index="key" item="value">
+            WHEN data_id = #{key} THEN #{value}
+        </foreach>
+        ELSE data_id
+        END,
+        update_time = NOW()
+        WHERE module_id = #{dbTransResBO.fromModuleId}
+        AND data_id IN
+        <foreach collection="dbTransResBO.dataMap.keySet()" item="key" open="(" close=")" separator=",">
+            #{key}
+        </foreach>
+    </update>
+
+    <delete id="delCrmSyncThirdDataRel">
+        DELETE FROM crm_pre_drainage_third
+        WHERE module_id = #{moduleId}
+        AND data_id IN
+        <foreach collection="dataIs" item="dataId" open="(" close=")" separator=",">
+            #{dataId}
+        </foreach>
+    </delete>
+
+</mapper>

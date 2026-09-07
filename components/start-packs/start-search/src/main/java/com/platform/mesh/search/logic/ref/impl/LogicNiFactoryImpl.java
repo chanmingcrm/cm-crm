@@ -88,10 +88,10 @@ public class LogicNiFactoryImpl implements LogicRefService {
         if (ObjectUtil.isEmpty(condDTO.getColumnMac())) {
             return null;
         }
-        return QueryBuilders.terms(ni->{
+        return QueryBuilders.bool(bool->bool.mustNot(not->not.terms(ni->{
             ni.field(condDTO.getColumnMac());
             ni.terms(item -> item.value(condDTO.getSearchValues().stream().map(FieldValue::of).toList()));
             return ni;
-        });
+        })));
     }
 }

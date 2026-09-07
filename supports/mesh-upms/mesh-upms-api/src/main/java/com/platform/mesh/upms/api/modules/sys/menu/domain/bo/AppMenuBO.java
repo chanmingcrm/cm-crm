@@ -42,9 +42,13 @@ public class AppMenuBO extends BaseBO {
     @Schema(description = "菜单路径")
     private String path;
 
+    @Schema(description = "菜单图标")
+    private String icon;
+
     @Schema(description = "组件路径")
     private String component;
 
     @Schema(description = "RouteItem Param信息")
     private List<RouteParamsBO> params;
+
 }

@@ -47,6 +47,16 @@ public class OrgMemberPostRel extends BasePO {
     private Long memberId;
 
     /**
+    * 默认标识
+    */
+    private Integer defaultFlag;
+
+    /**
+    * 领导标识
+    */
+    private Integer leadFlag;
+
+    /**
      * 创建人ID
      */
     @TableField(fill = FieldFill.INSERT)
@@ -81,6 +91,7 @@ public class OrgMemberPostRel extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
+
 
 }
 

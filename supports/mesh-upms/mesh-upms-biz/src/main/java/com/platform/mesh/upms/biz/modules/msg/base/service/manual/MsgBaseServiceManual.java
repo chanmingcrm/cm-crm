@@ -45,22 +45,11 @@ public class MsgBaseServiceManual{
     /**
      * 功能描述:
      * 〈保存消息接收人信息〉
-     * @param msgId msgId
+     * @param msgBase msgBase
      * @param msgUserIds msgUserIds
      * @author 蝉鸣
      */
-    public void saveMsgUser(Long msgId, List<Long> msgUserIds) {
-        if(ObjectUtil.isEmpty(msgId) || CollUtil.isEmpty(msgUserIds)){
-            return;
-        }
-        List<MsgUserRel> msgUserRels = msgUserIds.stream().map(msgUserId -> {
-            MsgUserRel userRel = new MsgUserRel();
-            userRel.setMsgId(msgId);
-            userRel.setUserId(msgUserId);
-            userRel.setReadFlag(YesOrNoEnum.YES.getValue());
-            userRel.setDelFlag(YesOrNoEnum.YES.getValue());
-            return userRel;
-        }).toList();
-        msgUserRelService.saveBatch(msgUserRels);
+    public void saveMsgUser(MsgBase msgBase, List<Long> msgUserIds) {
+        msgUserRelService.saveByMsg(msgBase,msgUserIds);
     }
 }

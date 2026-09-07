@@ -1,7 +1,7 @@
 package com.platform.mesh.bpm.biz.modules.inst.node.domain.vo;
 
 
-import com.platform.mesh.bpm.biz.data.noderel.domain.vo.BpmDataFormNodeRelVO;
+import com.platform.mesh.bpm.biz.modules.data.noderel.domain.vo.BpmDataFormNodeRelVO;
 import com.platform.mesh.bpm.biz.modules.inst.node.enums.InstNodeInEnum;
 import com.platform.mesh.bpm.biz.modules.inst.node.enums.InstNodeOutEnum;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
@@ -119,7 +119,7 @@ public class BpmInstNodeVO extends BaseVO {
      * 审批数据ID
      */
     @Schema(description = "审批数据ID")
-    private String auditDataIds;
+    private List<Long> auditDataIds;
 
     /**
      * 子节点运行标识

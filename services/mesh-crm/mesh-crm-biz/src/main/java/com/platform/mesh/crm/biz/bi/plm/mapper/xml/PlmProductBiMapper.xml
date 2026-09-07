@@ -1,0 +1,601 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.bi.plm.mapper.PlmProductBiMapper">
+
+    <select id="productSummary" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT 'productTotal' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'materialTotal' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_material pm
+        WHERE pm.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND pm.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND pm.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'zeroInventoryProductCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND IFNULL(p.product_num, 0) = 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'newThisMonth' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND p.create_time &gt; #{biDTO.startTime}
+        AND p.create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'saleProduct' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND p.on_off_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'dataCompleteRate' AS name,
+               IF(
+                       COUNT(1) = 0,
+                       0,
+                       ROUND(
+                               SUM(
+                                       CASE
+                                           WHEN p.cost_money IS NOT NULL
+                                               AND p.sale_money IS NOT NULL
+                                               AND p.product_num IS NOT NULL THEN 1
+                                           ELSE 0
+                                       END
+                               ) * 100.0 / COUNT(1),
+                               1
+                       )
+               ) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'abnormalProduct' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND (IFNULL(p.profit_money, 0) &lt; 0 OR IFNULL(p.product_num, 0) = 0 OR p.on_off_flag = 0)
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="productLifecycle" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT 'developing' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product d
+        WHERE d.del_flag = 1
+        AND product_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND d.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND d.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'pendingRelease' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND (p.on_off_flag IS NULL OR p.on_off_flag = 0)
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'onSale' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND p.on_off_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'positiveInventoryProductCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND IFNULL(p.product_num, 0) &gt; 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'zeroInventoryProductCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND IFNULL(p.product_num, 0) = 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'pendingOffline' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND p.on_off_flag = 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="productHealth" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT 'profile' AS name,
+               IF(
+                       COUNT(1) = 0,
+                       0,
+                       ROUND(
+                               SUM(
+                                       CASE
+                                           WHEN p.cost_money IS NOT NULL
+                                               AND p.sale_money IS NOT NULL
+                                               AND p.product_num IS NOT NULL THEN 1
+                                           ELSE 0
+                                       END
+                               ) * 100.0 / COUNT(1),
+                               1
+                       )
+               ) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'quality' AS name,
+               IF(
+                       COUNT(1) = 0,
+                       0,
+                       ROUND(
+                               SUM(
+                                       CASE
+                                           WHEN IFNULL(p.profit_money, 0) &gt;= 0 THEN 1
+                                           ELSE 0
+                                       END
+                               ) * 100.0 / COUNT(1),
+                               1
+                       )
+               ) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'sales' AS name,
+               IF(
+                       COUNT(1) = 0,
+                       0,
+                       ROUND(
+                               SUM(
+                                       CASE
+                                           WHEN p.on_off_flag = 1
+                                               AND IFNULL(p.product_num, 0) &gt; 0 THEN 1
+                                           ELSE 0
+                                       END
+                               ) * 100.0 / COUNT(1),
+                               1
+                       )
+               ) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'supply' AS name,
+               IF(product_count = 0, NULL, ROUND(sku_count * 100.0 / product_count, 1)) AS value,
+               NULL AS extend_value
+        FROM (
+            SELECT (
+                       SELECT COUNT(1)
+                       FROM plm_product
+                       WHERE del_flag = 1
+                   ) AS product_count,
+                   (
+                       SELECT COUNT(DISTINCT product_material_id)
+                       FROM srm_product
+                       WHERE del_flag = 1
+                   ) AS sku_count
+        ) t
+    </select>
+
+    <select id="productOperation" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT 'productTotal' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'published' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND p.on_off_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'pendingAudit' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND (p.on_off_flag IS NULL OR p.on_off_flag = 0)
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'skuTotal' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_material pm
+        WHERE pm.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND sp.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND sp.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'enabledSku' AS name,
+               COUNT(DISTINCT sp.product_material_id) AS value,
+               NULL AS extend_value
+        FROM srm_product sp
+        INNER JOIN plm_material pm ON sp.product_material_id  = pm.id
+        WHERE sp.del_flag = 1 AND pm.del_flag = 1
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND sp.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND sp.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'disabledSku' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_material pm
+        WHERE pm.del_flag = 1
+        AND NOT EXISTS (
+            SELECT 1
+            FROM srm_product sp
+            WHERE sp.product_material_id = pm.id
+            AND sp.del_flag = 1
+        )
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND sp.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND sp.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="productWarningItems" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT 'missingProfileCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND (p.cost_money IS NULL OR p.sale_money IS NULL OR p.product_num IS NULL)
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'zeroInventoryProductCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND IFNULL(p.product_num, 0) = 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'nonPositiveCheckQuantityCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM wms_inv_check_material cm
+        WHERE cm.del_flag = 1
+        AND IFNULL(cm.item_num, 0) &lt;= 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND cm.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND cm.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+        UNION ALL
+        SELECT 'disabledProductCount' AS name,
+               COUNT(1) AS value,
+               NULL AS extend_value
+        FROM plm_product p
+        WHERE p.del_flag = 1
+        AND p.on_off_flag = 0
+        <if test="(biDTO.dataIds != null and biDTO.dataIds.size() > 0)">
+            <choose>
+                <when test="biDTO.dataFlag != null and biDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                    AND p.scope_org_id IN
+                </when>
+                <otherwise>
+                    AND p.scope_user_id IN
+                </otherwise>
+            </choose>
+            <foreach collection="biDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                #{dataId}
+            </foreach>
+        </if>
+    </select>
+</mapper>

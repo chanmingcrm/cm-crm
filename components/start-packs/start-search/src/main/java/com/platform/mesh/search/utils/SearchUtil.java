@@ -12,10 +12,16 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.mesh.core.application.domain.dto.CondDTO;
 import com.platform.mesh.core.application.domain.dto.QueryDTO;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.StrConst;
+import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.core.enums.base.BaseEnum;
+import com.platform.mesh.core.enums.data.DataFlagEnum;
+import com.platform.mesh.core.enums.data.DataScopeEnum;
 import com.platform.mesh.core.enums.logic.type.LogicTypeEnum;
+import com.platform.mesh.datascope.constant.DataScopeConst;
 import com.platform.mesh.datascope.utils.DataScopeUtil;
+import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
 import com.platform.mesh.es.enums.EsBoolEnum;
 import com.platform.mesh.es.service.IEsDocService;
 import com.platform.mesh.es.util.EsUtil;
@@ -85,29 +91,11 @@ public class SearchUtil {
      * @return 正常返回:{@link BoolQuery.Builder}
      * @author 蝉鸣
      */
-    public static BoolQuery.Builder getEsBoolQuery(QueryDTO queryDTO){
+    public static BoolQuery.Builder getEsBoolQuery(EsDocPGetDTO queryDTO){
         BoolQuery.Builder builderBool = EsUtil.getSearchBuilderBool();
         Map<EsBoolEnum, List<Query>> boolMap = new HashMap<>();
-        //1:增加登录人员数据权限过滤
-        Map<Integer, Map<String, List<Long>>> scopeMap = DataScopeUtil.handleDataScopeWithScope();
-        List<Query> authQueries = CollUtil.newArrayList();
-        Query authBool = QueryBuilders.bool(bo -> {
-            //数据权限
-            scopeMap.forEach((scope,data)->{
-                bo.should(sh -> {
-                    data.forEach((key,value)->{
-                        sh.terms(in -> {
-                            in.field(key);
-                            in.terms(item -> item.value(value.stream().map(StrUtil::toString).map(FieldValue::of).toList()));
-                            return in;
-                        });
-                    });
-                    return sh;
-                });
-            });
-            return bo;
-        });
-        authQueries.add(authBool);
+        //设置权限条件
+        List<Query> authQueries = setSearchBuilderAuth(queryDTO.getIgnoreScope());
         if(CollUtil.isNotEmpty(authQueries)){
             boolMap.put(EsBoolEnum.FILTER, authQueries);
         }
@@ -120,17 +108,17 @@ public class SearchUtil {
         //将条件根据逻辑类型分组：Map<逻辑类型-条件列表>
         Map<LogicTypeEnum, List<CondDTO>> typeMap = queryDTO.getCondDTO().stream()
                 .filter(item-> ObjectUtil.isNotEmpty(item.getColumnMac()))
-                .filter(item-> CollUtil.isNotEmpty(item.getSearchValues()))
+//                .filter(item-> CollUtil.isNotEmpty(item.getSearchValues()))
                 .collect(Collectors.groupingBy(CondDTO::getCondType));
         //使用工厂对应方法执行逻辑
         typeMap.forEach((typeEnum,condDTOS)->{
             LogicTypeService typeService = logicTypeFactory.getLogicTypeService(typeEnum);
-            Map<EsBoolEnum, Query> boolQuery = typeService.esBoolQuery(condDTOS);
+            Map<EsBoolEnum, List<Query>> boolQuery = typeService.esBoolQuery(condDTOS);
             boolQuery.forEach((key,value)-> {
                 if(boolMap.containsKey(key)){
-                    boolMap.get(key).add(value);
+                    boolMap.get(key).addAll(value);
                 }else{
-                    boolMap.put(key,CollUtil.newArrayList(value));
+                    boolMap.put(key,value);
                 }
             });
         });
@@ -142,6 +130,104 @@ public class SearchUtil {
         return builderBool;
     }
 
+    /**
+     * 功能描述:
+     * 〈获取es查询Query〉
+     * @return 正常返回:{@link List<Query>}
+     * @author 蝉鸣
+     */
+    public static List<Query> getAuthQuery(Integer dataScope, Integer dataFlag,List<Long> dataIds){
+        List<Query> queries = CollUtil.newArrayList();
+        //增加数据权限条件
+        if(!DataScopeEnum.ALL.getValue().equals(dataScope)){
+            if(DataFlagEnum.ORG.getValue().equals(dataFlag)){
+                Query orgQuery = QueryBuilders.terms(eq->{
+                    eq.field(DataScopeConst.DEFAULT_SCOPE_ORG_ID);
+                    eq.terms(item -> item.value(dataIds.stream().map(FieldValue::of).toList()));
+                    return eq;
+                });
+                queries.add(orgQuery);
+            }else{
+                Query userQuery = QueryBuilders.terms(eq->{
+                    eq.field(DataScopeConst.DEFAULT_SCOPE_USER_ID);
+                    eq.terms(item -> item.value(dataIds.stream().map(FieldValue::of).toList()));
+                    return eq;
+                });
+                queries.add(userQuery);
+            }
+        }
+        return queries;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取es查询Query〉
+     * @return 正常返回:{@link List<Query>}
+     * @author 蝉鸣
+     */
+    public static List<Query> setSearchBuilderAuth(Boolean ignoreScope){
+        List<Query> authQueries = CollUtil.newArrayList();
+        Query authBool = QueryBuilders.bool(bo -> {
+            if(ObjectUtil.isNotEmpty(ignoreScope) && ignoreScope){
+                return bo;
+            }
+            //数据权限
+            //1:增加登录人员数据权限过滤
+            Map<Integer, Map<String, List<Long>>> scopeMap = DataScopeUtil.handleDataScopeWithScope();
+            bo.must(bo_must->{
+                bo_must.bool(bo_must_bool->{
+                    //岗位数据权限
+                    scopeMap.forEach((scope,data)->{
+                        bo_must_bool.should(sh -> {
+                            data.forEach((key,value)->{
+                                sh.terms(in -> {
+                                    in.field(key);
+                                    value.add(NumberConst.NUM_0.longValue());
+                                    in.terms(item -> item.value(value.stream().map(StrUtil::toString).map(FieldValue::of).toList()));
+                                    return in;
+                                });
+                            });
+                            return sh;
+                        });
+                    });
+                    //团队成员
+                    bo_must_bool.should(
+                            // 情况1：member_user_json 字段不存在
+                            Query.of(sq -> sq
+                                    .bool(sb -> sb
+                                            .mustNot(mn -> mn
+                                                    .exists(e -> e
+                                                            .field(StrConst.MEMBER_USER)
+                                                    )
+                                            )
+                                            .must(mt->mt
+                                                    .terms(t->{
+                                                        t.field(DataScopeConst.DEFAULT_SCOPE_USER_ID);
+                                                        List<Long> userIds = CollUtil.newArrayList(NumberConst.NUM_0.longValue(), UserCacheUtil.getUserId());
+                                                        t.terms(item -> item.value(userIds.stream().map(StrUtil::toString).map(FieldValue::of).toList()));
+                                                        return t;
+                                                        }
+                                                    )
+                                            )
+                                    )
+                            ),
+                            // 情况2：member_user_json 字段存在且符合条件
+                            Query.of(sq -> sq
+                                    .term(t -> t
+                                            .field(StrConst.MEMBER_USER.concat(SymbolConst.PERIOD).concat(StrConst.ID))
+                                            .value(UserCacheUtil.getUserId())
+                                    )
+                            )
+                    );
+                    return bo_must_bool;
+                });
+                return bo_must;
+            });
+            return bo;
+        });
+        authQueries.add(authBool);
+        return authQueries;
+    }
 
     /**
      * 功能描述:
@@ -153,6 +239,18 @@ public class SearchUtil {
             return Boolean.FALSE;
         }
         return esDocService.existDocument(moduleIndex,docData);
+    }
+
+    /**
+     * 功能描述:
+     * 〈是否存在文档〉
+     * @author 蝉鸣
+     */
+    public static Object getExistData(String moduleIndex,Map<String, Object> docData) {
+        if(ObjectUtil.isEmpty(moduleIndex) || CollUtil.isEmpty(docData)){
+            return null;
+        }
+        return esDocService.getExistData(moduleIndex,docData);
     }
 
     /**
@@ -182,23 +280,29 @@ public class SearchUtil {
                         .put(JSONUtil.createObj()
                                     .putOpt(enumByDesc.getIdMac(),sysDict.getDictValue())
                                     .putOpt(enumByDesc.getNameMac(),sysDict.getDictName())
+                                    .putOpt(StrConst.DATA_COLOR,sysDict.getDictColor())
                             );
             }
             case USER -> {
                 //解析成员
-                OrgMemberBO memberCache = UserCacheUtil.getAccountMemberByName(StrUtil.toString(value));
+                OrgMemberBO memberCache = UserCacheUtil.getTenantMemberByName(StrUtil.toString(value));
                 if(ObjectUtil.isEmpty(memberCache)){
                     return null;
                 }
+                Long dataId = memberCache.getId();
+                if(columnMac.equals(DataScopeConst.DEFAULT_SCOPE_USER)){
+                    //需要获取user_id
+                    dataId = memberCache.getUserId();
+                }
                 return JSONUtil.createArray()
                         .put(JSONUtil.createObj()
-                                .putOpt(enumByDesc.getIdMac(),memberCache.getId())
+                                .putOpt(enumByDesc.getIdMac(),dataId)
                                 .putOpt(enumByDesc.getNameMac(),memberCache.getMemberName())
                         );
             }
             case DEP -> {
                 //解析组织
-                OrgLevelBO levelCache = UserCacheUtil.getAccountLevelByName(StrUtil.toString(value));
+                OrgLevelBO levelCache = UserCacheUtil.getTenantLevelByName(StrUtil.toString(value));
                 if(ObjectUtil.isEmpty(levelCache)){
                     return null;
                 }

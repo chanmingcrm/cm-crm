@@ -1,6 +1,7 @@
 package com.platform.mesh.security.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.platform.mesh.core.web.CanonicalRequestPath;
 import com.platform.mesh.security.config.AuthIgnoreConfiguration;
 import com.platform.mesh.security.constants.SecurityConstant;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,8 +51,9 @@ public class AuthorizationBearerTokenExtractor implements BearerTokenResolver {
 	 */
 	@Override
 	public String resolve(HttpServletRequest request) {
+		String applicationPath = CanonicalRequestPath.applicationPath(request);
 		boolean match = authIgnoreConfiguration.getUrls().stream()
-				.anyMatch(url -> pathMatcher.match(url, request.getRequestURI()));
+				.anyMatch(url -> pathMatcher.match(url, applicationPath));
 
 		if (match) {
 			return null;

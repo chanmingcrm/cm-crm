@@ -2,6 +2,8 @@ package com.platform.mesh.upms.biz.modules.org.post.domain.vo;
 
 
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.upms.biz.modules.org.postdatascope.domain.vo.OrgPostDataScopeVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -50,6 +52,12 @@ public class OrgPostVO extends BaseVO {
     */
     @Schema(description = "层级岗位关系ID")
     private Long levelPostRelId;
+
+    /**
+    * 领导标识
+    */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "领导标识")
+    private Integer leadFlag = YesOrNoEnum.NO.getValue();
 
     /**
     * 岗位数据权限

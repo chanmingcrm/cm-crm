@@ -1,5 +1,6 @@
 package com.platform.mesh.app.api.modules.init.db.controller;
 
+import com.platform.mesh.app.api.modules.init.db.domain.bo.DbTransResBO;
 import com.platform.mesh.app.api.modules.init.db.domain.dto.DbTransDTO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.utils.result.Result;
@@ -20,5 +21,5 @@ public abstract class AppDbController extends BaseController {
 	 * @return 正常返回:{@link Result<Boolean>}
 	 * @author 蝉鸣
 	 */
-	public abstract Result<Boolean> dbTransData(@RequestBody DbTransDTO transDTO);
+	public abstract Result<DbTransResBO> dbTransData(@RequestBody DbTransDTO transDTO);
 }

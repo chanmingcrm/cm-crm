@@ -109,4 +109,18 @@ public class AppModuleBaseDTO extends BaseDTO {
      */
     @SchemaEnum(value = YesOrNoEnum.class,description = "开放标识")
     private Integer openFlag;
+
+
+    /**
+     * 流程标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class,description = "流程标识")
+    private Integer flowFlag;
+
+
+    /**
+     * AI标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class,description = "AI标识")
+    private Integer aiFlag;
 }

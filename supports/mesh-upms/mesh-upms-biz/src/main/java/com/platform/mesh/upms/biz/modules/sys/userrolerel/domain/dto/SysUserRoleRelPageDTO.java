@@ -1,6 +1,8 @@
 package com.platform.mesh.upms.biz.modules.sys.userrolerel.domain.dto;
 
 import com.platform.mesh.core.application.domain.dto.PageDTO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,6 +23,7 @@ public class SysUserRoleRelPageDTO extends PageDTO {
 	 */
 	@Schema(description = "用户ID")
 	private Long userId;
+
 	/**
 	 * 角色ID
 	 */

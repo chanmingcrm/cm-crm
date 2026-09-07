@@ -4,12 +4,12 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
 import com.platform.mesh.bpm.biz.modules.inst.node.service.IBpmInstNodeService;
+import com.platform.mesh.bpm.biz.soa.node.run.NodeRunService;
+import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.factory.ProcessTypeFactory;
-import com.platform.mesh.bpm.biz.soa.node.run.NodeRunService;
-import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +68,9 @@ public class NodeRunEndFactoryImpl implements NodeRunService<BpmInstNode> {
         }
         nextNodes.forEach(item->item.setRunFlag(NodeRunEnum.RUNNING.getValue()));
         instNodeService.updateBatchById(nextNodes);
+        //发送消息
+        //发送审批回调消息
+        instNodeService.sendBpmMsg(instNode);
         return instNode;
     }
 

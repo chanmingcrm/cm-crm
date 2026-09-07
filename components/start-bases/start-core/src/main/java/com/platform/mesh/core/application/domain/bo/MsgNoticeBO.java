@@ -91,6 +91,24 @@ public class MsgNoticeBO extends BaseBO {
     private Integer noticeType;
 
     /**
+     * 设置提醒时间
+     */
+    @Schema(description = "设置提醒时间")
+    private LocalDateTime noticeSetTime;
+
+    /**
+     * 提醒开始天数:只针对循环提醒有用
+     */
+    @Schema(description = "提醒开始天数")
+    private Integer noticePreDays;
+
+    /**
+     * 提醒结束天数:只针对循环提醒有用
+     */
+    @Schema(description = "提醒结束天数")
+    private Integer noticeSufDays;
+
+    /**
      * 提醒类型
      */
     @Schema(description = "提醒类型")

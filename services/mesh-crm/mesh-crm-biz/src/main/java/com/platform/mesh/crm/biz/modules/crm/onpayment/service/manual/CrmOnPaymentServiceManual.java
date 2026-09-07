@@ -1,18 +1,18 @@
 package com.platform.mesh.crm.biz.modules.crm.onpayment.service.manual;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
-import com.platform.mesh.app.api.modules.app.util.AppUtil;
+import com.platform.mesh.crm.biz.modules.crm.oncontract.service.ICrmOnContractService;
+import com.platform.mesh.crm.biz.modules.crm.onpayment.domain.bo.PaymentSumBO;
+import com.platform.mesh.crm.biz.modules.crm.onpayment.domain.po.CrmOnPayment;
 import com.platform.mesh.crm.biz.modules.crm.onpaymentdata.domain.po.CrmOnPaymentData;
 import com.platform.mesh.crm.biz.modules.crm.onpaymentdata.service.ICrmOnPaymentDataService;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.service.ICrmPreCustomerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 
 
 /**
@@ -29,6 +29,12 @@ public class CrmOnPaymentServiceManual{
     @Autowired
     private ICrmOnPaymentDataService crmOnPaymentDataService;
 
+    @Autowired
+    private ICrmOnContractService crmOnContractService;
+
+    @Autowired
+    private ICrmPreCustomerService crmPreCustomerService;
+
 
     /**
      * 功能描述:
@@ -40,47 +46,23 @@ public class CrmOnPaymentServiceManual{
         if(CollUtil.isEmpty(onPaymentDataList)){
             return;
         }
+        CrmOnPaymentData data = CollUtil.getFirst(onPaymentDataList);
+        //删除旧数据
+        crmOnPaymentDataService.lambdaUpdate().eq(CrmOnPaymentData::getDataId,data.getDataId()).remove();
         //批量新增信息
         crmOnPaymentDataService.saveBatch(onPaymentDataList);
     }
 
     /**
      * 功能描述:
-     * 〈DB Data 数据批量修改〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
+     * 〈修改已收金额〉
+     * @param crmOnPayment crmOnPayment
      * @author 蝉鸣
      */
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //查询已经存在的新增数据
-        List<CrmOnPaymentData> onPaymentDataList = crmOnPaymentDataService.lambdaQuery().eq(CrmOnPaymentData::getModuleId, dataEditSimpDTO.getModuleId())
-                .eq(CrmOnPaymentData::getDataId, dataId).list();
-        if(CollUtil.isEmpty(onPaymentDataList)) {
-            return;
-        }
-        AppUtil.editDbData(onPaymentDataList, dataEditSimpDTO);
-        if(CollUtil.isEmpty(onPaymentDataList)){
-            return;
-        }
-        crmOnPaymentDataService.updateBatchById(onPaymentDataList);
-    }
-
-    /**
-     * 功能描述:
-     * 〈转移Data数据权限必须重写〉
-     * @param dataIds dataIds
-     * @param scopeUserId scopeUserId
-     * @param scopeOrgId scopeOrgId
-     * @author 蝉鸣
-     */
-    public void transDbDataBatch(List<Long> dataIds, Long scopeUserId, Long scopeOrgId) {
-        if(CollUtil.isEmpty(dataIds) || ObjectUtil.isEmpty(scopeUserId) || ObjectUtil.isEmpty(scopeOrgId)) {
-            return;
-        }
-        crmOnPaymentDataService.lambdaUpdate()
-                .set(CrmOnPaymentData::getScopeUserId, scopeUserId)
-                .set(CrmOnPaymentData::getScopeOrgId, scopeOrgId)
-                .in(CrmOnPaymentData::getDataId, dataIds)
-                .update();
+    public void updateReceivedMoney(CrmOnPayment crmOnPayment, PaymentSumBO sumMoney) {
+        //更新合同金额
+        crmOnContractService.updateReceivedMoney(crmOnPayment.getContractId(),sumMoney.getContractMoney());
+        //更新客户金额
+        crmPreCustomerService.updateReceivedMoney(crmOnPayment.getCustomerId(),sumMoney.getCustomerMoney());
     }
 }

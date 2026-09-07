@@ -78,21 +78,29 @@ public class ThirdDetailsServiceImpl implements BaseUserDetailsService {
 		Map<String, String> paramMap = ServletUtil.getMapParam();
 		//获取账号来源
 		String sourceFlag = paramMap.get(SecurityConstant.SOURCE_FLAG);
-		String clientId = paramMap.get(UaaParamsConstant.THIRD_PARAMETER_CLIENT_ID);
-		String clientCode = paramMap.get(UaaParamsConstant.THIRD_PARAMETER_CLIENT_CODE);
 		SourceFlagEnum sourceFlagEnum = BaseEnum.getEnumByValue(SourceFlagEnum.class, Integer.parseInt(sourceFlag), SourceFlagEnum.SYSTEM);
-		//获取第三方用户信息
-		AuthConfig authConfig = tokenService.getServiceManual().getAuthConfig(Long.valueOf(clientId));
-		AuthRequest authRequest = tokenService.getServiceManual().getAuthRequest(sourceFlagEnum, authConfig);
-		AuthCallbackDTO callbackDTO = new AuthCallbackDTO();
-		callbackDTO.setCode(clientCode);
-		//获取响应值
-		AuthResponse<?> authResponse = authRequest.login(callbackDTO);
-		if (!authResponse.ok()) {
-			throw AuthExceptionEnum.AUTH_CLIENT_LOGIN_INVALID.getBaseException();
+		//是否静默登录
+		String silence = paramMap.get(UaaParamsConstant.SILENCE);
+		if(YesOrNoEnum.YES.getValue().toString().equals(silence)){
+			//解析code值,后续可以进行二次验证
+			accountCode = paramMap.get(UaaParamsConstant.THIRD_PARAMETER_CLIENT_CODE);
+		}else{
+			String agentId = paramMap.get(UaaParamsConstant.AGENT_ID);
+			String clientId = paramMap.get(UaaParamsConstant.THIRD_PARAMETER_CLIENT_ID);
+			String clientCode = paramMap.get(UaaParamsConstant.THIRD_PARAMETER_CLIENT_CODE);
+			//获取第三方用户信息
+			AuthConfig authConfig = tokenService.getServiceManual().getAuthConfig(agentId,clientId);
+			AuthRequest authRequest = tokenService.getServiceManual().getAuthRequest(sourceFlagEnum, authConfig);
+			AuthCallbackDTO callbackDTO = new AuthCallbackDTO();
+			callbackDTO.setCode(clientCode);
+			//获取响应值
+			AuthResponse<?> authResponse = authRequest.login(callbackDTO);
+			if (!authResponse.ok()) {
+				throw AuthExceptionEnum.AUTH_CLIENT_LOGIN_INVALID.getBaseException();
+			}
+			JSONObject jsonObject = JSONUtil.parseObj(authResponse.getData());
+			accountCode = jsonObject.get(UaaParamsConstant.THIRD_PARAMETER_UUID).toString();
 		}
-		JSONObject jsonObject = JSONUtil.parseObj(authResponse.getData());
-		accountCode = jsonObject.get(UaaParamsConstant.THIRD_PARAMETER_UUID).toString();
 		//获取用户信息
 		Result<SysAccountInfoBO> userResult = remoteUserService.getUserInfoByAccountCode(accountCode, sourceFlagEnum.getValue());
 		//校验用户信息
@@ -113,7 +121,7 @@ public class ThirdDetailsServiceImpl implements BaseUserDetailsService {
 		}).getSysUserBO();
 
 		// 获取用户状态信息
-		if (sysUserBO.getUserFlag().equals(YesOrNoEnum.YES.getValue())) {
+		if (sysUserBO.getUserFlag().equals(YesOrNoEnum.NO.getValue())) {
 			log.info("{}： 用户已被冻结.", username);
 			throw AuthExceptionEnum.USER_IN_FREEZE.getBaseException();
 		}

@@ -1,6 +1,7 @@
 package com.platform.mesh.upms.biz.modules.conf.sysset.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.platform.mesh.core.application.domain.po.BasePO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,6 +27,11 @@ public class ConfSysSet extends BasePO {
     private Long id;
 
     /**
+    * 配置来源
+    */
+    private Integer confSource;
+
+    /**
     * 配置识别
     */
     private String confMac;
@@ -38,12 +44,18 @@ public class ConfSysSet extends BasePO {
     /**
     * 配置值
     */
-    private String confValue;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Object confValue;
 
     /**
     * 配置描述
     */
     private String confDesc;
+
+    /**
+    * 配置密文
+    */
+    private String confSecret;
 
     /**
      * 创建人ID

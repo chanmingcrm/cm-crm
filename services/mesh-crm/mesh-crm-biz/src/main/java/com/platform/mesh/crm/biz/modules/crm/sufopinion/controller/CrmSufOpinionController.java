@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.sufopinion.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.sufopinion.domain.po.CrmSufOpinion;
 import com.platform.mesh.crm.biz.modules.crm.sufopinion.domain.vo.CrmSufOpinionVO;
 import com.platform.mesh.crm.biz.modules.crm.sufopinion.service.ICrmSufOpinionService;
@@ -113,7 +110,7 @@ public class CrmSufOpinionController extends BaseController{
     @Log(moduleName = "客户关系意见评价管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/suf/opinion/edit")
     public Result<CrmSufOpinionVO> editSufOpinion(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmSufOpinion crmSufOpinion = crmSufOpinionService.editData(dataEditDTO, CrmSufOpinion.class);
+        CrmSufOpinion crmSufOpinion = crmSufOpinionService.editData(dataEditDTO, CrmSufOpinion.class, CrmSufOpinionData.class);
         return Result.success(BeanUtil.copyProperties(crmSufOpinion,CrmSufOpinionVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmSufOpinionController extends BaseController{
     @Operation(summary = "导入客户关系意见评价")
     @Log(moduleName = "客户关系意见评价管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/suf/opinion/import")
-    public Result<Boolean> importSufOpinion(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmSufOpinionService.importData(moduleId,formId,file, CrmSufOpinion.class, CrmSufOpinionData.class));
+    public Result<ImportVO> importSufOpinion(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmSufOpinionService.importData(importDTO, CrmSufOpinion.class, CrmSufOpinionData.class));
     }
     
     /**

@@ -6,7 +6,7 @@ import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.log.annotation.Log;
 import com.platform.mesh.mybatis.plus.extention.MPage;
-import com.platform.mesh.security.utils.SecurityUtils;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.dto.SysUserDTO;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.dto.SysUserPageDTO;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.po.SysUser;
@@ -70,8 +70,8 @@ public class SysUserController extends BaseController {
 	@Log(moduleName = "用户信息", operateType = OperateTypeEnum.SELECT)
 	@GetMapping("/user/get")
 	public Result<SysUserVO> getUser(@RequestParam(value = "userId") Long userId){
-		SysUser sysUser = sysUserService.getUserById(userId);
-		return Result.success(BeanUtil.copyProperties(sysUser, SysUserVO.class));
+        SysUserVO sysUserVO = sysUserService.getUserById(userId);
+		return Result.success(sysUserVO);
 	}
 
 	/**
@@ -83,7 +83,7 @@ public class SysUserController extends BaseController {
 	@Operation(summary = "获取当前用户信息")
 	@GetMapping("/user/login/info")
 	public Result<SysUserInfoVO> getUserLoginInfo() {
-		Long accountId = SecurityUtils.getLoginUser().getAccountId();
+		Long accountId = UserCacheUtil.getAccountId();
 		SysUserInfoVO allInfoById = sysUserService.getUserInfoByAccountId(accountId);
 		return Result.success(allInfoById);
 	}

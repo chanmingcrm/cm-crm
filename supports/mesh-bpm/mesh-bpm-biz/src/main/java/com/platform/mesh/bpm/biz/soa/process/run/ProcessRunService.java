@@ -1,7 +1,7 @@
 package com.platform.mesh.bpm.biz.soa.process.run;
 
 
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 
 /**
  * @description 节点工厂

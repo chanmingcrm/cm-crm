@@ -28,12 +28,22 @@ public interface ServiceNameConst {
 	 */
 	String APP_SERVICE = "mesh-app-biz";
 
+	/**
+	 * 流程服务
+	 */
+	String BPM_SERVICE = "mesh-bpm-biz";
+
 	/*=============================================扩展定制服务名称=============================================*/
 
 	/**
 	 * 客户服务
 	 */
 	String CRM_SERVICE = "mesh-crm-biz";
+
+	/**
+	 * AI 服务
+	 */
+	String AI_SERVICE = "mesh-ai-biz";
 
 	/**
 	 * 人力服务

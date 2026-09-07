@@ -13,11 +13,8 @@ com.platform.mesh.search.logic.ref.impl.LogicLkFactoryImpl
 com.platform.mesh.search.logic.ref.impl.LogicNlFactoryImpl
 com.platform.mesh.search.logic.ref.impl.LogicInFactoryImpl
 com.platform.mesh.search.logic.ref.impl.LogicNiFactoryImpl
+com.platform.mesh.search.logic.ref.impl.LogicExFactoryImpl
+com.platform.mesh.search.logic.ref.impl.LogicNxFactoryImpl
 com.platform.mesh.search.logic.type.impl.LogicAndFactoryImpl
 com.platform.mesh.search.logic.type.impl.LogicNotFactoryImpl
 com.platform.mesh.search.logic.type.impl.LogicOrFactoryImpl
-com.platform.mesh.serial.SerialUtil
-com.platform.mesh.serial.type.factory.SerialTypeFactory
-com.platform.mesh.serial.type.impl.SerialTypeTextFactoryImpl
-com.platform.mesh.serial.type.impl.SerialTypeDateFactoryImpl
-com.platform.mesh.serial.type.impl.SerialTypeNumFactoryImpl

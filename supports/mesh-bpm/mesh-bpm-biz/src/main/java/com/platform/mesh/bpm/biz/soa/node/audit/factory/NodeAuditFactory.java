@@ -2,8 +2,6 @@ package com.platform.mesh.bpm.biz.soa.node.audit.factory;
 
 import com.platform.mesh.bpm.biz.soa.node.audit.NodeAuditService;
 import com.platform.mesh.bpm.biz.soa.node.audit.enums.NodeAuditFlagEnum;
-import com.platform.mesh.bpm.biz.soa.node.pass.NodePassService;
-import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,7 @@ public class NodeAuditFactory implements InitializingBean {
 
     /**
      * 功能描述:
-     * 〈根绝类型获取对应的流程实现〉
+     * 〈根据类型获取对应的流程实现〉
      * @param nodeAudit nodeAudit
      * @return 正常返回:{@link NodeAuditService}
      * @author 蝉鸣

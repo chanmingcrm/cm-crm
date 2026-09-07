@@ -24,6 +24,11 @@ public interface GrantTypeConstant {
 	String REFRESH_TOKEN = "refresh_token";
 
 	/**
+	 * username
+	 */
+	String USERNAME = "username";
+
+	/**
 	 * grant_type
 	 */
 	String PASSWORD = "password";

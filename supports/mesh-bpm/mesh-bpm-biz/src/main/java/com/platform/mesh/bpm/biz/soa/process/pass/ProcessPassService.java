@@ -1,7 +1,7 @@
 package com.platform.mesh.bpm.biz.soa.process.pass;
 
 
-import com.platform.mesh.bpm.biz.soa.process.pass.enums.ProcessPassEnum;
+import com.platform.mesh.core.enums.bpm.ProcessPassEnum;
 
 /**
  * @description 流程通过工厂

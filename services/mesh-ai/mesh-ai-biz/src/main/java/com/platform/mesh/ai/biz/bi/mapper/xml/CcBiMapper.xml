@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.bi.mapper.CcBiMapper">
+
+    <select id="biAllTotal" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+        COUNT(1) AS VALUE
+        FROM
+        cc_group_user_rel
+        <where>
+            <if test="(biDTO.startTime != null and biDTO.endTime != null )">
+                AND create_time &gt; #{biDTO.startTime} AND create_time &lt; #{biDTO.endTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="biUserTotal" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+        COUNT(1) AS VALUE
+        FROM
+        cc_group_user_rel
+        WHERE
+        user_hash = #{userId}
+        <if test="(biDTO.startTime != null and biDTO.endTime != null )">
+            AND create_time &gt; #{biDTO.startTime} AND create_time &lt; #{biDTO.endTime}
+        </if>
+    </select>
+
+    <select id="biStar" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+        AVG(star_level) AS VALUE
+        FROM
+        cc_group_user_rel
+        WHERE
+        user_hash = #{userId}
+        <if test="(biDTO.startTime != null and biDTO.endTime != null )">
+            AND create_time &gt; #{biDTO.startTime} AND create_time &lt; #{biDTO.endTime}
+        </if>
+    </select>
+
+    <select id="biNumRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            ANY_VALUE(user_name) AS NAME,
+            COUNT(1) AS VALUE
+        FROM
+            cc_group_user_rel
+        WHERE
+         user_type = 2
+        <if test="(biDTO.startTime != null and biDTO.endTime != null )">
+            AND create_time &gt; #{biDTO.startTime} AND create_time &lt; #{biDTO.endTime}
+        </if>
+        GROUP BY user_hash
+    </select>
+
+    <select id="biStarRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+        ANY_VALUE(user_name) AS NAME,
+        AVG(star_level) AS VALUE
+        FROM
+        cc_group_user_rel
+        WHERE
+        user_type = 2
+        <if test="(biDTO.startTime != null and biDTO.endTime != null )">
+            AND create_time &gt; #{biDTO.startTime} AND create_time &lt; #{biDTO.endTime}
+        </if>
+        GROUP BY user_hash
+    </select>
+</mapper>

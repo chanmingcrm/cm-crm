@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.mapping.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
@@ -18,12 +19,15 @@ import com.platform.mesh.core.application.domain.dto.SortDTO;
 import com.platform.mesh.core.constants.DateConst;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.StrConst;
+import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.es.constant.EsConst;
 import com.platform.mesh.es.domain.bo.EsDocGetBO;
 import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
 import com.platform.mesh.es.enums.EsBoolEnum;
+import com.platform.mesh.utils.excel.enums.DataTypeEnum;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +53,8 @@ public class EsUtil {
         esDocGetBO.setSortOptions(getSortOptionsByKind(docGetDTO.getSorts()));
         //设置搜索后置
         esDocGetBO.setSearchAfter(getFieldValueByKind(docGetDTO.getSearchAfter()));
+        //设置分析条件
+        esDocGetBO.setAggrMap(getAggregation(docGetDTO.getAggregations()));
         return esDocGetBO;
     }
 
@@ -152,7 +158,10 @@ public class EsUtil {
             boolBuilder.mustNot(queries);
         }
         if(EsBoolEnum.SHOULD.equals(boolEnum)){
-            boolBuilder.should(queries);
+            boolBuilder.must(m->{
+                m.bool(b->b.should(queries).minimumShouldMatch(NumberConst.NUM_1.toString()));
+               return m;
+            });
         }
         if(EsBoolEnum.FILTER.equals(boolEnum)){
             boolBuilder.filter(queries);
@@ -233,35 +242,34 @@ public class EsUtil {
             case AggregateMetricDouble -> AggregateMetricDoubleProperty.of(builder -> builder)._toProperty();
             case Alias -> FieldAliasProperty.of(builder -> builder)._toProperty();
             case Binary -> BinaryProperty.of(builder -> builder)._toProperty();
+            case Boolean -> BooleanProperty.of(builder -> builder)._toProperty();
             case Byte -> ByteNumberProperty.of(builder -> builder)._toProperty();
             case Completion -> CompletionProperty.of(builder -> builder)._toProperty();
             case ConstantKeyword -> ConstantKeywordProperty.of(builder -> builder)._toProperty();
+            case CountedKeyword -> CountedKeywordProperty.of(builder -> builder)._toProperty();
             case DateNanos -> DateNanosProperty.of(builder -> builder)._toProperty();
             case Date -> DateProperty.of(builder -> {
-                builder.format(DateConst.ES_YYYY_MM__DD__HH_MM_SS);
+                String format = String.join(SymbolConst.OR, DateConst.PARSE_PATTERNS).concat(SymbolConst.OR).concat(DateConst.ES_YYYY_MM__DD__HH_MM_SS);
+                builder.format(format);
                 return builder;
             })._toProperty();
             case DateRange -> DateRangeProperty.of(builder -> {
-                builder.format(DateConst.ES_YYYY_MM__DD__HH_MM_SS);
+                String format = String.join(SymbolConst.OR, DateConst.PARSE_PATTERNS).concat(SymbolConst.OR).concat(DateConst.ES_YYYY_MM__DD__HH_MM_SS);
+                builder.format(format);
                 return builder;
             })._toProperty();
+            case DenseVector -> DenseVectorProperty.of(builder -> builder)._toProperty();
+            case Double -> DoubleNumberProperty.of(builder -> builder)._toProperty();
+            case DoubleRange -> DoubleRangeProperty.of(builder -> builder)._toProperty();
             case DynamicType -> DynamicProperty.of(builder -> builder)._toProperty();
             case Flattened -> FlattenedProperty.of(builder -> builder)._toProperty();
             case Float -> FloatNumberProperty.of(builder -> builder)._toProperty();
             case FloatRange -> FloatRangeProperty.of(builder -> builder)._toProperty();
-            case Keyword -> KeywordProperty.of(builder -> {
-                builder.ignoreAbove(NumberConst.NUM_256);
-                builder.normalizer(EsConst.NORMALIZER_LOWERCASE);
-                builder.fields(EsConst.SORT, s -> {
-                    s._custom(EsConst.SORT,JSONUtil.createObj().putOpt(EsConst.MAPPING_TYPE, EsConst.ICU_COLLATION_KEYWORD).putOpt(EsConst.LANGUAGE, EsConst.CN).putOpt(EsConst.COUNTRY, EsConst.CN));
-                    return s;
-                });
-                return builder;
-            })._toProperty();
             case GeoPoint -> GeoPointProperty.of(builder -> builder)._toProperty();
             case GeoShape -> GeoShapeProperty.of(builder -> builder)._toProperty();
             case HalfFloat -> HalfFloatNumberProperty.of(builder -> builder)._toProperty();
             case Histogram -> HistogramProperty.of(builder -> builder)._toProperty();
+            case IcuCollationKeyword -> IcuCollationProperty.of(builder -> builder)._toProperty();
             case Integer -> IntegerNumberProperty.of(builder -> builder)._toProperty();
             case IntegerRange -> IntegerRangeProperty.of(builder -> builder)._toProperty();
             case Ip -> IpProperty.of(builder -> builder)._toProperty();
@@ -273,27 +281,88 @@ public class EsUtil {
             case Murmur3 -> Murmur3HashProperty.of(builder -> builder)._toProperty();
             case Nested -> NestedProperty.of(builder -> builder)._toProperty();
             case Object -> ObjectProperty.of(builder -> builder)._toProperty();
+            case Passthrough -> PassthroughObjectProperty.of(builder -> builder)._toProperty();
             case Percolator -> PercolatorProperty.of(builder -> builder)._toProperty();
             case Point -> PointProperty.of(builder -> builder)._toProperty();
             case RankFeature -> RankFeatureProperty.of(builder -> builder)._toProperty();
             case RankFeatures -> RankFeaturesProperty.of(builder -> builder)._toProperty();
             case ScaledFloat -> ScaledFloatNumberProperty.of(builder -> builder)._toProperty();
             case SearchAsYouType -> SearchAsYouTypeProperty.of(builder -> builder)._toProperty();
+            case SemanticText -> SemanticTextProperty.of(builder -> builder)._toProperty();
             case Shape -> ShapeProperty.of(builder -> builder)._toProperty();
             case Short -> ShortNumberProperty.of(builder -> builder)._toProperty();
             case SparseVector -> SparseVectorProperty.of(builder -> builder)._toProperty();
-            case TokenCount -> TokenCountProperty.of(builder -> builder)._toProperty();
-            case UnsignedLong -> UnsignedLongNumberProperty.of(builder -> builder)._toProperty();
-            case Version -> VersionProperty.of(builder -> builder)._toProperty();
-            case Wildcard -> WildcardProperty.of(builder -> builder)._toProperty();
-            default -> TextProperty.of(builder -> builder
+            case Text -> TextProperty.of(builder -> builder
                     .analyzer(EsConst.ANALYZER_ICU)
                     .fields(EsConst.KEYWORD, s -> {
                         s._custom(EsConst.KEYWORD,JSONUtil.createObj().putOpt(EsConst.MAPPING_TYPE, EsConst.KEYWORD).putOpt(EsConst.IGNORE_ABOVE, NumberConst.NUM_256));
                         return s;
                     })
             )._toProperty();
+            case TokenCount -> TokenCountProperty.of(builder -> builder)._toProperty();
+            case UnsignedLong -> UnsignedLongNumberProperty.of(builder -> builder)._toProperty();
+            case Version -> VersionProperty.of(builder -> builder)._toProperty();
+            case Wildcard -> WildcardProperty.of(builder -> builder)._toProperty();
+            default -> KeywordProperty.of(builder -> {
+                builder.ignoreAbove(NumberConst.NUM_256);
+                builder.normalizer(EsConst.NORMALIZER_LOWERCASE);
+                builder.fields(EsConst.SORT, s -> {
+                    s._custom(EsConst.SORT,JSONUtil.createObj().putOpt(EsConst.MAPPING_TYPE, EsConst.ICU_COLLATION_KEYWORD).putOpt(EsConst.LANGUAGE, EsConst.CN).putOpt(EsConst.COUNTRY, EsConst.CN));
+                    return s;
+                });
+                return builder;
+            })._toProperty();
         };
+    }
+
+    /**
+     * 功能描述:
+     * 〈设置字段默认Es类型〉
+     * @author 蝉鸣
+     */
+    public static Property.Kind getDefaultEsKind(String columnMac) {
+        if(columnMac.endsWith(EsConst.MAPPING_SUFFIX_ID)){
+            return Property.Kind.Long;
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_NUM) ||
+                columnMac.endsWith(EsConst.MAPPING_SUFFIX_MONEY)) {
+            return Property.Kind.Double;
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_DATE) ||
+                columnMac.endsWith(EsConst.MAPPING_SUFFIX_TIME)) {
+            return Property.Kind.Date;
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_JSON)) {
+            return Property.Kind.Flattened;
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_TEXT) ||
+                columnMac.startsWith(EsConst.MAPPING_PREFIX_TEXTAREA) ||
+                columnMac.startsWith(EsConst.MAPPING_PREFIX_TEXT_MULTI)) {
+            return Property.Kind.Text;
+        }else {
+            return Property.Kind.Keyword;
+        }
+    }
+
+    /**
+     * 功能描述:
+     * 〈设置字段默认数据类型〉
+     * @author 蝉鸣
+     */
+    public static Integer getDefaultDataType(String columnMac) {
+        if(columnMac.endsWith(EsConst.MAPPING_SUFFIX_ID)){
+            return DataTypeEnum.NUMBER.getValue();
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_NUM) ||
+                columnMac.endsWith(EsConst.MAPPING_SUFFIX_MONEY)) {
+            return DataTypeEnum.NUMBER.getValue();
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_DATE) ||
+                columnMac.endsWith(EsConst.MAPPING_SUFFIX_TIME)) {
+            return DataTypeEnum.STRING.getValue();
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_JSON)) {
+            return DataTypeEnum.JSON_ARRAY.getValue();
+        } else if (columnMac.endsWith(EsConst.MAPPING_SUFFIX_TEXT) ||
+                columnMac.startsWith(EsConst.MAPPING_PREFIX_TEXTAREA) ||
+                columnMac.startsWith(EsConst.MAPPING_PREFIX_TEXT_MULTI)) {
+            return DataTypeEnum.STRING.getValue();
+        }else {
+            return DataTypeEnum.STRING.getValue();
+        }
     }
 
     /**
@@ -384,6 +453,29 @@ public class EsUtil {
             });
         });
         return fieldValues;
+    }
+
+    /**
+     * 功能描述:
+     * 〈根据类型生成对应FieldValue〉
+     * @param fields fields
+     * @return 正常返回:{@link Map}，键为维度名称，值为对应的 {@link Aggregation} 聚合数据
+     * @author 蝉鸣
+     */
+    public static Map<String, Aggregation> getAggregation(List<String> fields) {
+        Map<String, Aggregation> aggrMap = new HashMap<>();
+        if(CollUtil.isEmpty(fields)){
+            return aggrMap;
+        }
+        for (String field : fields) {
+            if(field.endsWith(EsConst.MAPPING_SUFFIX_NUM) || field.endsWith(EsConst.MAPPING_SUFFIX_MONEY)){
+                aggrMap.put(field,Aggregation.of(a -> a.sum(s -> s.field(field))));
+            }else{
+                aggrMap.put(field,Aggregation.of(a -> a.valueCount(v -> v.field(field))));
+            }
+        }
+        return aggrMap;
+
     }
 
 

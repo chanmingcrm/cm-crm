@@ -28,7 +28,7 @@ public interface IEsIndexService {
      * 功能描述:
      * 〈获取索引〉
      * @param indexNames indexNames
-     * @return 正常返回:{@link Map<String,IndexState>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     Map<String, IndexState> getIndex(List<String> indexNames);
@@ -73,7 +73,7 @@ public interface IEsIndexService {
      * 功能描述:
      * 〈获取索引映射〉
      * @param indexNames indexNames
-     * @return 正常返回:{@link Map<String,IndexMappingRecord>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     Map<String, IndexMappingRecord> getMapping(List<String> indexNames);

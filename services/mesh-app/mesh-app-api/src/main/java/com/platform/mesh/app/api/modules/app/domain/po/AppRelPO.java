@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.platform.mesh.core.application.domain.po.BasePO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,11 +26,6 @@ public class AppRelPO extends BasePO {
      */
     @TableId( type = IdType.ASSIGN_ID)
     private Long id;
-
-    /**
-     * 父模块ID
-     */
-    private Long parentModuleId;
 
     /**
      * 模块ID

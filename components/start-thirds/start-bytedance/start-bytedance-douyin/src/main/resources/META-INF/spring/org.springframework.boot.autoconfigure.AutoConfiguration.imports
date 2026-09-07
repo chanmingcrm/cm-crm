@@ -1,0 +1,4 @@
+com.platform.mesh.douyin.service.impl.AuthServiceImpl
+com.platform.mesh.douyin.service.impl.FeiYuServiceImpl
+com.platform.mesh.douyin.service.impl.DouYinServiceImpl
+com.platform.mesh.douyin.service.manual.SignServiceManual

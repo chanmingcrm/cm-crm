@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 
 /**
  * @description 流程过程信息DTO
@@ -23,6 +25,12 @@ public class BpmTempProcessPageDTO extends PageDTO {
      */
     @Schema(description = "分组ID")
     private Long groupId;
+
+    /**
+     * 分组ID
+     */
+    @Schema(description = "分组ID",hidden = true)
+    private List<Long> groupIds;
 
     /**
      * 模块ID

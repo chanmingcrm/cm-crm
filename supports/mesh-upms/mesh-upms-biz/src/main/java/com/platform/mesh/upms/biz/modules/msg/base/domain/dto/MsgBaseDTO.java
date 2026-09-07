@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -34,6 +35,13 @@ public class MsgBaseDTO extends BaseDTO {
      */
     @Schema(description = "数据ID")
     private Long dataId;
+
+
+    /**
+     * 租户ID
+     */
+    @Schema(description = "租户ID")
+    private Long tenantId;
 
 
     /**
@@ -70,6 +78,11 @@ public class MsgBaseDTO extends BaseDTO {
     @Schema(description = "消息外链")
     private String msgHref;
 
+    /**
+     * 提醒时间
+     */
+    @Schema(description = "提醒时间")
+    private LocalDateTime noticeTime;
 
     /**
      * 消息接收人ID

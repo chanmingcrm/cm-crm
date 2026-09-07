@@ -5,6 +5,7 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class RedisService {
 	 * @param timeUnit 时间颗粒度
 	 */
 	public <T> void setCacheObject(final String key, final T value, final Integer timeout, final TimeUnit timeUnit) {
-		redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
+		redisTemplate.opsForValue().set(key, value, Duration.of(timeout, timeUnit.toChronoUnit()));
 	}
 
 	/**
@@ -59,7 +60,7 @@ public class RedisService {
 	 * @return true=设置成功；false=设置失败
 	 */
 	public boolean expire(final String key, final long timeout, final TimeUnit unit) {
-		return redisTemplate.expire(key, timeout, unit);
+		return redisTemplate.expire(key, Duration.of(timeout, unit.toChronoUnit()));
 	}
 
 	/**

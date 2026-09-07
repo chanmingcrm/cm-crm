@@ -30,6 +30,8 @@ import java.util.List;
 @Tag(description = "AppFormColumnController", name = "表单字段关联")
 @RestController
 public class AppFormColumnController extends BaseController{
+
+
     @Autowired
     private IAppFormColumnService appFormColumnService;
 
@@ -91,7 +93,9 @@ public class AppFormColumnController extends BaseController{
     @PostMapping("/app/form/column/add")
     public Result<Boolean> addFormColumn(@Validated @RequestBody List<AppFormColumnDTO> formColumnDTOs) {
         Long batchId = IdUtil.getSnowflake().nextId();
-        return Result.success(appFormColumnService.addFormColumn(batchId,formColumnDTOs));
+        //新增字段
+        appFormColumnService.addFormColumn(batchId, formColumnDTOs);
+        return Result.success();
     }
     
    /**

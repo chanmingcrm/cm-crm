@@ -1,10 +1,9 @@
 package com.platform.mesh.upms.api.modules.sys.log.feign.factory;
 
 import com.platform.mesh.upms.api.modules.sys.log.domain.bo.LogLoginBO;
-import com.platform.mesh.upms.api.modules.sys.log.domain.bo.LogModifyEventBO;
-import com.platform.mesh.upms.api.modules.sys.log.feign.RemoteLogService;
+import com.platform.mesh.upms.api.modules.sys.log.domain.bo.LogModifyBO;
 import com.platform.mesh.upms.api.modules.sys.log.domain.bo.LogOperateBO;
-import com.platform.mesh.utils.result.Result;
+import com.platform.mesh.upms.api.modules.sys.log.feign.RemoteLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.openfeign.FallbackFactory;
@@ -32,18 +31,15 @@ public class RemoteLogFallbackFactory implements FallbackFactory<RemoteLogServic
 		return new RemoteLogService() {
 
 			@Override
-			public Result<Boolean> saveLoginLog(LogLoginBO logLoginBO) {
-				return Result.error();
+			public void saveLoginLog(LogLoginBO logLoginBO) {
 			}
 
 			@Override
-			public Result<Boolean> saveOperationLog(LogOperateBO logOperateBO) {
-				return Result.error();
+			public void saveOperationLog(LogOperateBO logOperateBO) {
 			}
 
 			@Override
-			public Result<Boolean> saveModifyLog(LogModifyEventBO modifyEventBO) {
-				return Result.error();
+			public void saveModifyLog(LogModifyBO modifyBO) {
 			}
 
 		};

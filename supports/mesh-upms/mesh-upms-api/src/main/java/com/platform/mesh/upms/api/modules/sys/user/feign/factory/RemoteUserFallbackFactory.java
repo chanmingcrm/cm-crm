@@ -75,6 +75,17 @@ public class RemoteUserFallbackFactory implements FallbackFactory<RemoteUserServ
 			public Result<SysOrgInfoBO> getOrgInfoByLevelId(Long levelId) {
 				return Result.error();
 			}
+
+			@Override
+			public Result<List<Long>> getUserIdsByModules(UserMenuBO userMenuBO) {
+				return Result.error();
+			}
+
+			@Override
+			public Result<List<Long>> getAppModules() {
+				return Result.error();
+			}
+
 		};
 	}
 

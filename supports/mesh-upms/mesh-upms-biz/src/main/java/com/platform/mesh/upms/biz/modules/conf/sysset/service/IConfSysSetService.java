@@ -1,10 +1,11 @@
 package com.platform.mesh.upms.biz.modules.conf.sysset.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.upms.biz.modules.conf.sysset.domain.dto.ConfSysSetDTO;
+import com.platform.mesh.upms.biz.modules.conf.sysset.domain.dto.ConfSysSetPageDTO;
 import com.platform.mesh.upms.biz.modules.conf.sysset.domain.po.ConfSysSet;
 import com.platform.mesh.upms.biz.modules.conf.sysset.domain.vo.ConfSysSetVO;
-
 
 
 /**
@@ -16,12 +17,30 @@ public interface IConfSysSetService extends IService<ConfSysSet> {
 
     /**
      * 功能描述:
+     * 〈查询分页〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link PageVO<ConfSysSetVO>}
+     * @author 蝉鸣
+     */
+    PageVO<ConfSysSetVO> selectPage(ConfSysSetPageDTO pageDTO);
+
+    /**
+     * 功能描述:
      * 〈获取当前配置系统信息〉
      * @param sysSetId sysSetId
      * @return 正常返回:{@link ConfSysSetVO}
      * @author 蝉鸣
      */
     ConfSysSetVO getSysSetInfoById(Long sysSetId);
+
+    /**
+     * 功能描述:
+     * 〈获取当前配置系统信息〉
+     * @param confMac confMac
+     * @return 正常返回:{@link ConfSysSetVO}
+     * @author 蝉鸣
+     */
+    ConfSysSetVO getSysSetInfoByMac(String confMac);
 
     /**
      * 功能描述:
@@ -49,4 +68,5 @@ public interface IConfSysSetService extends IService<ConfSysSet> {
      * @author 蝉鸣
      */
     Boolean deleteSysSet(Long sysSetId);
+
 }

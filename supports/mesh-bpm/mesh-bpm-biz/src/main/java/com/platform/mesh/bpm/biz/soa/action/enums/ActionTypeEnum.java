@@ -13,27 +13,27 @@ public enum ActionTypeEnum implements BaseEnum<ActionTypeEnum, Integer> {
     /**
      * 加载时
      */
-    ON_LOAD(1, "ON_LOAD"),
+    ON_LOAD(1, "加载时"),
     /**
      * 开始时
      */
-    ON_START(2,"ON_START"),
+    ON_START(2,"开始时"),
     /**
      * 执行时
      */
-    ON_PROCESS(3, "ON_PROCESS"),
+    ON_PROCESS(3, "执行时"),
     /**
      * 成功时
      */
-    ON_SUCCESS(4, "ON_SUCCESS"),
+    ON_SUCCESS(4, "成功时"),
     /**
      * 失败时
      */
-    ON_ERROR(5, "ON_ERROR"),
+    ON_ERROR(5, "失败时"),
     /**
      * 结束时
      */
-    ON_END(6, "ON_END")
+    ON_END(6, "结束时")
 
     ;
 

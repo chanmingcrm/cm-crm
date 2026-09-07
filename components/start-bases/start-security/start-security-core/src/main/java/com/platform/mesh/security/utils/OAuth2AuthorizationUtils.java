@@ -29,7 +29,7 @@ public class OAuth2AuthorizationUtils {
 	 * 功能描述:
 	 * 〈获取请求参数〉
 	 * @param request request
-	 * @return 正常返回:{@link MultiValueMap<String,String>}
+	 * @return 正常返回:{@link MultiValueMap}
 	 * @author 蝉鸣
 	 */
 	public static MultiValueMap<String, String> getParameters(HttpServletRequest request) {

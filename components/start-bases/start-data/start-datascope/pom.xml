@@ -5,13 +5,13 @@
     <parent>
         <artifactId>start-data</artifactId>
         <groupId>com.platform</groupId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
 
     <artifactId>start-datascope</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>数据权限模块</description>
 
     <dependencies>
@@ -20,6 +20,18 @@
         <dependency>
             <groupId>com.platform</groupId>
             <artifactId>start-security-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.bpm.api.modules.inst.domain.dto.BpmProcessStartDTO;
+import com.platform.mesh.bpm.biz.modules.data.inst.domain.po.BpmDataInstRel;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.dto.BpmInstNodeSubDTO;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.po.BpmInstNodeSub;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.enums.InitNodeSubEnum;
@@ -21,15 +22,17 @@ import com.platform.mesh.bpm.biz.modules.inst.process.service.manual.BpmInstProc
 import com.platform.mesh.bpm.biz.modules.temp.nodesub.domain.po.BpmTempNodeSub;
 import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +46,7 @@ import java.util.List;
 @Service
 public class BpmInstProcessServiceImpl extends ServiceImpl<BpmInstProcessMapper, BpmInstProcess> implements IBpmInstProcessService {
 
+    private static final Logger log = LoggerFactory.getLogger(BpmInstProcessServiceImpl.class);
 
     @Autowired
     private BpmInstProcessServiceManual bpmInstProcessServiceManual;
@@ -115,15 +119,27 @@ public class BpmInstProcessServiceImpl extends ServiceImpl<BpmInstProcessMapper,
      */
     @Override
     public BpmInstProcess startProcessInst(BpmProcessStartDTO startDTO){
+        if(ObjectUtil.isEmpty(startDTO.getTempProcessId())){
+            return null;
+        }
+        //校验当前数据是否已有运行中的流程
+        Boolean checkDataRel = bpmInstProcessServiceManual.checkDataRelHasRun(startDTO.getDataId(),startDTO.getTempProcessId(),Boolean.TRUE);
+        if(checkDataRel){
+            return null;
+//            log.info(InstProcessExceptionEnum.DATA_HAS_RUNNING.getDesc());
+//            throw InstProcessExceptionEnum.DATA_HAS_RUNNING.getBaseException();
+        }
         //初始化流程实例
         BpmInstProcess bpmInstProcess = bpmInstProcessServiceManual.initProcessInst(startDTO.getTempProcessId());
         //保存流程实例与数据关系
-        bpmInstProcessServiceManual.addDataInstRel(bpmInstProcess,startDTO);
+        BpmDataInstRel bpmDataInstRel = bpmInstProcessServiceManual.addDataInstRel(bpmInstProcess, startDTO);
         if(YesOrNoEnum.YES.getValue().equals(startDTO.getAutoStart())){
             //判断是否需要执行开始节点
             bpmInstProcessServiceManual.runProcessInst(bpmInstProcess);
+            bpmInstProcess = this.getById(bpmInstProcess.getId());
         }
-        //返回流程实例
+        //持久化消息信息
+        bpmInstProcessServiceManual.saveAndSendBpmMsg(bpmInstProcess, bpmDataInstRel);
         return bpmInstProcess;
     }
 
@@ -307,6 +323,36 @@ public class BpmInstProcessServiceImpl extends ServiceImpl<BpmInstProcessMapper,
         MPage<BpmInstProcess> processMPage = MPageUtil.pageEntityToMPage(pageDTO, BpmInstProcess.class);
         MPage<BpmInstProcessOaVO> instToDo = this.baseMapper.getProcessInstFollow(processMPage, processTodoBO);
         return MPageUtil.convertToVO(instToDo, BpmInstProcessOaVO.class);
+    }
+
+
+    /**
+     * 功能描述:
+     * 〈处理流程实例消息〉
+     * @param instProcessId instProcessId
+     * @author 蝉鸣
+     */
+    @Override
+    public void handleInstProcessMsg(Long instProcessId){
+        BpmInstProcess bpmInstProcess = this.getById(instProcessId);
+        //保存流程实例与数据关系
+        BpmDataInstRel bpmDataInstRel = bpmInstProcessServiceManual.getDataInstRel(instProcessId);
+        //持久化消息信息，发送审批回调消息
+        bpmInstProcessServiceManual.saveAndSendBpmMsg(bpmInstProcess, bpmDataInstRel);
+    }
+
+    /**
+     * 功能描述:
+     * 〈提交流程,可以进行审批〉
+     * @param instProcessId instProcessId
+     * @author 蝉鸣
+     */
+    @Override
+    public Boolean commitInstProcess(Long instProcessId) {
+        BpmInstProcess instProcess = getById(instProcessId);
+        instProcess.setCommitFlag(YesOrNoEnum.YES.getValue());
+        this.updateById(instProcess);
+        return Boolean.TRUE;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.platform.mesh.upms.api.modules.doc.feign.factory;
 
+import com.platform.mesh.upms.api.modules.doc.domain.dto.DocOnlineSaveDTO;
 import com.platform.mesh.upms.api.modules.doc.domain.vo.DocFileVO;
 import com.platform.mesh.upms.api.modules.doc.feign.RemoteDocService;
 import com.platform.mesh.upms.api.modules.msg.feign.RemoteMsgService;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * @description 消息信息服务降级处理
+ * @description 文档服务降级处理
  * @author 蝉鸣
  */
 @Component
@@ -33,6 +34,11 @@ public class RemoteDocFallbackFactory implements FallbackFactory<RemoteDocServic
 		return new RemoteDocService() {
 			@Override
 			public Result<List<DocFileVO>> getDocFiles(List<Long> fileIds) {
+				return Result.error();
+			}
+
+			@Override
+			public Result<Void> saveOnline(DocOnlineSaveDTO saveDTO) {
 				return Result.error();
 			}
 		};

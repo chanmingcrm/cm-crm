@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.preproposal.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.domain.po.CrmPreProposal;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.domain.vo.CrmPreProposalVO;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.service.ICrmPreProposalService;
@@ -113,7 +110,7 @@ public class CrmPreProposalController extends BaseController{
     @Log(moduleName = "客户关系提案报价管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/proposal/edit")
     public Result<CrmPreProposalVO> editPreProposal(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreProposal crmPreProposal = crmPreProposalService.editData(dataEditDTO, CrmPreProposal.class);
+        CrmPreProposal crmPreProposal = crmPreProposalService.editData(dataEditDTO, CrmPreProposal.class, CrmPreProposalData.class);
         return Result.success(BeanUtil.copyProperties(crmPreProposal, CrmPreProposalVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmPreProposalController extends BaseController{
     @Operation(summary = "导入客户关系提案报价")
     @Log(moduleName = "客户关系提案报价管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/proposal/import")
-    public Result<Boolean> importPreProposal(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreProposalService.importData(moduleId,formId,file, CrmPreProposal.class, CrmPreProposalData.class));
+    public Result<ImportVO> importPreProposal(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreProposalService.importData(importDTO, CrmPreProposal.class, CrmPreProposalData.class));
     }
     
     /**

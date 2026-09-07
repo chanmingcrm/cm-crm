@@ -17,6 +17,7 @@ public enum ConfSysSetExceptionEnum implements BaseExceptionEnum<ConfSysSetExcep
      */
     ADD_NO_ARGS("conf-sys-set",500, null,  "配置系统参数为空"),
     ADD_NO_INVALID("conf-sys-set",501, null,  "配置系统参数异常"),
+    ADD_NO_EXIST("conf-sys-set",502, null,  "已存在相同Mac配置"),
     ;
 
     /**

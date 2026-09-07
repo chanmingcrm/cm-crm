@@ -15,10 +15,14 @@ import com.platform.mesh.bpm.biz.modules.inst.varrefer.domain.po.BpmInstVarRefer
 import com.platform.mesh.bpm.biz.modules.inst.varrefer.domain.vo.BpmInstVarReferVO;
 import com.platform.mesh.bpm.biz.modules.inst.varrefer.service.IBpmInstVarReferService;
 import com.platform.mesh.bpm.biz.modules.temp.line.domain.dto.BpmTempLineDTO;
+import com.platform.mesh.bpm.biz.modules.temp.line.domain.po.BpmTempLine;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessVO;
 import com.platform.mesh.bpm.biz.modules.temp.variable.domain.dto.BpmTempVariableDTO;
+import com.platform.mesh.bpm.biz.modules.temp.variable.domain.po.BpmTempVariable;
+import com.platform.mesh.bpm.biz.modules.temp.variable.service.IBpmTempVariableService;
 import com.platform.mesh.bpm.biz.modules.temp.varrefer.domain.po.BpmTempVarRefer;
 import com.platform.mesh.bpm.biz.modules.temp.varrefer.domain.vo.BpmTempVarReferVO;
 import com.platform.mesh.bpm.biz.modules.temp.varrefer.service.IBpmTempVarReferService;
@@ -32,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -52,6 +57,9 @@ public class ProcessTypeVarReferFactoryImpl implements ProcessTypeService {
 
     @Autowired
     private IBpmInstVarReferService bpmInstVarReferService;
+
+    @Autowired
+    private IBpmTempVariableService bpmTempVariableService;
 
     @Autowired
     private IBpmInstVariableService bpmInstVariableService;
@@ -212,5 +220,41 @@ public class ProcessTypeVarReferFactoryImpl implements ProcessTypeService {
     @Override
     public void getHist(BpmHistProcessInfoVO getVO) {
 
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+        List<BpmTempVarRefer> tempVarRefers = bpmTempVarReferService.selectVarReferByTempProcessIdId(sourceProcess.getId());
+        if(CollUtil.isEmpty(tempVarRefers)){
+            return;
+        }
+        List<BpmTempVariable> bpmTempVariables = bpmTempVariableService.selectVariablesByTempProcessIdId(targetProcess.getId());
+        if(CollUtil.isEmpty(bpmTempVariables)){
+            return;
+        }
+        Map<String, BpmTempVariable> varMap = bpmTempVariables.stream().collect(Collectors.toMap(BpmTempVariable::getVariableHash, Function.identity()));
+        tempVarRefers.forEach(tempVarRefer -> {
+            tempVarRefer.setId(null);
+            tempVarRefer.setTempProcessId(targetProcess.getId());
+            tempVarRefer.setCreateTime(LocalDateTime.now());
+            tempVarRefer.setCreateUserId(targetProcess.getCreateUserId());
+            tempVarRefer.setUpdateTime(LocalDateTime.now());
+            tempVarRefer.setUpdateUserId(targetProcess.getUpdateUserId());
+            tempVarRefer.setScopeOrgId(targetProcess.getScopeOrgId());
+            tempVarRefer.setScopeUserId(targetProcess.getScopeUserId());
+            if(varMap.containsKey(tempVarRefer.getTempVariableHash())){
+                BpmTempVariable bpmTempVariable = varMap.get(tempVarRefer.getTempVariableHash());
+                tempVarRefer.setTempVariableId(bpmTempVariable.getId());
+                tempVarRefer.setTempLineId(bpmTempVariable.getTempLineId());
+            }
+        });
+        bpmTempVarReferService.saveBatch(tempVarRefers);
     }
 }

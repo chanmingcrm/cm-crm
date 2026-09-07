@@ -34,13 +34,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.*;
 import org.springframework.security.oauth2.server.authorization.web.authentication.*;
@@ -48,7 +48,8 @@ import org.springframework.security.oauth2.server.resource.introspection.OpaqueT
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationConverter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.authentication.DelegatingAuthenticationConverter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
@@ -143,7 +144,7 @@ public class AuthorizationServerConfiguration {
 			// 自定义接口、端点暴露
 			RequestMatcher[] requestMatchers;
 			if (CollUtil.isNotEmpty(ignoreUrls)) {
-				List<AntPathRequestMatcher> matchers = ignoreUrls.stream().map(AntPathRequestMatcher::new).toList();
+				List<PathPatternRequestMatcher> matchers = ignoreUrls.stream().map(PathPatternRequestMatcher::pathPattern).toList();
 				RequestMatcher[] result = new RequestMatcher[matchers.size()];
 				requestMatchers =  matchers.toArray(result);
 			} else {
@@ -256,9 +257,8 @@ public class AuthorizationServerConfiguration {
 	 */
 	@Bean
 	public AuthorizationServerSettings authorizationServerSettings() {
-		return AuthorizationServerSettings.builder()
-				.issuer(SecurityConstant.PROJECT_LICENSE)
-				.build();
+		// issuer 由当前对外请求地址解析，禁止复用项目 license 等无关常量。
+		return AuthorizationServerSettings.builder().build();
 	}
 
 	/**

@@ -3,7 +3,6 @@ package com.platform.mesh.app.biz.modules.app.formcolumn.domain.po;
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.platform.mesh.core.application.domain.po.BasePO;
-import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
 import com.platform.mesh.mybatis.plus.annotation.TableParentId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -213,6 +212,12 @@ public class AppFormColumn extends BasePO {
 
 
     /**
+    * 可修改标识YesOrNoEnum
+    */
+    private Integer editFlag;
+
+
+    /**
     * 删除标识YesOrNoEnum
     */
     private Integer deleteFlag;
@@ -271,19 +276,5 @@ public class AppFormColumn extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 用户ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
 
 }

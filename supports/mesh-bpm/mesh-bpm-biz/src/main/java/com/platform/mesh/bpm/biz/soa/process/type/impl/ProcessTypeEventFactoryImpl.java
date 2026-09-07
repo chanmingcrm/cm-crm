@@ -2,7 +2,9 @@ package com.platform.mesh.bpm.biz.soa.process.type.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.platform.mesh.bpm.biz.modules.hist.event.domain.po.BpmHistEvent;
 import com.platform.mesh.bpm.biz.modules.hist.event.domain.vo.BpmHistEventVO;
 import com.platform.mesh.bpm.biz.modules.hist.event.service.IBpmHistEventService;
@@ -13,19 +15,26 @@ import com.platform.mesh.bpm.biz.modules.inst.event.domain.po.BpmInstEvent;
 import com.platform.mesh.bpm.biz.modules.inst.event.domain.vo.BpmInstEventVO;
 import com.platform.mesh.bpm.biz.modules.inst.event.enums.InstEventHandleEnum;
 import com.platform.mesh.bpm.biz.modules.inst.event.service.IBpmInstEventService;
+import com.platform.mesh.bpm.biz.modules.inst.eventrel.domain.po.BpmInstEventRel;
+import com.platform.mesh.bpm.biz.modules.inst.eventrel.service.IBpmInstEventRelService;
 import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.dto.BpmInstNodeSubDTO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessVO;
 import com.platform.mesh.bpm.biz.modules.temp.action.domain.dto.BpmTempActionDTO;
+import com.platform.mesh.bpm.biz.modules.temp.action.domain.po.BpmTempAction;
+import com.platform.mesh.bpm.biz.modules.temp.action.service.IBpmTempActionService;
 import com.platform.mesh.bpm.biz.modules.temp.event.domain.po.BpmTempEvent;
 import com.platform.mesh.bpm.biz.modules.temp.event.domain.vo.BpmTempEventVO;
 import com.platform.mesh.bpm.biz.modules.temp.event.service.IBpmTempEventService;
 import com.platform.mesh.bpm.biz.modules.temp.node.domain.dto.BpmTempNodeDTO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessVO;
+import com.platform.mesh.bpm.biz.soa.event.rel.domain.bo.EventRelBO;
+import com.platform.mesh.bpm.biz.soa.event.rel.enums.EventRelEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
@@ -34,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -59,7 +69,13 @@ public class ProcessTypeEventFactoryImpl implements ProcessTypeService {
     private IBpmHistEventService bpmHistEventService;
 
     @Autowired
+    private IBpmTempActionService bpmTempActionService;
+
+    @Autowired
     private IBpmInstActionService bpmInstActionService;
+
+    @Autowired
+    private IBpmInstEventRelService bpmInstEventRelService;
 
     /**
      * 功能描述:
@@ -91,6 +107,7 @@ public class ProcessTypeEventFactoryImpl implements ProcessTypeService {
         List<BpmTempEvent> bpmTempEvents = addDTO.getEventDTOs().stream().map(eventDTO -> {
             BpmTempEvent bpmTempEvent = BeanUtil.copyProperties(eventDTO, BpmTempEvent.class);
             bpmTempEvent.setTempProcessId(addDTO.getProcessDTO().getProcessId());
+            bpmTempEvent.setRelData(JSONUtil.toJsonStr(eventDTO.getRelDataJson()));
             //赋值节点ID
             if (nodeDTOMap.containsKey(bpmTempEvent.getTempNodeHash())) {
                 BpmTempNodeDTO bpmTempNodeDTO = nodeDTOMap.get(bpmTempEvent.getTempNodeHash());
@@ -115,7 +132,11 @@ public class ProcessTypeEventFactoryImpl implements ProcessTypeService {
     public void getTemp(BpmTempProcessDesignVO getVO) {
         BpmTempProcessVO processVO = getVO.getProcessVO();
         List<BpmTempEvent> tempEvents = bpmTempEventService.lambdaQuery().eq(BpmTempEvent::getTempProcessId,processVO.getId()).list();
-        List<BpmTempEventVO> tempEventVOS = BeanUtil.copyToList(tempEvents, BpmTempEventVO.class);
+        List<BpmTempEventVO> tempEventVOS = tempEvents.stream().map(event -> {
+            BpmTempEventVO tempEventVO = BeanUtil.copyProperties(event, BpmTempEventVO.class);
+            tempEventVO.setRelDataJson(JSONUtil.parseArray(event.getRelData()));
+            return tempEventVO;
+        }).toList();
         getVO.setEventVOs(tempEventVOS);
     }
 
@@ -143,10 +164,13 @@ public class ProcessTypeEventFactoryImpl implements ProcessTypeService {
         Map<Long, BpmInstAction> instActionMap = bpmInstActions.stream().collect(Collectors.toMap(BpmInstAction::getTempActionId, Function.identity()));
         //获取模板动作
         List<BpmTempEvent> tempEvents = bpmTempEventService.selectEventsByTempProcessIdId(instProcess.getTempProcessId());
+        //收集节点事件关联信息
+        List<BpmInstEventRel> eventCcs = CollUtil.newArrayList();
         //转化实例动作
         List<BpmInstEvent> bpmInstEvents = tempEvents.stream().map(item -> {
             BpmInstEvent bpmInstEvent = new BpmInstEvent();
             BeanUtil.copyProperties(item, bpmInstEvent, ObjFieldUtil.ignoreDefault());
+            bpmInstEvent.setId(IdUtil.getSnowflakeNextId());
             //设置流程实例ID
             bpmInstEvent.setInstProcessId(instProcess.getId());
 
@@ -158,9 +182,25 @@ public class ProcessTypeEventFactoryImpl implements ProcessTypeService {
                 bpmInstEvent.setHandleFlag(InstEventHandleEnum.UNDO.getValue());
                 bpmInstEvent.setTempEventId(item.getId());
             }
+            //节点审批信息
+            List<EventRelBO> dataList = bpmInstEventService.getRelData(item.getRelDataType(),item.getRelData());
+            if(CollUtil.isNotEmpty(dataList)){
+                dataList.forEach(relData -> {
+                    BpmInstEventRel eventCc = new BpmInstEventRel();
+                    BeanUtil.copyProperties(bpmInstEvent, eventCc, ObjFieldUtil.ignoreDefault());
+                    eventCc.setInstEventId(bpmInstEvent.getId());
+                    eventCc.setRelDataType(item.getRelDataType());
+                    eventCc.setRelDataId(relData.getRelDataId());
+                    eventCc.setRelDataName(relData.getRelDataName());
+                    eventCcs.add(eventCc);
+                });
+            }
             return bpmInstEvent;
         }).toList();
         bpmInstEventService.saveBatch(bpmInstEvents);
+        //保存节点关联人员信息
+        bpmInstEventRelService.saveBatch(eventCcs);
+
     }
 
     /**
@@ -212,5 +252,43 @@ public class ProcessTypeEventFactoryImpl implements ProcessTypeService {
                 .eq(BpmHistEvent::getInstProcessId,getVO.getInstProcessId())
                 .list();
         getVO.setEventVOs(BeanUtil.copyToList(histEvents, BpmHistEventVO.class));
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+        List<BpmTempEvent> bpmTempEvents = bpmTempEventService.selectEventsByTempProcessIdId(sourceProcess.getId());
+        if(CollUtil.isEmpty(bpmTempEvents)){
+            return;
+        }
+        List<BpmTempAction> bpmTempActions = bpmTempActionService.selectActionsByTemplateId(targetProcess.getId());
+        if(CollUtil.isEmpty(bpmTempActions)){
+            return;
+        }
+        Map<String, BpmTempAction> actionMap = bpmTempActions.stream().collect(Collectors.toMap(BpmTempAction::getActionHash, Function.identity()));
+        bpmTempEvents.forEach(bpmTempEvent -> {
+            bpmTempEvent.setId(null);
+            bpmTempEvent.setTempProcessId(targetProcess.getId());
+            bpmTempEvent.setCreateTime(LocalDateTime.now());
+            bpmTempEvent.setCreateUserId(targetProcess.getCreateUserId());
+            bpmTempEvent.setUpdateTime(LocalDateTime.now());
+            bpmTempEvent.setUpdateUserId(targetProcess.getUpdateUserId());
+            bpmTempEvent.setScopeOrgId(targetProcess.getScopeOrgId());
+            bpmTempEvent.setScopeUserId(targetProcess.getScopeUserId());
+            if(actionMap.containsKey(bpmTempEvent.getTempActionHash())){
+                BpmTempAction bpmTempAction = actionMap.get(bpmTempEvent.getTempActionHash());
+                bpmTempEvent.setTempActionId(bpmTempAction.getId());
+                bpmTempEvent.setTempNodeId(bpmTempAction.getTempNodeId());
+            }
+            bpmTempEvent.setRelDataType(EventRelEnum.INIT.getValue());
+            bpmTempEvent.setRelData(null);
+        });
+        bpmTempEventService.saveBatch(bpmTempEvents);
     }
 }

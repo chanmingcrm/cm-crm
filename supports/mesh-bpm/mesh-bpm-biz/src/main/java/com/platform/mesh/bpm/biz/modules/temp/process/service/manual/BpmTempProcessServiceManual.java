@@ -2,6 +2,7 @@ package com.platform.mesh.bpm.biz.modules.temp.process.service.manual;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.bpm.biz.modules.group.allgroup.domain.po.BpmAllGroup;
 import com.platform.mesh.bpm.biz.modules.group.allgroup.service.IBpmAllGroupService;
@@ -12,13 +13,16 @@ import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessSer
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.factory.ProcessTypeFactory;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
+import com.platform.mesh.mybatis.plus.utils.SqlUtil;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 约定当前模块Manual 不引入当前模块Service,Manual是供Service引入，避免循环引入依赖
@@ -40,7 +44,7 @@ public class BpmTempProcessServiceManual {
     /**
      * 功能描述:
      * 〈添加流程模板信息〉
-     * @param bpmTempProcessDesignDTO flowTempProcessAddDTO
+     * @param bpmTempProcessDesignDTO bpmTempProcessAddDTO
      * @return 正常返回:{@link BpmTempProcess}
      */
     public BpmTempProcess designProcessTemp(BpmTempProcessDesignDTO bpmTempProcessDesignDTO) {
@@ -183,6 +187,29 @@ public class BpmTempProcessServiceManual {
         groupRel.setGroupType(group.getGroupType());
         groupRel.setDataId(tempProcessId);
         bpmAllGroupRelService.save(groupRel);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取子分组ID〉
+     * @author 蝉鸣
+     */
+    public List<Long> getChildGroupIds(Long groupId) {
+        List<Long> ids = CollUtil.newArrayList();
+        if(ObjectUtil.isEmpty(groupId)){
+            return ids;
+        }
+        ids.add(groupId);
+        //查询所有下级
+        String childrenSql = SqlUtil.getCommonChildrenSql(BpmAllGroup.class, groupId);
+        //查询子项
+        List<BpmAllGroup> childGroups = bpmAllGroupService.lambdaQuery().apply(childrenSql).list();
+        if(CollUtil.isEmpty(childGroups)){
+            return ids;
+        }
+        List<Long> childIds = childGroups.stream().map(BpmAllGroup::getId).toList();
+        ids.addAll(childIds);
+        return ids;
     }
 }
 

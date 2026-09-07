@@ -1,12 +1,11 @@
 package com.platform.mesh.utils.excel.handler;
 
 import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.idev.excel.enums.CellDataTypeEnum;
-import cn.idev.excel.write.handler.RowWriteHandler;
-import cn.idev.excel.write.handler.context.RowWriteHandlerContext;
-import cn.idev.excel.write.metadata.style.WriteCellStyle;
 import com.platform.mesh.core.constants.NumberConst;
+import org.apache.fesod.sheet.enums.CellDataTypeEnum;
+import org.apache.fesod.sheet.write.handler.RowWriteHandler;
+import org.apache.fesod.sheet.write.handler.context.RowWriteHandlerContext;
+import org.apache.fesod.sheet.write.metadata.style.WriteCellStyle;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -81,15 +80,16 @@ public class TempExportRowWriteHandler implements RowWriteHandler {
         XSSFRichTextString richTextString = new XSSFRichTextString();
         XSSFFont red = new XSSFFont();
         red.setColor(IndexedColors.RED.getIndex());
+        XSSFFont black = new XSSFFont();
+        black.setColor(IndexedColors.BLACK.getIndex());
         richTextString.append("注意说明:\r\n",red);
-        XSSFFont yellow = new XSSFFont();
-        yellow.setColor(IndexedColors.BLACK.getIndex());
-        StringBuilder builder = StrUtil.builder();
-        builder.append("1:测试描述测试描述测\r\n");
-        builder.append("2:测试描述测试描述测\r\n");
-        builder.append("3:测试描述测试描述测\r\n");
-        builder.append("4:测试描述测试描述测\r\n");
-        richTextString.append(builder.toString(),yellow);
+        richTextString.append("1:必填项：表头标",black);
+        richTextString.append(" * ",red);
+        richTextString.append("的红色字体为必填项\r\n",black);
+        richTextString.append("2:日期时间：格式样例 2020-01-01 00:00:00\r\n",black);
+//        builder.append("3:手机号：支持6-15位数字（包含国外手机号格式）\r\n");
+//        builder.append("4:邮箱：只支持邮箱格式\r\n");
+//        builder.append("4:多行文本：字数限制为800字\r\n");
         return richTextString;
     }
 

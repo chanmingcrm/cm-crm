@@ -13,4 +13,42 @@
             urr.user_id = #{userId}
             AND r.del_flag = #{delFlag}
     </select>
+
+    <select id="selectMPage" resultType="com.platform.mesh.upms.biz.modules.sys.role.domain.po.SysRole">
+        WITH
+             role_ids AS (
+                 SELECT DISTINCT
+                     role_id
+                 FROM
+                     sys_user_role_rel
+             )
+        SELECT
+            role_init_flag AS init_flag,
+            r.*
+        FROM (
+            SELECT
+                1 AS role_init_flag,
+                r.*
+            FROM sys_role r
+            INNER JOIN role_ids ri ON r.id = ri.role_id
+            WHERE r.del_flag != 2
+        UNION
+            SELECT
+                r.init_flag AS role_init_flag,
+                r.*
+            FROM sys_role r
+            WHERE r.del_flag != 2
+        ) r
+        WHERE
+        r.del_flag != 2
+        <if test=" pageDTO.roleName != null and pageDTO.roleName != '' ">
+            AND r.role_name LIKE CONCAT('%',#{pageDTO.roleName},'%')
+        </if>
+        <if test=" pageDTO.isAsc != null and pageDTO.isAsc">
+            ORDER BY sort ASC
+        </if>
+        <if test=" pageDTO.isAsc != null and !pageDTO.isAsc">
+            ORDER BY sort DESC
+        </if>
+    </select>
 </mapper>

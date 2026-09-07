@@ -1,20 +1,23 @@
 package com.platform.mesh.upms.biz.modules.msg.notice.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.application.domain.dto.PageDTO;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.core.enums.base.BaseEnum;
 import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.mybatis.plus.handler.DataScopeHandler;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.upms.biz.modules.msg.notice.domain.dto.MsgNoticeDTO;
 import com.platform.mesh.upms.biz.modules.msg.notice.domain.dto.MsgNoticePageDTO;
 import com.platform.mesh.upms.biz.modules.msg.notice.domain.po.MsgNotice;
 import com.platform.mesh.upms.biz.modules.msg.notice.domain.vo.MsgNoticeVO;
 import com.platform.mesh.upms.biz.modules.msg.notice.enums.NoticeLoopEnum;
-import com.platform.mesh.upms.biz.modules.msg.notice.exception.MsgNoticeExceptionEnum;
+import com.platform.mesh.upms.biz.modules.msg.notice.factory.NoticeLoopFactory;
+import com.platform.mesh.upms.biz.modules.msg.notice.factory.NoticeLoopService;
 import com.platform.mesh.upms.biz.modules.msg.notice.mapper.MsgNoticeMapper;
 import com.platform.mesh.upms.biz.modules.msg.notice.service.IMsgNoticeService;
 import com.platform.mesh.upms.biz.modules.msg.notice.service.manual.MsgNoticeServiceManual;
@@ -24,6 +27,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -36,6 +42,9 @@ public class MsgNoticeServiceImpl extends ServiceImpl<MsgNoticeMapper, MsgNotice
 
     @Autowired
     private MsgNoticeServiceManual msgNoticeServiceManual;
+
+    @Autowired
+    private NoticeLoopFactory noticeLoopFactory;
 
 
     /**
@@ -83,45 +92,24 @@ public class MsgNoticeServiceImpl extends ServiceImpl<MsgNoticeMapper, MsgNotice
         if(CollUtil.isEmpty(noticeDTO.getMsgUserIds())){
             return Boolean.FALSE;
         }
-        MsgNotice msgNotice = BeanUtil.copyProperties(noticeDTO, MsgNotice.class);
-        noticeDTO.getMsgUserIds().stream().distinct().forEach(userId->{
-            //设置提醒人
-            msgNotice.setNoticeUserId(userId);
-            //新增消息提醒时候set_time为设置的值，如果时一次性则直接复制next_time,如果时循环则根据规则解析next_time赋值，默认初始化数据next_time必定有值
-            if(NoticeLoopEnum.ONE.getValue().equals(noticeDTO.getNoticeLoop())){
-                msgNotice.setNoticeNextTime(noticeDTO.getNoticeSetTime());
-                msgNotice.setNoticeStartTime(noticeDTO.getNoticeSetTime());
-                msgNotice.setNoticeEndTime(noticeDTO.getNoticeSetTime());
-                //直接添加消息,确保无定时也可跟进消息
-                msgNoticeServiceManual.createMsgBase(msgNotice);
-            }else{
-                //多次提醒需要同时传递开始结束时间作为限制,避免无限处理
-                if(ObjectUtil.isEmpty(noticeDTO.getNoticePreDays()) || ObjectUtil.isEmpty(noticeDTO.getNoticeSufDays())
-                || noticeDTO.getNoticePreDays()<NumberConst.NUM_0 || noticeDTO.getNoticeSufDays()<NumberConst.NUM_0
-                ){
-                    throw MsgNoticeExceptionEnum.ADD_NO_ARGS.getBaseException();
-                }
-                //解析开始结束时间
-                LocalDateTime noticeStartTime = noticeDTO.getNoticeSetTime().minusDays(noticeDTO.getNoticePreDays());
-                if(noticeStartTime.isBefore(LocalDateTime.now())){
-                    noticeStartTime = LocalDateTime.now();
-                }
-                msgNotice.setNoticeStartTime(noticeStartTime);
-                LocalDateTime noticeEndTime = noticeDTO.getNoticeSetTime().plusDays(noticeDTO.getNoticeSufDays());
-                if(noticeEndTime.isBefore(LocalDateTime.now())){
-                    noticeEndTime = LocalDateTime.now();
-                }
-                if(noticeEndTime.isAfter(noticeStartTime)){
-                    throw MsgNoticeExceptionEnum.ADD_NO_INVALID.getBaseException();
-                }
-                msgNotice.setNoticeEndTime(noticeEndTime);
-                //获取下次执行时间
-                LocalDateTime nextTime = msgNoticeServiceManual.getNextTime(msgNotice.getNoticeStartTime(), msgNotice.getNoticeIntervalValue(), msgNotice.getNoticeIntervalUnit());
-                msgNotice.setNoticeNextTime(nextTime);
-                //保存消息提醒信息
-                this.save(msgNotice);
-            }
-        });
+        NoticeLoopEnum enumByValue = BaseEnum.getEnumByValue(NoticeLoopEnum.class, noticeDTO.getNoticeLoop());
+        if(ObjectUtil.isEmpty(enumByValue)){
+            return Boolean.FALSE;
+        }
+        NoticeLoopService noticeLoopService = noticeLoopFactory.getNoticeLoopService(enumByValue);
+        if(ObjectUtil.isEmpty(noticeLoopService)){
+            return Boolean.FALSE;
+        }
+        List<MsgNotice> msgNotices = noticeLoopService.notice(noticeDTO);
+        if(CollUtil.isEmpty(msgNotices)){
+            return Boolean.FALSE;
+        }
+        //删除旧数据
+        this.lambdaUpdate()
+                .eq(MsgNotice::getDataId,noticeDTO.getDataId())
+                .remove();
+        //保存新数据
+        this.saveBatch(msgNotices);
         return Boolean.TRUE;
     }
 
@@ -148,17 +136,61 @@ public class MsgNoticeServiceImpl extends ServiceImpl<MsgNoticeMapper, MsgNotice
         PageDTO pageDTO = new PageDTO();
         Integer pageNum = NumberConst.NUM_1;
         pageDTO.setPageSize(NumberConst.NUM_100);
-        while(true){
-            pageDTO.setPageNum(pageNum);
-            MPage<MsgNotice> mPage = MPageUtil.pageEntityToMPage(pageDTO, MsgNotice.class);
-            MPage<MsgNotice> noticeMPage = this.getBaseMapper().getAllHandleNotice(mPage);
-            if(CollUtil.isEmpty(noticeMPage.getRecords())){
-                break;
+        try {
+            while(true){
+                pageDTO.setPageNum(pageNum);
+                MPage<MsgNotice> mPage = MPageUtil.pageEntityToMPage(pageDTO, MsgNotice.class);
+                MPage<MsgNotice> noticeMPage = this.getBaseMapper().getAllHandleNotice(mPage);
+                if(CollUtil.isEmpty(noticeMPage.getRecords())){
+                    break;
+                }
+                List<MsgNotice> msgNotices = FutureHandleUtil.runWithResult(noticeMPage.getRecords(), msgNotice -> msgNotice != null ? msgNoticeServiceManual.createMsgBase(msgNotice) : null);
+                Map<Boolean, List<MsgNotice>> noticeMap = msgNotices.stream()
+                        .filter(ObjectUtil::isNotEmpty)
+                        .filter(notice->ObjectUtil.isNotEmpty(notice.getId()))
+                        .collect(Collectors.partitioningBy(
+                                notice ->{
+                                    if(ObjectUtil.isEmpty(notice.getNoticeNextTime())){
+                                        // 下次提醒时间为空了，则视为不需要下次提醒
+                                        return Boolean.FALSE;
+                                    }
+                                    if (notice.getNoticeLoop().equals(NoticeLoopEnum.ONE.getValue())) {
+                                        // 一次性提醒：当前时间超过下次提醒时间则需要删除
+                                        return LocalDateTime.now().isAfter(notice.getNoticeNextTime());
+                                    } else {
+                                        // 周期提醒：根据条件判断是更新还是删除
+                                        return ObjectUtil.isNotEmpty(notice.getNoticeNextTime())
+                                                && (!notice.getNoticeNextTime().isEqual(notice.getNoticeEndTime()))
+                                                ;
+                                    }
+                                }
+
+                        ));
+                
+                DataScopeHandler.setEnableDataScope(Boolean.FALSE);
+                if(CollUtil.isNotEmpty(noticeMap.get(Boolean.TRUE))){
+                    //如果最后一次联系时间在结束时间之前则修改，否则删除
+                    this.getBaseMapper().updateById(noticeMap.get(Boolean.TRUE));
+                }
+                if(CollUtil.isNotEmpty(noticeMap.get(Boolean.FALSE))){
+                    //如果最后一次联系时间在结束时间之前则修改，否则删除
+                    this.getBaseMapper().deleteByIds(noticeMap.get(Boolean.FALSE));
+                }
+                DataScopeHandler.unEnableDataScope();
+                
+                if (pageNum >= noticeMPage.getPages()) {
+                    break;
+                }
+                pageNum++;
             }
-            FutureHandleUtil.runWithResult(noticeMPage.getRecords(),msgNoticeServiceManual::createMsgBase);
-            pageNum++;
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception);
+        }finally {
+            DataScopeHandler.unEnableDataScope();
+            
         }
     }
+
 
     /**
      * 功能描述:

@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.oncontract.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -109,7 +110,7 @@ public class CrmOnContractController extends BaseController{
     @Log(moduleName = "客户关系合同签订管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/contract/edit")
     public Result<CrmOnContractVO> editOnContract(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnContract crmOnContract = crmOnContractService.editData(dataEditDTO, CrmOnContract.class);
+        CrmOnContract crmOnContract = crmOnContractService.editData(dataEditDTO, CrmOnContract.class, CrmOnContractData.class);
         return Result.success(BeanUtil.copyProperties(crmOnContract, CrmOnContractVO.class));
     }
     
@@ -179,8 +180,12 @@ public class CrmOnContractController extends BaseController{
     @Operation(summary = "导入客户关系合同签订")
     @Log(moduleName = "客户关系合同签订管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/contract/import")
-    public Result<Boolean> importOnContract(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnContractService.importData(moduleId,formId,file, CrmOnContract.class, CrmOnContractData.class));
+    public Result<ImportVO> importOnContract(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnContractService.importData(importDTO, CrmOnContract.class, CrmOnContractData.class));
     }
     
     /**

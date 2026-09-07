@@ -9,6 +9,7 @@ import com.platform.mesh.app.biz.modules.app.formcolumnsorting.domain.po.AppForm
 import com.platform.mesh.app.biz.modules.app.formcolumnsorting.domain.vo.AppFormColumnSortingVO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsorting.mapper.AppFormColumnSortingMapper;
 import com.platform.mesh.app.biz.modules.app.formcolumnsorting.service.IAppFormColumnSortingService;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class AppFormColumnSortingServiceImpl extends ServiceImpl<AppFormColumnSo
         this.lambdaUpdate()
                 .eq(AppFormColumnSorting::getModuleId,first.getModuleId())
                 .eq(AppFormColumnSorting::getFormId,first.getFormId())
-                .eq(AppFormColumnSorting::getParentColumnId,first.getParentColumnId())
+                .ne(AppFormColumnSorting::getBatchId,first.getBatchId())
                 .remove();
         //增加新数据
         List<AppFormColumnSorting> formColumnSorting = BeanUtil.copyToList(formColumnSortingDTOS, AppFormColumnSorting.class);

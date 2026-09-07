@@ -1,8 +1,6 @@
 package com.platform.mesh.app.biz.modules.app.modulesettransmapping.domain.dto;
 
-import com.platform.mesh.app.api.modules.app.enums.comp.CompMacEnum;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
-import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

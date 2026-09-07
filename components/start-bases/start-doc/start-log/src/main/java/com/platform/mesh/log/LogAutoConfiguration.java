@@ -2,7 +2,6 @@ package com.platform.mesh.log;
 
 import com.platform.mesh.log.aspect.SysLogAspect;
 import com.platform.mesh.log.event.listener.SysLoginLogListener;
-import com.platform.mesh.log.event.listener.SysModifyLogListener;
 import com.platform.mesh.log.event.listener.SysOperateLogListener;
 import com.platform.mesh.upms.api.modules.sys.log.feign.RemoteLogService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -40,18 +39,6 @@ public class LogAutoConfiguration {
 	@Bean
 	public SysOperateLogListener sysOperateLogEventLogListener(RemoteLogService remoteLogService) {
 		return new SysOperateLogListener(remoteLogService);
-	}
-
-	/**
-	 * 功能描述:
-	 * 〈操作日志监听〉
-	 * @param remoteLogService remoteLogService
-	 * @return 正常返回:{@link SysOperateLogListener}
-	 * @author 蝉鸣
-	 */
-	@Bean
-	public SysModifyLogListener sysModifyLogEventLogListener(RemoteLogService remoteLogService) {
-		return new SysModifyLogListener(remoteLogService);
 	}
 
 	/**

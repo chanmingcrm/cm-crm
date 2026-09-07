@@ -42,8 +42,8 @@ public class CrmAllGroupController extends BaseController{
 	@Operation(summary = "获取客户关系分组分页")
 	@PostMapping("/crm/all/group/page")
 	public Result<PageVO<CrmAllGroupVO>> selectPage(@RequestBody PageDTO pageDTO) {
-	    MPage<CrmAllGroup> allGroupMPage = MPageUtil.pageEntityToMPage(pageDTO, CrmAllGroup.class);
-        MPage<CrmAllGroup> page = crmAllGroupService.page(allGroupMPage);
+	    MPage<CrmAllGroup> mPage = MPageUtil.pageEntityToMPage(pageDTO, CrmAllGroup.class);
+        MPage<CrmAllGroup> page = crmAllGroupService.page(mPage);
         PageVO<CrmAllGroupVO> voPage = MPageUtil.convertToVO(page, CrmAllGroupVO.class);
         return Result.success(voPage);
 	}

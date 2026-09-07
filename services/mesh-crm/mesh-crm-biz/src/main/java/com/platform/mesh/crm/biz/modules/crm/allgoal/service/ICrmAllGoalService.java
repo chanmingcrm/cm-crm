@@ -1,10 +1,13 @@
 package com.platform.mesh.crm.biz.modules.crm.allgoal.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalAddDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalEditDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalPageDTO;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.po.CrmAllGoal;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.vo.CrmAllGoalVO;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.service.manual.CrmAllGoalServiceManual;
+import com.platform.mesh.mybatis.plus.extention.MPage;
 
 import java.math.BigDecimal;
 import java.time.Month;
@@ -28,12 +31,20 @@ public interface ICrmAllGoalService extends IService<CrmAllGoal> {
 
     /**
      * 功能描述:
+     * 〈获取目标分页〉
+     * @return 正常返回:{@link MPage<CrmAllGoal>}
+     * @author 蝉鸣
+     */
+    MPage<CrmAllGoal> selectPage(CrmAllGoalPageDTO pageDTO);
+
+    /**
+     * 功能描述:
      * 〈新增客户关系目标〉
      * @param allGoalDTO allGoalDTO
      * @return 正常返回:{@link CrmAllGoalVO}
      * @author 蝉鸣
      */
-    CrmAllGoalVO addGoal(CrmAllGoalDTO allGoalDTO);
+    CrmAllGoalVO addGoal(CrmAllGoalAddDTO allGoalDTO);
 
     /**
      * 功能描述:
@@ -42,7 +53,7 @@ public interface ICrmAllGoalService extends IService<CrmAllGoal> {
      * @return 正常返回:{@link CrmAllGoalVO}
      * @author 蝉鸣
      */
-    CrmAllGoalVO editGoal(CrmAllGoalDTO allGoalDTO);
+    CrmAllGoalVO editGoal(CrmAllGoalEditDTO allGoalDTO);
 
     /**
      * 功能描述:
@@ -62,4 +73,5 @@ public interface ICrmAllGoalService extends IService<CrmAllGoal> {
      * @author 蝉鸣
      */
     BigDecimal getDayGoal(CrmAllGoal crmAllGoal, Month month);
+
 }

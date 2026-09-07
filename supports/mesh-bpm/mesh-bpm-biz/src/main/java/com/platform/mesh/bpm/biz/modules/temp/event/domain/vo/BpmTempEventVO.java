@@ -1,7 +1,8 @@
 package com.platform.mesh.bpm.biz.modules.temp.event.domain.vo;
 
 
-import com.platform.mesh.bpm.biz.soa.event.enums.EventTypeEnum;
+import com.platform.mesh.bpm.biz.soa.event.rel.enums.EventRelEnum;
+import com.platform.mesh.bpm.biz.soa.event.type.enums.EventTypeEnum;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -55,4 +56,16 @@ public class BpmTempEventVO extends BaseVO {
      */
     @SchemaEnum(value = EventTypeEnum.class, description = "事件类型")
     private Integer eventType;
+
+    /**
+     * 关联类型
+     */
+    @SchemaEnum(value = EventRelEnum.class, description = "关联类型")
+    private Integer relDataType;
+
+    /**
+     * 数据ID
+     */
+    @Schema(description = "数据ID")
+    private Object relDataJson;
 }

@@ -82,4 +82,14 @@ public interface IAppFormBaseService extends IService<AppFormBase> {
      * @author 蝉鸣
      */
     AppFormBaseVO getFormBaseDefaultByModuleId(Long moduleId, Integer formType);
+
+    /**
+     * 功能描述:
+     * 〈获取当前默认类型表单信息〉
+     * @param moduleId moduleId
+     * @param formType formType
+     * @return 正常返回:{@link AppFormBase}
+     * @author 蝉鸣
+     */
+    AppFormBase getAppFormBaseByFormType(Long moduleId, Integer formType);
 }

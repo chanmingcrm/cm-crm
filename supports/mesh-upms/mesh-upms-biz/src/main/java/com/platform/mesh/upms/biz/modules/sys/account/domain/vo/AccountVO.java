@@ -1,8 +1,8 @@
 package com.platform.mesh.upms.biz.modules.sys.account.domain.vo;
 
-import com.platform.mesh.security.enums.AccountTypeEnum;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
+import com.platform.mesh.upms.api.modules.sys.user.enums.ActiveFlagEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -55,7 +55,7 @@ public class AccountVO  {
 	/**
 	 * 帐号状态（0正常 1停用）
 	 */
-	@SchemaEnum(value = AccountTypeEnum.class, description = "帐号状态")
+	@SchemaEnum(value = ActiveFlagEnum.class, description = "帐号状态")
 	private Integer accountFlag;
 
 	/**

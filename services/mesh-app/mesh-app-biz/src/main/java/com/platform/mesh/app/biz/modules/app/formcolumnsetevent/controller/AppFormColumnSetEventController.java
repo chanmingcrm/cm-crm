@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @description 单字段事件信息
  * @author 蝉鸣
  */
-@Tag(description = "AppFormColumnSetEventController", name = "单字段事件")
+@Tag(description = "AppFormColumnSetEventController", name = "表单字段事件")
 @RestController
 @RequestMapping
 public class AppFormColumnSetEventController extends BaseController{
@@ -70,7 +70,7 @@ public class AppFormColumnSetEventController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "新增单字段事件")
-    @Log(moduleName = "单字段事件管理", operateType = OperateTypeEnum.INSERT)
+    @Log(moduleName = "表单字段事件管理", operateType = OperateTypeEnum.INSERT)
     @PostMapping("/app/form/column/set/event/add")
     public Result<AppFormColumnSetEventVO> addFormColumnSetEvent(@Validated @RequestBody AppFormColumnSetEventDTO formColumnSetEventDTO) {
         return Result.success(appFormColumnSetEventService.addFormColumnSetEvent(formColumnSetEventDTO));
@@ -84,7 +84,7 @@ public class AppFormColumnSetEventController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "修改单字段事件")
-    @Log(moduleName = "单字段事件管理", operateType = OperateTypeEnum.UPDATE)
+    @Log(moduleName = "表单字段事件管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/app/form/column/set/event/edit")
     public Result<AppFormColumnSetEventVO> editFormColumnSetEvent(@Validated @RequestBody AppFormColumnSetEventDTO formColumnSetEventDTO) {
         return Result.success(appFormColumnSetEventService.editFormColumnSetEvent(formColumnSetEventDTO));
@@ -98,7 +98,7 @@ public class AppFormColumnSetEventController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "删除单字段事件")
-    @Log(moduleName = "单字段事件管理", operateType = OperateTypeEnum.DELETE)
+    @Log(moduleName = "表单字段事件管理", operateType = OperateTypeEnum.DELETE)
     @PostMapping("/app/form/column/set/event/delete/{formColumnSetEventId}")
     public Result<Boolean> deleteFormColumnSetEvent(@PathVariable(value = "formColumnSetEventId",required = false)Long formColumnSetEventId) {
         return Result.success(appFormColumnSetEventService.deleteFormColumnSetEvent(formColumnSetEventId));

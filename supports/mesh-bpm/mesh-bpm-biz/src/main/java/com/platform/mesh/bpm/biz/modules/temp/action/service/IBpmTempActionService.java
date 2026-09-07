@@ -34,19 +34,11 @@ public interface IBpmTempActionService extends IService<BpmTempAction> {
     /**
      * 功能描述:
      * 〈获取当前节点下动作信息〉
-     * @param nodeId nodeId
+     * @param tempNodeId tempNodeId
      * @return 正常返回:{@link List<BpmTempAction>}
      * @author 蝉鸣
      */
-    List<BpmTempAction> selectActionsByNodeId(Long nodeId);
+    List<BpmTempAction> selectActionsByNodeId(Long tempNodeId);
 
-    /**
-     * 功能描述:
-     * 〈获取当前节点下过程下动作信息〉
-     * @param processId processId
-     * @return 正常返回:{@link List<BpmTempAction>}
-     * @author 蝉鸣
-     */
-    List<BpmTempAction> selectActionsByProcessId(Long processId);
 }
 

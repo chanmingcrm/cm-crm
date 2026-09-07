@@ -2,6 +2,7 @@ package com.platform.mesh.upms.api.modules.doc.feign;
 
 import com.platform.mesh.core.constants.HttpConst;
 import com.platform.mesh.core.constants.ServiceNameConst;
+import com.platform.mesh.upms.api.modules.doc.domain.dto.DocOnlineSaveDTO;
 import com.platform.mesh.upms.api.modules.doc.domain.vo.DocFileVO;
 import com.platform.mesh.upms.api.modules.doc.feign.factory.RemoteDocFallbackFactory;
 import com.platform.mesh.utils.result.Result;
@@ -28,5 +29,15 @@ public interface RemoteDocService {
 	 */
 	@PostMapping(value = "/api/sys/doc/file", headers = HttpConst.HEADER_FROM_IN)
 	Result<List<DocFileVO>> getDocFiles(@RequestBody List<Long> fileIds);
+
+	/**
+	 * 功能描述:
+	 * 【保存在线文档】
+	 * @param saveDTO saveDTO
+	 * @return 正常返回:{@link Result<Boolean>}
+	 * @author 蝉鸣
+	 */
+	@PostMapping(value = "/api/doc/online/save", headers = HttpConst.HEADER_FROM_IN)
+	Result<Void> saveOnline(@RequestBody DocOnlineSaveDTO saveDTO);
 
 }

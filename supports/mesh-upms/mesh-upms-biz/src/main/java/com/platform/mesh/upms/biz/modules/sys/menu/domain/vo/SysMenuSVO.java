@@ -8,13 +8,9 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * <p>
- *      单层菜单对象
- * </p>
- *
+ * 单层菜单对象
  * @author 蝉鸣
  * @since 2024/9/2 16:56
  **/
@@ -121,10 +117,16 @@ public class SysMenuSVO extends BaseDTO {
     private String icon;
 
     /**
-     * 使用本地svg作为的菜单和面包屑对应的图标(assets/svg-icon文件夹的的svg文件名)
+     * 菜单和面包屑对应的中图标
      */
-    @Schema(description = "使用本地svg作为的菜单和面包屑对应的图标")
-    private String localIcon;
+    @Schema(description = "菜单和面包屑对应的中图标")
+    private String iconM;
+
+    /**
+     * 菜单和面包屑对应的大图标
+     */
+    @Schema(description = "菜单和面包屑对应的大图标")
+    private String iconL;
 
     /**
      * 作为单级路由的父级路由布局组件
@@ -193,6 +195,18 @@ public class SysMenuSVO extends BaseDTO {
     private Integer hideMenuChildren;
 
     /**
+     * 路由参数
+     */
+    @Schema(description = "路由参数")
+    private JSONArray params;
+
+    /**
+     * 是否总是显示
+     */
+    @Schema(description = "是否总是显示")
+    private Integer alwaysShow;
+
+    /**
      * 创建人
      */
     @Schema(description = "创建人")
@@ -216,10 +230,4 @@ public class SysMenuSVO extends BaseDTO {
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
 
-    @Schema(description = "路由参数")
-//    private List<RouteParamsVO> params;
-    private JSONArray params;
-
-    @Schema(description = "是否总是显示")
-    private Integer alwaysShow;
 }

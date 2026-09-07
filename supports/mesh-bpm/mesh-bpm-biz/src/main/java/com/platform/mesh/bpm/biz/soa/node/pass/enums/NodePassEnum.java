@@ -2,6 +2,7 @@ package com.platform.mesh.bpm.biz.soa.node.pass.enums;
 
 import com.platform.mesh.core.enums.base.BaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
 
 /**
  * @description
@@ -17,18 +18,19 @@ public enum NodePassEnum implements BaseEnum<NodePassEnum, Integer> {
     /**
      * 通过
      */
-    PASS(1,100,  "通过"),
+    PASS(1,101,  "通过"),
     /**
      * 驳回
      */
-    UN_PASS(2,200,  "驳回"),
+    UN_PASS(2,201,  "驳回"),
     /**
      * 无效
      */
-    UN_VALID(3,300,  "无效"),
+    UN_VALID(3,301,  "无效"),
     ;
 
 
+    @Getter
     private final Integer code;
 
     private final Integer value;
@@ -39,10 +41,6 @@ public enum NodePassEnum implements BaseEnum<NodePassEnum, Integer> {
         this.code = code;
         this.value = value;
         this.desc = desc;
-    }
-
-    public Integer getCode() {
-        return this.code;
     }
 
     @Override

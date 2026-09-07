@@ -9,7 +9,6 @@ import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
 import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO;
-import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberUserRelBO;
 import com.platform.mesh.upms.api.modules.org.member.feign.RemoteOrgMemberService;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.utils.result.Result;
@@ -21,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @description 定时节点工厂实现
@@ -45,6 +45,19 @@ public class NodeAuditDataUserCustomFactoryImpl implements NodeAuditDataService 
         return NodeAuditDataTypeEnum.USER_CUSTOM;
     }
 
+
+    /**
+     * 功能描述:
+     * 〈获取节点审批人员Ids〉
+     * @param auditDataIds auditDataIds
+     * @return 正常返回:{@link List<Long>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<Long> getAuditDataIds(List<Long> auditDataIds) {
+        return auditDataIds;
+    }
+
     /**
      * 功能描述:
      * 〈获取节点审批人员Ids〉
@@ -55,11 +68,11 @@ public class NodeAuditDataUserCustomFactoryImpl implements NodeAuditDataService 
     @Override
     public List<Long> getAuditDataToUserIds(List<Long> auditDataIds) {
         //当前ID是组织的成员member_id,需要转化为user_id
-        List<OrgMemberUserRelBO> relBOS = remoteOrgMemberService.getOrgMemberUserRelByIds(auditDataIds).getData();
+        List<OrgMemberBO> relBOS = remoteOrgMemberService.getOrgMemberByIds(auditDataIds).getData();
         if (CollUtil.isEmpty(relBOS)) {
             return CollUtil.newArrayList();
         }
-        return relBOS.stream().map(OrgMemberUserRelBO::getUserId).distinct().toList();
+        return relBOS.stream().map(OrgMemberBO::getUserId).distinct().toList();
     }
 
     /**
@@ -72,7 +85,7 @@ public class NodeAuditDataUserCustomFactoryImpl implements NodeAuditDataService 
         List<Integer> userTypes = processTodoBO.getUserTypes();
         //增加当前支持类型
         userTypes.add(this.nodeAuditData().getValue());
-        List<Long> userIds = processTodoBO.getUserIds();
+        Set<Long> userIds = processTodoBO.getUserIds();
         //增加当前人员成员ID
         SysAccountBO sysAccountBO = UserCacheUtil.getAccountInfoCache(processTodoBO.getAccountId());
         Result<List<OrgMemberBO>> memberByUserIds = remoteOrgMemberService.getOrgMemberByUserIds(CollUtil.newArrayList(sysAccountBO.getUserId()));

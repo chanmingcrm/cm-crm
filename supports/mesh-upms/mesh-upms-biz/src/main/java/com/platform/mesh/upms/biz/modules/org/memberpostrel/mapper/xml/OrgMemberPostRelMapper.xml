@@ -5,7 +5,7 @@
     <select id="selectLevelPage"
             resultType="com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.vo.OrgMemberLevelVO">
         SELECT
-            l2.id AS root_id,
+            l1.level_root_id AS root_id,
             l2.level_name AS root_name,
             l3.id AS level_id,
             l3.level_name
@@ -15,11 +15,10 @@
                     mpr.level_root_id,
                     mpr.level_id
                 FROM
-                    sys_account a
-                        LEFT JOIN org_member_user_rel mur ON a.user_id = mur.user_id
+                     org_member_user_rel mur
                         LEFT JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
                 WHERE
-                    a.account_id = #{accountId}
+                    mur.user_id = #{userId}
             ) l1
                 LEFT JOIN org_level l2 ON l1.level_root_id = l2.id
                 LEFT JOIN org_level l3 ON l1.level_id = l3.id

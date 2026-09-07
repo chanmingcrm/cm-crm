@@ -2,7 +2,6 @@ package com.platform.mesh.upms.biz.modules.org.level.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.constants.NumberConst;
@@ -10,19 +9,18 @@ import com.platform.mesh.core.enums.data.DataFlagEnum;
 import com.platform.mesh.core.enums.data.DataScopeEnum;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.handler.DataScopeHandler;
-import com.platform.mesh.mybatis.plus.query.LambdaQueryWrapperX;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.mybatis.plus.utils.SqlUtil;
 import com.platform.mesh.redis.service.constants.CacheConstants;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
+import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgInfoBO;
 import com.platform.mesh.upms.biz.modules.org.level.domain.dto.OrgLevelDTO;
 import com.platform.mesh.upms.biz.modules.org.level.domain.dto.OrgLevelPageDTO;
 import com.platform.mesh.upms.biz.modules.org.level.domain.po.OrgLevel;
 import com.platform.mesh.upms.biz.modules.org.level.domain.vo.OrgLevelVO;
-import com.platform.mesh.upms.biz.modules.org.level.enums.LevelFlagEnum;
 import com.platform.mesh.upms.biz.modules.org.level.exception.LevelExceptionEnum;
 import com.platform.mesh.upms.biz.modules.org.level.mapper.OrgLevelMapper;
 import com.platform.mesh.upms.biz.modules.org.level.service.IOrgLevelService;
@@ -61,12 +59,10 @@ public class OrgLevelServiceImpl extends ServiceImpl<OrgLevelMapper, OrgLevel> i
     public MPage<OrgLevel> selectPage(OrgLevelPageDTO orgLevelPageDTO) {
         MPage<OrgLevel> mPage = MPageUtil.pageEntityToMPage(orgLevelPageDTO,OrgLevel.class);
         // 构建 LambdaQueryWrapper
-        LambdaQueryWrapperX<OrgLevel> queryWrapperX =  new LambdaQueryWrapperX<>();
-        queryWrapperX.eqIfPresent(OrgLevel::getId,orgLevelPageDTO.getId());
-//        queryWrapperX.eqIfPresent(OrgLevel::getLevelFlag,orgLevelPageDTO.getLevelFlag());
-//        queryWrapperX.eqIfPresent(OrgLevel::getName,orgLevelPageDTO.getName());
-//        queryWrapperX.eqIfPresent(OrgLevel::getParentId,orgLevelPageDTO.getParentId());
-        return page(mPage,queryWrapperX);
+        return this.lambdaQuery()
+                .eq(ObjectUtil.isNotEmpty(orgLevelPageDTO.getId()),OrgLevel::getId,orgLevelPageDTO.getId())
+                .eq(ObjectUtil.isNotEmpty(orgLevelPageDTO.getName()),OrgLevel::getLevelName,orgLevelPageDTO.getName())
+                .page(mPage);
     }
 
     /**
@@ -165,6 +161,18 @@ public class OrgLevelServiceImpl extends ServiceImpl<OrgLevelMapper, OrgLevel> i
      * @author 蝉鸣
      */
     @Override
+    public OrgLevel getLevelById(Long levelId) {
+        return this.getBaseMapper().getLevelById(levelId);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取组织详情〉
+     * @param levelId levelId
+     * @return 正常返回:{@link OrgLevelVO}
+     * @author 蝉鸣
+     */
+    @Override
     public OrgLevelVO getLevelInfoById(Long levelId) {
         OrgLevel orgLevel = this.getById(levelId);
         return orgLevelServiceManual.getLevelInfoById(orgLevel);
@@ -219,6 +227,7 @@ public class OrgLevelServiceImpl extends ServiceImpl<OrgLevelMapper, OrgLevel> i
                 orgLevel.setRootId(NumberConst.NUM_0.longValue());
             }
         }
+        orgLevel.setLevelSource(SourceFlagEnum.SYSTEM.getValue());
         this.save(orgLevel);
         return BeanUtil.copyProperties(orgLevel, OrgLevelVO.class);
     }
@@ -226,20 +235,22 @@ public class OrgLevelServiceImpl extends ServiceImpl<OrgLevelMapper, OrgLevel> i
     /**
      * 功能描述:
      * 〈修改层级〉
-     * @param menuDTO menuDTO
+     * @param levelDTO levelDTO
      * @return 正常返回:{@link OrgLevelVO}
      * @author 蝉鸣
      */
     @Override
-    public OrgLevelVO editLevel(OrgLevelDTO menuDTO) {
-        if(ObjectUtil.isEmpty(menuDTO.getId())){
-            //获取字段名称
-            String fieldName = ObjFieldUtil.getFieldName(OrgLevelDTO::getId);
-            throw LevelExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(fieldName));
+    public OrgLevelVO editLevel(OrgLevelDTO levelDTO) {
+        OrgLevel level = getById(levelDTO.getId());
+        if(ObjectUtil.isEmpty(level)){
+            throw LevelExceptionEnum.ADD_NO_ARGS.getBaseException();
         }
-        OrgLevel sysMenu = BeanUtil.copyProperties(menuDTO, OrgLevel.class);
-        this.updateById(sysMenu);
-        return BeanUtil.copyProperties(sysMenu, OrgLevelVO.class);
+        OrgLevel orgLevel = BeanUtil.copyProperties(levelDTO, OrgLevel.class);
+        this.updateById(orgLevel);
+//        if(!level.getLevelName().equals(levelDTO.getLevelName())){
+//            orgLevelServiceManual.syncOrgName(levelDTO.getId(),levelDTO.getLevelName());
+//        }
+        return BeanUtil.copyProperties(orgLevel, OrgLevelVO.class);
     }
 
     /**
@@ -285,6 +296,47 @@ public class OrgLevelServiceImpl extends ServiceImpl<OrgLevelMapper, OrgLevel> i
         }
         //删除对象
         return this.removeByIds(levelIdList);
+    }
+
+    /**
+     * 功能描述:
+     * 〈初始化组织〉
+     * @param sysUser sysUser
+     * @author 蝉鸣
+     */
+    @Override
+    public OrgLevel initTenantOrg(SysUser sysUser) {
+        //初始化岗位
+        OrgLevel orgLevel = orgLevelServiceManual.initTenantLevel(sysUser);
+        this.save(orgLevel);
+        //初始化岗位
+        OrgPost orgPost = orgLevelServiceManual.initTenantPost(orgLevel);
+        //初始化成员
+        OrgMember orgMember = orgLevelServiceManual.initTenantMember(sysUser, orgLevel);
+        //初始化层级岗位关系
+        orgLevelServiceManual.initTenantLevelPostRel(orgLevel,orgPost.getId());
+        //初始化岗位权限
+        orgLevelServiceManual.initTenantPostScope(orgLevel,orgPost.getId());
+        //初始化成员人员关系
+        orgLevelServiceManual.initTenantMemberUserRel(orgMember,sysUser.getUserId());
+        //初始化成员与岗位关系
+        orgLevelServiceManual.initTenantMemberPostRel(orgLevel,orgMember,orgPost.getId());
+        return orgLevel;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取人员默认组织Id〉
+     * @param userId userId
+     * @author 蝉鸣
+     */
+    @Override
+    public OrgLevel getOrgInfoByUserId(Long userId,Long tenantId) {
+        List<OrgLevel> levels = this.getBaseMapper().getOrgInfoByUserId(userId,tenantId);
+        if(CollUtil.isEmpty(levels)){
+            return null;
+        }
+        return CollUtil.getFirst(levels);
     }
 
 }

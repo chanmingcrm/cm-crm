@@ -20,12 +20,10 @@ import com.platform.mesh.file.oss.constant.OssTypeConst;
 import com.platform.mesh.file.oss.modules.aws.properties.AwsOssProperties;
 import com.platform.mesh.file.oss.utils.OssFileUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -63,7 +61,6 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
      * @author 蝉鸣
      */
     @Override
-    @SneakyThrows
     public List<Bucket>  getAllBuckets() {
         return s3Client.listBuckets().buckets();
     }
@@ -75,7 +72,6 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
      * @author 蝉鸣
      */
     @Override
-    @SneakyThrows
     public void createBucket(String bucketName) {
         S3Waiter s3Waiter = s3Client.waiter();
         CreateBucketRequest bucketRequest = CreateBucketRequest.builder()
@@ -164,14 +160,13 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
      * @author 蝉鸣
      */
     @Override
-    public byte[] downloadFile(String bucketName, String fileName) {
+    public InputStream downloadFileStream(String bucketName, String fileName) {
         fileName = fileName.replaceAll(SymbolConst.PATTERN_FORWARD_SLASH, StrUtil.EMPTY);
         GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(fileName)
                 .build();
-        ResponseBytes<GetObjectResponse> objectAsBytes = s3Client.getObjectAsBytes(objectRequest);
-        return objectAsBytes.asByteArray();
+        return s3Client.getObject(objectRequest);
     }
 
     /**
@@ -209,9 +204,11 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
      */
     @Override
     public DocFileBO uploadFileMultiPart(MultipartFile file) {
+        String uniqueFileName = OssFileUtil.uniqueFileName(file.getOriginalFilename());
         String tempPath = awsOssProperties.getTempPath() + file.getOriginalFilename() + IdUtil.fastSimpleUUID();
         //切割文件
         List<MultiPartBO> multiPartBOList = OssFileUtil.splitUploadFile(file, awsOssProperties.getSliceConfig().getPartSize(),tempPath);
+        multiPartBOList.forEach(multiPartBO -> multiPartBO.setFilename(uniqueFileName));
         //第二种方式多线程并发上传
         //初始化线程池
         ExecutorService executorService = Executors.newFixedThreadPool(awsOssProperties.getSliceConfig().getConnectionsNum());
@@ -232,20 +229,20 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
                 throw new BaseException(e);
             }
         }
-        UploadExtendConst.UPLOAD_PROCESS_STORAGE.get(file.getOriginalFilename()).setTempPath(tempPath);
+        UploadExtendConst.UPLOAD_PROCESS_STORAGE.get(uniqueFileName).setTempPath(tempPath);
         //可自定义添加验证
         log.info("所有分片上传完毕！");
         //可自定义添加验证
 
         //如果上传完毕则合并
-        completeMultipartUpload(file.getOriginalFilename());
+        completeMultipartUpload(uniqueFileName);
         //设置返回值
-        DocFileBO docFileBO = OssFileUtil.MultipartFileToDocFile(file);
+        DocFileBO docFileBO = OssFileUtil.multipartFileToDocFile(file);
         docFileBO.setFileSource(OssTypeConst.AWS);
         docFileBO.setFileEndpoint(awsOssProperties.getEndPoint());
         docFileBO.setFileBucket(awsOssProperties.getBucketName());
         docFileBO.setFileAddr(StrUtil.SLASH
-                .concat(docFileBO.getFileName()).concat(StrUtil.DOT).concat(docFileBO.getFileType()));
+                .concat(uniqueFileName));
         return docFileBO;
     }
 
@@ -278,7 +275,7 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
     public String uploadMultipart(MultiPartBO multiPartBO, String uploadId) {
         try (InputStream in = multiPartBO.getFile().getInputStream()) {
             // 上传后会将 InputStream 加密,需要重置为ByteArrayInputStream/FileInputStream 才能继续上传
-            ByteArrayInputStream fileInputStream = new ByteArrayInputStream(IOUtils.toByteArray(in));
+//            ByteArrayInputStream fileInputStream = new ByteArrayInputStream(IOUtils.toByteArray(in));
             // 分片上传请求
             UploadPartRequest uploadPartRequest = UploadPartRequest.builder()
                     .bucket(awsOssProperties.getBucketName())
@@ -288,7 +285,7 @@ public class AwsOssClient implements BaseOssClient, UploadExtendOssClient, Downl
                     .build();
             UploadPartResponse partResponse = s3Client.uploadPart(
                     uploadPartRequest,
-                    RequestBody.fromBytes(fileInputStream.readAllBytes()));
+                    RequestBody.fromInputStream(in, multiPartBO.getFile().getSize()));
             //返回上传文件标记
             return partResponse.eTag();
         } catch (IOException e) {

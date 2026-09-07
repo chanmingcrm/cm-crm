@@ -16,10 +16,11 @@ public enum DbExceptionEnum implements BaseExceptionEnum<DbExceptionEnum, String
     */
    ADD_NO_ARGS("app",500, null,  "应用数据对象参数为空"),
    ADD_NO_INVALID("app",501, null,  "应用数据对象参数异常"),
-   DB_TRANS_COLUMN_INVALID("app",503, null,  "未匹配到对应字段信息"),
+   DB_TRANS_COLUMN_INVALID("app",503, null,  "未匹配到对应字段信息,请配置模块添加页面"),
    DB_TRANS_COLUMN_MAPPING_INVALID("app",504, null,  "未匹配到对应字段映射信息"),
    DB_TRANS_MOVE_SCHEMA_INVALID("app",505, null,  "数据转移表存储不一致"),
    DB_TRANS_DATA_INVALID("app",506, null,  "数据转移未匹配到对应数据信息"),
+   DB_TRANS_DATA_ERROR("app",507, null,  "数据转移异常"),
    ;
 
    /**

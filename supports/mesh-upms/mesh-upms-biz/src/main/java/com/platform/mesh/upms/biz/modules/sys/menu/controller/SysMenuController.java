@@ -9,11 +9,11 @@ import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.AppMenuBO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysMenuDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysMenuPageDTO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysRouteDTO;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.RouteDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuSVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuVO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysRouteVO;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.RouteVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.service.ISysMenuService;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,9 +38,9 @@ public class SysMenuController extends BaseController {
 
 	@Operation(summary = "获取组织列表")
 	@PostMapping("/menu/page")
-	public Result<PageVO<SysMenuVO>> getMenuPage(@RequestBody SysMenuPageDTO pageEntity) {
+	public Result<PageVO<SysMenuSVO>> getMenuPage(@RequestBody SysMenuPageDTO pageEntity) {
 		MPage<SysMenu> page = sysMenuService.getMenuPage(pageEntity);
-		PageVO<SysMenuVO> voPage = MPageUtil.convertToVO(page, SysMenuVO.class);
+		PageVO<SysMenuSVO> voPage = MPageUtil.convertToVO(page, SysMenuSVO.class);
 		return Result.success(voPage);
 	}
 
@@ -91,13 +91,13 @@ public class SysMenuController extends BaseController {
 	 * 功能描述:
 	 * 〈获取路由树结构〉
 	 * @param routeDTO routeDTO
-	 * @return 正常返回:{@link Result<SysRouteVO>}
+	 * @return 正常返回:{@link Result<RouteVO>}
 	 * @author 蝉鸣
 	 */
 	@Operation(summary = "获取路由树结构")
 	@PostMapping("/menu/route/info")
-	public Result<SysRouteVO> getMenuRouteInfo(@RequestBody SysRouteDTO routeDTO) {
-		SysRouteVO routeInfo = sysMenuService.getMenuRouteInfo(routeDTO);
+	public Result<RouteVO> getMenuRouteInfo(@RequestBody RouteDTO routeDTO) {
+		RouteVO routeInfo = sysMenuService.getMenuRouteInfo(routeDTO);
 		return Result.success(routeInfo);
 	}
 

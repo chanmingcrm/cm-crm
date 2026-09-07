@@ -2,13 +2,9 @@ package com.platform.mesh.uaa.biz.auth.support.extention;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.platform.mesh.core.constants.SymbolConst;
-import com.platform.mesh.core.enums.custom.SmsFlagEnum;
-import com.platform.mesh.redis.service.RedissonUtil;
-import com.platform.mesh.redis.service.constants.CacheConstants;
+import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.security.service.BaseUserDetailsService;
-import com.platform.mesh.uaa.api.constants.UaaParamsConstant;
 import com.platform.mesh.uaa.biz.auth.exception.AuthExceptionEnum;
 import com.platform.mesh.utils.spring.ServletUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,7 +61,7 @@ public class CustomDaoAuthenticationProvider extends AbstractUserDetailsAuthenti
      *  〈设置UserDetailsService〉
      */
     @Setter
-    private UserDetailsService userDetailsService;
+    private BaseUserDetailsService userDetailsService;
 
     /**
      * -- SETTER --
@@ -94,26 +90,13 @@ public class CustomDaoAuthenticationProvider extends AbstractUserDetailsAuthenti
 			UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
 
 		String grantType = ServletUtil.getRequestInst().getParameter(OAuth2ParameterNames.GRANT_TYPE);
+		//短信登录验证
 		if (StrUtil.equals(GrantTypeConstant.SMS, grantType)) {
-			// sms 模式校验Code
-			String code = ServletUtil.getRequestInst().getParameter(UaaParamsConstant.SMS_CODE);
-//			// TODO 实现手机验证码校验
-//			if ("1234".equals(code)) {
-//				return;
-//			}
-			//验证码缓存KEY
-			String phoneKey = CacheConstants.SMS_PHONE_CACHE.concat(SymbolConst.COLON).concat(authentication.getName()).concat(SymbolConst.COLON).concat(SmsFlagEnum.LOGIN.getDesc());
-			//验证码是否过期
-			if(!RedissonUtil.hasKey(phoneKey)){
-				throw AuthExceptionEnum.AUTH_LOGIN_SMS_EXPIRE.getBaseException();
-			}
-			//获取验证码
-			Object cacheObject = RedissonUtil.getCacheObject(phoneKey);
-			if(code.equals(cacheObject.toString())){
+			Boolean checked = getUserDetailsService().checkSmsCode(authentication.getName());
+			if (Boolean.TRUE.equals(checked)) {
 				return;
-			}else{
-				throw AuthExceptionEnum.AUTH_LOGIN_SMS_EXPIRE.getBaseException();
 			}
+			throw AuthExceptionEnum.AUTH_PASSWORD_INVALID.getBaseException();
 		}
 		if (StrUtil.equals(GrantTypeConstant.THIRD, grantType)) {
 			// 第三方登录 模式无密码
@@ -127,9 +110,8 @@ public class CustomDaoAuthenticationProvider extends AbstractUserDetailsAuthenti
 		}
 		String presentedPassword = authentication.getCredentials().toString();
 		if (!this.passwordEncoder.matches(presentedPassword, userDetails.getPassword())) {
-			this.logger.debug("Failed to authenticate since password does not match stored value");
-			throw new BadCredentialsException(this.messages
-					.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+			this.logger.debug(AuthExceptionEnum.AUTH_PASSWORD_INVALID.getDesc());
+			throw AuthExceptionEnum.AUTH_PASSWORD_INVALID.getBaseException();
 		}
 	}
 
@@ -174,6 +156,7 @@ public class CustomDaoAuthenticationProvider extends AbstractUserDetailsAuthenti
 		}
 
 		try {
+			userDetailsService = optional.get();
 			UserDetails loadedUser = optional.get().loadUserByUsername(username);
 			if (loadedUser == null) {
 				throw new InternalAuthenticationServiceException(
@@ -181,11 +164,11 @@ public class CustomDaoAuthenticationProvider extends AbstractUserDetailsAuthenti
 			}
 			return loadedUser;
 		}
-		catch (UsernameNotFoundException ex) {
-			mitigateAgainstTimingAttack(authentication);
+		catch (BaseException | InternalAuthenticationServiceException ex) {
 			throw ex;
 		}
-		catch (InternalAuthenticationServiceException ex) {
+		catch (UsernameNotFoundException ex) {
+			mitigateAgainstTimingAttack(authentication);
 			throw ex;
 		}
 		catch (Exception ex) {
@@ -257,7 +240,7 @@ public class CustomDaoAuthenticationProvider extends AbstractUserDetailsAuthenti
 	 * @return 正常返回:{@link UserDetailsService}
 	 * @author 蝉鸣
 	 */
-	protected UserDetailsService getUserDetailsService() {
+	protected BaseUserDetailsService getUserDetailsService() {
 		return this.userDetailsService;
 	}
 

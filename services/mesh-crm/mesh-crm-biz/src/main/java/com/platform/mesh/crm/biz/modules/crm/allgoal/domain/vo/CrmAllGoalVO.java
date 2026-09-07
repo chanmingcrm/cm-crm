@@ -35,10 +35,22 @@ public class CrmAllGoalVO extends BaseVO {
     private Long moduleId;
 
     /**
+     * 模块名称
+     */
+    @Schema(description = "模块名称")
+    private String moduleName;
+
+    /**
      * 数据ID
      */
     @Schema(description = "数据ID")
     private Long dataId;
+
+    /**
+     * 数据名称
+     */
+    @Schema(description = "数据名称")
+    private String dataName;
 
     /**
      * 数据标识
@@ -50,7 +62,7 @@ public class CrmAllGoalVO extends BaseVO {
      * 数据标识
      */
     @Schema(description = "数据标识")
-    private Year yearTime;
+    private Integer yearTime;
 
     /**
      * 年度目标

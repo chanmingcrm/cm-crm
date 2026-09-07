@@ -7,7 +7,7 @@ import com.platform.mesh.bpm.biz.modules.inst.nodesub.service.IBpmInstNodeSubSer
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.bpm.biz.soa.node.run.factory.NodeRunFactory;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.NodeTypeService;
 import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;

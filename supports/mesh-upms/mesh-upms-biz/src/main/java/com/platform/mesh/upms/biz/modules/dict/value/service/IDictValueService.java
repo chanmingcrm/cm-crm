@@ -66,4 +66,13 @@ public interface IDictValueService extends IService<DictValue> {
      */
     Boolean deleteValue(Long valueId);
 
+    /**
+     * 功能描述:
+     * 〈查询字典值〉
+     * @param dictMac dictMac
+     * @param dictValue dictValue
+     * @return 正常返回:{@link DictValue}
+     * @author 蝉鸣
+     */
+    DictValue getFistSysDictByMac(String dictMac, Integer dictValue);
 }

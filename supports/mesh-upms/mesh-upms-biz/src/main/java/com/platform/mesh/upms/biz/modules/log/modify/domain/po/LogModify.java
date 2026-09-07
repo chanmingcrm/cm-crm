@@ -44,37 +44,23 @@ public class LogModify extends BasePO {
     /**
      * 字段名称
      */
-    private String fieldName;
-
-    /**
-     * 原始值
-     */
-    private String valueOld;
+    private String keyName;
 
     /**
      * 变更值
      */
-    private String valueNew;
+    private String valueJson;
 
     /**
      * 数据类型
      */
-    private Integer dataType;
+    private Integer operateType;
 
     /**
     * 创建时间
     */
     private LocalDateTime createTime;
 
-    /**
-     * 所属用户ID
-     */
-    private Long scopeUserId;
-
-    /**
-     * 所属部门ID
-     */
-    private Long scopeOrgId;
 
 }
 

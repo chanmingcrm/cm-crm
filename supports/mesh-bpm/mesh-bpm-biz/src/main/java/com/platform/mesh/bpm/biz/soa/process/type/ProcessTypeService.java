@@ -7,6 +7,7 @@ import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.dto.BpmInstNodeSubD
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 
@@ -88,5 +89,14 @@ public interface ProcessTypeService {
      * @author 蝉鸣
      */
     void getHist(BpmHistProcessInfoVO getVO);
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess);
 
 }

@@ -1,6 +1,6 @@
 package com.platform.mesh.utils.function;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -17,7 +17,6 @@ public interface FutureBaseConsumer<T> extends Serializable {
 	 * @param param param
 	 * @author 蝉鸣
 	 */
-	@Nullable
 	void handle(@Nullable T param) throws Throwable;
 
 }

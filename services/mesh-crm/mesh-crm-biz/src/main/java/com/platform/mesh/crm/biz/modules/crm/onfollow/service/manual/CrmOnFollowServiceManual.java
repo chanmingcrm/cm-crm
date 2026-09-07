@@ -1,18 +1,16 @@
 package com.platform.mesh.crm.biz.modules.crm.onfollow.service.manual;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
-import com.platform.mesh.app.api.modules.app.util.AppUtil;
 import com.platform.mesh.crm.biz.modules.crm.onfollowdata.domain.po.CrmOnFollowData;
 import com.platform.mesh.crm.biz.modules.crm.onfollowdata.service.ICrmOnFollowDataService;
+import com.platform.mesh.crm.biz.modules.crm.onfollowrel.po.CrmOnFollowRel;
+import com.platform.mesh.crm.biz.modules.crm.onfollowrel.service.ICrmOnFollowRelService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 
 
 /**
@@ -28,6 +26,9 @@ public class CrmOnFollowServiceManual{
     @Autowired
     private ICrmOnFollowDataService crmOnFollowDataService;
 
+    @Autowired
+    private ICrmOnFollowRelService crmOnFollowRelService;
+
 
     /**
      * 功能描述:
@@ -39,48 +40,43 @@ public class CrmOnFollowServiceManual{
         if(CollUtil.isEmpty(onFollowDataList)){
             return;
         }
+        CrmOnFollowData data = CollUtil.getFirst(onFollowDataList);
+        //删除旧数据
+        crmOnFollowDataService.lambdaUpdate().eq(CrmOnFollowData::getDataId,data.getDataId()).remove();
         //批量新增信息
         crmOnFollowDataService.saveBatch(onFollowDataList);
     }
 
     /**
      * 功能描述:
-     * 〈DB Data 数据批量修改〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
+     * 〈跟进数据关系保存〉
+     * @param followRelList followRelList
      * @author 蝉鸣
      */
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //查询已经存在的新增数据
-        List<CrmOnFollowData> onFollowDataList = crmOnFollowDataService.lambdaQuery().eq(CrmOnFollowData::getModuleId, dataEditSimpDTO.getModuleId())
-                .eq(CrmOnFollowData::getDataId, dataId).list();
-        if(CollUtil.isEmpty(onFollowDataList)) {
+    public void addDbRelBatch(List<CrmOnFollowRel> followRelList) {
+        if(CollUtil.isEmpty(followRelList)){
             return;
         }
-        AppUtil.editDbData(onFollowDataList, dataEditSimpDTO);
-        if(CollUtil.isEmpty(onFollowDataList)){
-            return;
-        }
-        crmOnFollowDataService.updateBatchById(onFollowDataList);
+        CrmOnFollowRel followRel = CollUtil.getFirst(followRelList);
+        //删除旧数据
+        crmOnFollowRelService.lambdaUpdate()
+                .eq(CrmOnFollowRel::getModuleId, followRel.getModuleId())
+                .eq(CrmOnFollowRel::getDataId, followRel.getDataId())
+                .remove();
+        //修改关联数据
+        crmOnFollowRelService.saveBatch(followRelList);
     }
 
     /**
      * 功能描述:
-     * 〈转移Data数据权限必须重写〉
+     * 〈跟进数据关系保存〉
      * @param dataIds dataIds
-     * @param scopeUserId scopeUserId
-     * @param scopeOrgId scopeOrgId
      * @author 蝉鸣
      */
-    public void transDbDataBatch(List<Long> dataIds, Long scopeUserId, Long scopeOrgId) {
-        if(CollUtil.isEmpty(dataIds) || ObjectUtil.isEmpty(scopeUserId) || ObjectUtil.isEmpty(scopeOrgId)) {
-            return;
-        }
-        crmOnFollowDataService.lambdaUpdate()
-                .set(CrmOnFollowData::getScopeUserId, scopeUserId)
-                .set(CrmOnFollowData::getScopeOrgId, scopeOrgId)
-                .in(CrmOnFollowData::getDataId, dataIds)
-                .update();
+    public void delFollowRel(List<Long> dataIds) {
+        //删除旧数据
+        crmOnFollowRelService.lambdaUpdate()
+                .in(CrmOnFollowRel::getDataId, dataIds)
+                .remove();
     }
-
 }

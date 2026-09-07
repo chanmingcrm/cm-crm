@@ -22,7 +22,7 @@ import java.util.List;
  * @description 单字段排序信息
  * @author 蝉鸣
  */
-@Tag(description = "AppFormColumnSortingController", name = "单字段排序")
+@Tag(description = "AppFormColumnSortingController", name = "表单字段排序")
 @RestController
 @RequestMapping
 public class AppFormColumnSortingController extends BaseController{
@@ -52,7 +52,7 @@ public class AppFormColumnSortingController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "新增单字段排序")
-    @Log(moduleName = "单字段排序管理", operateType = OperateTypeEnum.INSERT)
+    @Log(moduleName = "表单字段排序管理", operateType = OperateTypeEnum.INSERT)
     @PostMapping("/app/form/column/sorting/add")
     public Result<Boolean> addFormColumnSorting(@Validated @RequestBody List<AppFormColumnSortingDTO> formColumnSortingDTOS) {
         return Result.success(appFormColumnSortingService.addFormColumnSorting(formColumnSortingDTOS));
@@ -67,7 +67,7 @@ public class AppFormColumnSortingController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "删除单字段排序")
-    @Log(moduleName = "单字段排序管理", operateType = OperateTypeEnum.DELETE)
+    @Log(moduleName = "表单字段排序管理", operateType = OperateTypeEnum.DELETE)
     @PostMapping("/app/form/column/sorting/delete/{formId}")
     public Result<Boolean> deleteFormColumnSorting(@PathVariable(value = "formId") Long formId) {
         return Result.success(appFormColumnSortingService.deleteFormColumnSorting(formId));

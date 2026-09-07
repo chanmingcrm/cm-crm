@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.onpayment.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.onpayment.domain.po.CrmOnPayment;
 import com.platform.mesh.crm.biz.modules.crm.onpayment.domain.vo.CrmOnPaymentVO;
 import com.platform.mesh.crm.biz.modules.crm.onpayment.service.ICrmOnPaymentService;
@@ -113,7 +110,7 @@ public class CrmOnPaymentController extends BaseController{
     @Log(moduleName = "客户关系款项记录管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/payment/edit")
     public Result<CrmOnPaymentVO> editOnPayment(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnPayment crmOnPayment = crmOnPaymentService.editData(dataEditDTO, CrmOnPayment.class);
+        CrmOnPayment crmOnPayment = crmOnPaymentService.editData(dataEditDTO, CrmOnPayment.class, CrmOnPaymentData.class);
         return Result.success(BeanUtil.copyProperties(crmOnPayment,CrmOnPaymentVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmOnPaymentController extends BaseController{
     @Operation(summary = "导入客户关系款项记录")
     @Log(moduleName = "客户关系款项记录管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/payment/import")
-    public Result<Boolean> importOnPayment(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnPaymentService.importData(moduleId,formId,file, CrmOnPayment.class, CrmOnPaymentData.class));
+    public Result<ImportVO> importOnPayment(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnPaymentService.importData(importDTO, CrmOnPayment.class, CrmOnPaymentData.class));
     }
     
     /**

@@ -16,4 +16,19 @@ import lombok.experimental.Accessors;
 @TableName(value = "crm_pre_drainage", autoResultMap = true)
 public class CrmPreDrainage extends AppPO {
 
+    /**
+     * 手机号码
+     */
+    private String phone;
+
+    /**
+     * 最新的流程实例ID
+     */
+    private Long instProcessId;
+
+    /**
+     * 最新的流程实例审批状态
+     */
+    private Integer processPass;
+
 }

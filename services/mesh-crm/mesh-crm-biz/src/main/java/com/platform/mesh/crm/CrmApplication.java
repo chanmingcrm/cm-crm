@@ -1,7 +1,7 @@
 package com.platform.mesh.crm;
 
 import com.platform.mesh.core.constants.StrConst;
-import com.platform.mesh.crm.biz.modules.init.db.event.InitDbToEsEvent;
+import com.platform.mesh.crm.biz.init.db.event.InitDbToEsEvent;
 import com.platform.mesh.resource.annotation.EnableResourceServerConfig;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.slf4j.Logger;

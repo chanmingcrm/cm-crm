@@ -78,5 +78,4 @@ public interface IAppBaseService extends IService<AppBase> {
      * @author 蝉鸣
      */
     Boolean copyAppBase(AppBaseCopyDTO copyDTO);
-
 }

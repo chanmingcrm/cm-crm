@@ -3,13 +3,15 @@ package com.platform.mesh.utils.excel.listener;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.idev.excel.context.AnalysisContext;
-import cn.idev.excel.event.AnalysisEventListener;
-import cn.idev.excel.exception.ExcelDataConvertException;
-import cn.idev.excel.metadata.data.ReadCellData;
-import cn.idev.excel.util.ListUtils;
-import com.alibaba.fastjson2.JSON;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.StrConst;
+import com.platform.mesh.core.constants.SymbolConst;
+import com.platform.mesh.utils.excel.constants.ExcelConst;
+import org.apache.fesod.common.util.ListUtils;
+import org.apache.fesod.sheet.context.AnalysisContext;
+import org.apache.fesod.sheet.event.AnalysisEventListener;
+import org.apache.fesod.sheet.exception.ExcelDataConvertException;
+import org.apache.fesod.sheet.metadata.data.ReadCellData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,7 @@ public class UploadDataListener extends AnalysisEventListener<Map<Integer,Object
     }
 
     public UploadDataListener(Consumer<List<Map<String,Object>>> consumer, int batchCount) {
-        this.cachedDataList = ListUtils.newArrayListWithExpectedSize(BATCH_COUNT);
+        this.cachedDataList = ListUtils.newArrayListWithExpectedSize(batchCount);
         this.consumer = consumer;
         this.batchCount = batchCount;
     }
@@ -79,14 +81,24 @@ public class UploadDataListener extends AnalysisEventListener<Map<Integer,Object
      */
     @Override
     public void invokeHead(Map<Integer, ReadCellData<?>> headMap, AnalysisContext context) {
-        log.info("解析到表头: {}", JSON.toJSONString(columnMap));
         headMap.forEach((key, value) -> {
-            if(columnMap.containsKey(value.getStringValue())){
-                String columnMac = columnMap.get(value.getStringValue());
+            if(value == null || columnMap == null){
+                return;
+            }
+            String head = value.getStringValue();
+            if(StrUtil.isBlank(head)){
+                return;
+            }
+            if(head.contains(SymbolConst.STAR)){
+                head = head.replace(SymbolConst.STAR, SymbolConst.BLANK).trim();
+            }else{
+                head = head.trim();
+            }
+            if(columnMap.containsKey(head)){
+                String columnMac = columnMap.get(head);
                 headTransMap.put(key.toString(),StrUtil.toUnderlineCase(columnMac));
             }
         });
-        log.info("解析到表头: {}", JSON.toJSONString(headTransMap));
     }
 
     /**
@@ -94,8 +106,9 @@ public class UploadDataListener extends AnalysisEventListener<Map<Integer,Object
      */
     @Override
     public void invoke(Map<Integer,Object> data, AnalysisContext context) {
-        log.info("解析到一条数据: {}", JSON.toJSONString(data));
         HashMap<String, Object> dataMap = new HashMap<>();
+        //添加Excel行号
+        dataMap.put(ExcelConst.EXCEL_IMPORT_ROW_NUM, context.readRowHolder().getRowIndex() + NumberConst.NUM_1);
         //添加ID
         dataMap.put(StrConst.ID, IdUtil.getSnowflake().nextId());
         //添加其他数据
@@ -106,8 +119,9 @@ public class UploadDataListener extends AnalysisEventListener<Map<Integer,Object
         });
         this.cachedDataList.add(dataMap);
         if (this.cachedDataList.size() >= this.batchCount) {
-            this.consumer.accept(this.cachedDataList);
+            List<Map<String,Object>> currentDataList = this.cachedDataList;
             this.cachedDataList = ListUtils.newArrayListWithExpectedSize(this.batchCount);
+            this.consumer.accept(currentDataList);
         }
     }
 
@@ -117,7 +131,9 @@ public class UploadDataListener extends AnalysisEventListener<Map<Integer,Object
     @Override
     public void doAfterAllAnalysed(AnalysisContext context) {
         if (CollUtil.isNotEmpty(this.cachedDataList)) {
-            this.consumer.accept(this.cachedDataList);
+            List<Map<String,Object>> currentDataList = this.cachedDataList;
+            this.cachedDataList = ListUtils.newArrayListWithExpectedSize(this.batchCount);
+            this.consumer.accept(currentDataList);
         }
     }
 }

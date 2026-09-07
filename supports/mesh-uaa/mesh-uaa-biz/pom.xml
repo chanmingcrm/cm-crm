@@ -5,12 +5,12 @@
     <parent>
         <artifactId>mesh-uaa</artifactId>
         <groupId>com.platform</groupId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mesh-uaa-biz</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>认证服务中心</description>
 
     <dependencies>
@@ -33,10 +33,21 @@
             <artifactId>mesh-uaa-api</artifactId>
         </dependency>
 
+        <!--Bpm API-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-bpm-api</artifactId>
+        </dependency>
+
         <!--JustAuth-->
         <dependency>
-            <groupId>me.zhyd.oauth</groupId>
+            <groupId>io.github.windtool</groupId>
             <artifactId>JustAuth</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-tencent-wxwork</artifactId>
         </dependency>
 
     </dependencies>

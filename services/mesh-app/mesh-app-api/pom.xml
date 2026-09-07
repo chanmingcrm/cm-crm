@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>mesh-app</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>mesh-app-api</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>应用管理API</description>
 
     <properties>

@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.util.Assert;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * @description 实现储存redis个性化
@@ -29,8 +29,8 @@ public class RedisOAuth2AuthorizationConsentServiceImpl implements OAuth2Authori
 	public void save(OAuth2AuthorizationConsent authorizationConsent) {
 		Assert.notNull(authorizationConsent, "authorizationConsent cannot be null");
 
-		redisTemplate.opsForValue().set(buildKey(authorizationConsent), authorizationConsent, TIMEOUT,
-				TimeUnit.MINUTES);
+		redisTemplate.opsForValue().set(buildKey(authorizationConsent), authorizationConsent,
+				Duration.ofMinutes(TIMEOUT));
 
 	}
 

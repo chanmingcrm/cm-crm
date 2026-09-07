@@ -2,18 +2,16 @@
 <h2 align="center">清新简约 · 灵活多变</h2>
 <p align="center">九层之台，起于累土；千里之行，始于足下</p>
 <p align="center">
-    <a href="https://spring.io/projects/spring-cloud" target="_blank"><img src="https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue.svg?logo=spring" alt="Spring Cloud 2025.0.0"></a>
-    <a href="https://github.com/alibaba/spring-cloud-alibaba" target="_blank"><img src="https://img.shields.io/badge/Spring%20Cloud%20Alibaba-2023.0.3.3-blue.svg?logo=alibabadotcom" alt="Spring Cloud Alibaba 2023.0.3.3"></a>
-    <a href="https://spring.io/projects/spring-boot" target="_blank"><img src="https://img.shields.io/badge/Spring%20Boot-3.5.0-blue.svg?logo=spring" alt="Spring Boot 3.5.0"></a>
-    <a href="https://www.woscosmos.com" target="_blank"><img src="https://img.shields.io/badge/Mesh%20Platform-3.5.0-blue.svg?logo=spring" alt="Mesh-platform 3.5.0"></a>
+    <a href="https://spring.io/projects/spring-cloud" target="_blank"><img src="https://img.shields.io/badge/Spring%20Cloud-2025.1.3-blue.svg?logo=spring" alt="Spring Cloud 2025.1.3"></a>
+    <a href="https://github.com/alibaba/spring-cloud-alibaba" target="_blank"><img src="https://img.shields.io/badge/Spring%20Cloud%20Alibaba-2025.1.0.0-blue.svg?logo=alibabadotcom" alt="Spring Cloud Alibaba 2025.1.0.0"></a>
+    <a href="https://spring.io/projects/spring-boot" target="_blank"><img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-blue.svg?logo=spring" alt="Spring Boot 4.1.1"></a>
 
 </p>
 <p align="center">
     <a href="https://bell-sw.com/pages/downloads/#downloads" target="_blank"><img src="https://img.shields.io/badge/JDK-21-green.svg?logo=openjdk" alt="Java 21"></a>
-    <a href="https://nacos.io/zh-cn/index.html" target="_blank"><img src="https://img.shields.io/badge/Nacos-3.0.1-green.svg?logo=alibabadotcom" alt="Nacos 3.0.1"></a>
-    <a href="https://github.com/spring-projects/spring-authorization-server" target="_blank"><img src="https://img.shields.io/badge/Spring%20Authorization%20Server-1.5.1-green.svg?logo=spring" alt="Spring Authorization Server 1.5.1"></a>
-    <a href="https://github.com/spring-projects/spring-authorization-server" target="_blank"><img src="https://img.shields.io/badge/Hutool-5.8.38-green.svg?logo=spring" alt="Hutool 5.8.38"></a>
-    <a href="https://github.com/spring-projects/spring-authorization-server" target="_blank"><img src="https://img.shields.io/badge/FastExcel-1.2.0-green.svg?logo=spring" alt="FastExcel 1.2.0"></a>
+    <a href="https://nacos.io/zh-cn/index.html" target="_blank"><img src="https://img.shields.io/badge/Nacos-3.2.0-green.svg?logo=alibabadotcom" alt="Nacos 3.2.0"></a>
+    <a href="https://github.com/spring-projects/spring-authorization-server" target="_blank"><img src="https://img.shields.io/badge/Hutool-5.8.47-green.svg?logo=spring" alt="Hutool 5.8.47"></a>
+    <a href="https://github.com/spring-projects/spring-authorization-server" target="_blank"><img src="https://img.shields.io/badge/Fesod-2.0.2 incubating-green.svg?logo=spring" alt="Fesod 2.0.2-incubating"></a>
 </p>
 <p align="center">
     <a href="https://gitee.com/woscosmos/mesh-platform"><img src="https://gitee.com/woscosmos/mesh-platform/badge/star.svg?theme=dark" alt="Gitee star"></a>
@@ -43,8 +41,9 @@
 ## 🔍 仓库说明
 
 | 项目   | 地址                                                         |
-|------|------------------------------------------------------------|
-| 后端项目 | [🚀mesh-platform](https://gitee.com/woscosmos/mesh-platform) |
+|--------|------------------------------------------------------------|
+| <img src="./builds/assets/logo/github.svg" width="20" height="20" alt="GitHub"> GitHub | [🚀mesh-platform](https://gitee.com/woscosmos/mesh-platform) |
+| <img src="./builds/assets/logo/gitee.svg" width="20" height="20" alt="Gitee"> Gitee | [🚀mesh-platform](https://gitee.com/woscosmos/mesh-platform) |
 
 ## 🎨设计说明
 
@@ -114,10 +113,17 @@
 | 商机    | 商机   | 经过验证且具备明确成交可能的业务机会，销售管道中可量化的潜在收入的录信息 |
 |       | 报价单  | 企业向客户提供的正式价格文件的录信息                   |
 | 订单回款  | 合同   | 具有法律约束力的商业协议文件，明确交易双方的权利义务的录信息       |
-|       | 订单   | 客户采购意愿的正式确认文件记的录信息                   |
 |       | 回款   | 客户支付款项信息                             |
 |       | 发票   | 提供给客户的发票信息                           |
-|       | 产品   | 可交付的商品/服务信息                          |
+
+### 👥PLM功能
+| 分类     | 功能     | 描述             |
+|----------|----------|------------------|
+| 产品管理 | 产品     | 定义产品         |
+| 产品分类 | 产品大类 | 产品SKU分类      |
+|          | 产品物料 | 产品细分明细     |
+| 设计管理 | 产品设计 | 产品物料组成明细 |
+|          | 工序设计 | 产品结构说明     |
 
 ### ⏰OA功能
 | 分类   | 功能   | 描述              |
@@ -135,24 +141,24 @@
 
 ## 🤖 后端技术栈
 
-| 技术分类      | 技术 Logo & 名称                                                                                                                                                                      | 版本要求       | 描述                                                                 |
-|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|---------------------------------------------------------------------|
-| **JDK**   | <img src="https://cdn.worldvectorlogo.com/logos/java-14.svg" width="20"> [OpenJDK](https://openjdk.org)                                                                           | `21` (LTS)    | Java 开发工具包，推荐长期支持版本                                   |
-| **构建**    | <img src="https://cdn.worldvectorlogo.com/logos/apache-maven-1.svg" width="20"> [Maven](https://maven.apache.org)                                                                 | `3.9+`        | 标准依赖管理和项目构建工具，支持约定优于配置                         |
-| **框架**    | <img src="https://cdn.worldvectorlogo.com/logos/spring-3.svg" width="20"> [Spring Boot](https://spring.io/projects/spring-boot)                                                   | `3.5.0`       | 快速构建生产级应用的微服务框架                                       |
-|           | <img src="https://cdn.worldvectorlogo.com/logos/spring-3.svg" width="20"> [Spring Cloud](https://spring.io/projects/spring-cloud)                                                 | `2025.0.0`    | 分布式系统开发工具包                                                 |
-|           | <img src="https://cdn.worldvectorlogo.com/logos/spring-3.svg" width="20"> [Spring Cloud Alibaba](https://spring.io/projects/spring-cloud-alibaba)                                 | `2023.0.3.2`  | 阿里云微服务解决方案                                                 |
-| **数据库**   | <img src="https://cdn.worldvectorlogo.com/logos/mysql-4.svg" width="20"> [MySQL](https://www.mysql.com)                                                                           | `8.0+`        | 主流关系型数据库，支持 ACID 事务                                     |
-|           | <img src="https://cdn.worldvectorlogo.com/logos/redis.svg" width="20"> [Redis](https://redis.io)                                                                                  | `7.0+`        | 高性能内存键值数据库，支持缓存和消息队列                             |
-|           | <img src="https://cdn.worldvectorlogo.com/logos/elasticsearch.svg" width="20"> [Elasticsearch](https://www.elastic.co)                                                            | `9.0.0+`      | 全文搜索引擎和分析引擎                                               |
-| **中间件**   | <img src="https://raw.githubusercontent.com/baomidou/logo/master/mybatis-plus-logo-new-mini.png" width="20"> [Mybatis Plus](https://baomidou.com)                                 | `3.5.12`      | 增强版 MyBatis，简化开发                                             |
-|           | <img src="https://raw.githubusercontent.com/baomidou/logo/master/mybatis-plus-logo-new-mini.png" width="20"> [Dynamic-Datasource](https://github.com/baomidou/dynamic-datasource) | `4.3.1`       | 动态数据源管理                                                       |
-|           | <img src="https://cdn.jsdelivr.net/gh/looly/hutool-site/images/logo.jpg" width="20"> [Hutool](https://hutool.cn)                                                                  | `5.8.37`      | Java 工具类库                                                       |
-|           | <img src="https://gitee.com/yadong.zhang/static/raw/master/JustAuth/Justauth.png" width="20"> [JustAuth](https://justauth.wiki)                                                   | `1.16.7`      | 第三方登录工具库                                                     |
-|           | <img src="https://www.xuxueli.com/doc/static/xxl-job/images/xxl-logo.jpg" width="20"> [XXL-Job](https://www.xuxueli.com/xxl-job)                                                  | `3.1.0`       | 分布式任务调度平台                                                   |
-|           | <img src="./builds/assets/logo/fastexcel.svg" width="20"> [Fastexcel](https://github.com/dhatim/fastexcel)                                                                        | `1.2.0`       | 高性能 Excel 操作库                                                 |
-|           | <img src="./builds/assets/logo/knife4j.svg" width="20"> [Knife4j](https://doc.xiaominfo.com)                                                                                           | `4.5.0`       | Swagger 增强 UI                                                     |
-|           | <img src="./builds/assets/logo/fastexcel.svg" width="20"> [OSS](https://help.aliyun.com/product/31815.html)                                                                            | `2.31.40`     | 阿里云对象存储服务                                                   |
+| 技术分类      | 技术 Logo & 名称                                                                                                                                                                  | 版本要求     | 描述                                                                 |
+|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------|---------------------------------------------------------------------|
+| **JDK**   | <img src="https://cdn.worldvectorlogo.com/logos/java-14.svg" width="20"> [OpenJDK](https://openjdk.org)                                                                           | `21` (LTS)   | Java 开发工具包，推荐长期支持版本                                   |
+| **构建**    | <img src="https://cdn.worldvectorlogo.com/logos/apache-maven-1.svg" width="20"> [Maven](https://maven.apache.org)                                                                 | `3.9+`       | 标准依赖管理和项目构建工具，支持约定优于配置                         |
+| **框架**    | <img src="https://cdn.worldvectorlogo.com/logos/spring-3.svg" width="20"> [Spring Boot](https://spring.io/projects/spring-boot)                                                   | `4.1.1`      | 快速构建生产级应用的微服务框架                                       |
+|           | <img src="https://cdn.worldvectorlogo.com/logos/spring-3.svg" width="20"> [Spring Cloud](https://spring.io/projects/spring-cloud)                                                 | `2025.1.3`   | 分布式系统开发工具包                                                 |
+|           | <img src="https://cdn.worldvectorlogo.com/logos/spring-3.svg" width="20"> [Spring Cloud Alibaba](https://spring.io/projects/spring-cloud-alibaba)                                 | `2025.1.0.0` | 阿里云微服务解决方案                                                 |
+| **数据库**   | <img src="https://cdn.worldvectorlogo.com/logos/mysql-4.svg" width="20"> [MySQL](https://www.mysql.com)                                                                           | `8.0+`       | 主流关系型数据库，支持 ACID 事务                                     |
+|           | <img src="https://cdn.worldvectorlogo.com/logos/redis.svg" width="20"> [Redis](https://redis.io)                                                                                  | `7.0+`       | 高性能内存键值数据库，支持缓存和消息队列                             |
+|           | <img src="https://cdn.worldvectorlogo.com/logos/elasticsearch.svg" width="20"> [Elasticsearch](https://www.elastic.co)                                                            | `9.0.0+`     | 全文搜索引擎和分析引擎                                               |
+| **中间件**   | <img src="https://raw.githubusercontent.com/baomidou/logo/master/mybatis-plus-logo-new-mini.png" width="20"> [Mybatis Plus](https://baomidou.com)                                 | `3.5.16`     | 增强版 MyBatis，简化开发                                             |
+|           | <img src="https://raw.githubusercontent.com/baomidou/logo/master/mybatis-plus-logo-new-mini.png" width="20"> [Dynamic-Datasource](https://github.com/baomidou/dynamic-datasource) | `4.5.0`      | 动态数据源管理                                                       |
+|           | <img src="https://cdn.jsdelivr.net/gh/looly/hutool-site/images/logo.jpg" width="20"> [Hutool](https://hutool.cn)                                                                  | `5.8.47`     | Java 工具类库                                                       |
+|           | <img src="https://gitee.com/yadong.zhang/static/raw/master/JustAuth/Justauth.png" width="20"> [JustAuth](https://justauth.wiki)                                                   | `3.0.1`     | 第三方登录工具库                                                     |
+|           | <img src="https://www.xuxueli.com/doc/static/xxl-job/images/xxl-logo.jpg" width="20"> [XXL-Job](https://www.xuxueli.com/xxl-job)                                                  | `3.4.2`      | 分布式任务调度平台                                                   |
+|           | <img src="./builds/assets/logo/fastexcel.svg" width="20"> [Fesod](https://github.com/dhatim/fastexcel)                                                                            | `2.0.2-incubating`      | 高性能 Excel 操作库                                                 |
+|           | <img src="./builds/assets/logo/knife4j.svg" width="20"> [Knife4j](https://doc.xiaominfo.com)                                                                                      | `4.5.0`      | Swagger 增强 UI                                                     |
+|           | <img src="./builds/assets/logo/fastexcel.svg" width="20"> [OSS](https://help.aliyun.com/product/31815.html)                                                                       | `2.31.40`    | 阿里云对象存储服务                                                   |
 
 ## 🪛 工具及插件
 
@@ -180,6 +186,27 @@
         <td><img src="./builds/assets/views/列表页3.png" alt="前端界面2"/></td>
     </tr>
 </table>
+
+## 快速部署
+
+在后端项目根目录执行，首次使用请先按照对应文档准备环境和配置。
+
+**Docker 部署：**
+
+```bash
+sudo sysctl -w vm.max_map_count=262144
+bash builds/script/docker/deploy.sh deploy
+```
+
+详细教程：[1. Docker 部署](https://doc.woscosmos.com/zh/tutorial/deploy/docker.html)。启动后访问 `http://服务器IP/`。
+
+**Shell 部署：**
+
+```bash
+bash builds/script/shell/deploy.sh deploy
+```
+
+详细教程：[2. Shell 部署](https://doc.woscosmos.com/zh/tutorial/deploy/shell.html)。后端 JAR 统一放在 `/opt/server/`，前端通过 Nginx 访问。
 
 ## 🗂️ 目录说明
 

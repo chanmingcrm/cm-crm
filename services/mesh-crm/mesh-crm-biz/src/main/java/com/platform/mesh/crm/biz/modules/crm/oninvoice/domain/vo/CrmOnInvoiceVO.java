@@ -40,17 +40,17 @@ public class CrmOnInvoiceVO extends AppVO {
      * 总计金额
      */
     @Schema(description = "总计金额")
-    private BigDecimal totalMoney;
+    private BigDecimal totalMoney = BigDecimal.ZERO;
 
     /**
      * 折扣金额
      */
     @Schema(description = "折扣金额")
-    private BigDecimal discountMoney;
+    private BigDecimal discountMoney = BigDecimal.ZERO;
 
     /**
      * 实际金额
      */
     @Schema(description = "实际金额")
-    private BigDecimal realMoney;
+    private BigDecimal realMoney = BigDecimal.ZERO;
 }

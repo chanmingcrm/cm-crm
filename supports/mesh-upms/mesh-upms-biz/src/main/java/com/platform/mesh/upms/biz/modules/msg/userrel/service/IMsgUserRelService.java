@@ -2,6 +2,8 @@ package com.platform.mesh.upms.biz.modules.msg.userrel.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.upms.biz.modules.msg.base.domain.po.MsgBase;
+import com.platform.mesh.upms.biz.modules.msg.notice.domain.po.MsgNotice;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadVO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.dto.MsgReadDTO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.dto.MsgUserRelPageDTO;
@@ -44,4 +46,18 @@ public interface IMsgUserRelService extends IService<MsgUserRel> {
      * @author 蝉鸣
      */
     List<UnReadVO> countUnReadBase();
+
+    /**
+     * 功能描述:
+     * 〈保存消息〉
+     * @author 蝉鸣
+     */
+    void saveByMsg(MsgBase msgBase, List<Long> userIds);
+
+    /**
+     * 功能描述:
+     * 〈保存消息〉
+     * @author 蝉鸣
+     */
+    void saveByNotice(MsgBase msgBase, MsgNotice msgNotice);
 }

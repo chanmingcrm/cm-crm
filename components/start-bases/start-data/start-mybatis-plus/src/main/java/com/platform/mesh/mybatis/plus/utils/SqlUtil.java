@@ -17,7 +17,6 @@ import com.platform.mesh.mybatis.plus.constant.MybatisPlusConst;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,7 @@ public class SqlUtil {
     /**
      * 功能描述:
      * 〈获取有TableName注解的所有对象〉
-     * @return 正常返回:{@link Map<String, TableInfo>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public static Map<String, TableInfo> getTableInfo() {
@@ -219,13 +218,13 @@ public class SqlUtil {
      * @return 正常返回:{@link T}
      * @author 蝉鸣
      */
-    public static <T> T getMaxOne(Class<T> clazz, LocalDateTime createTime) {
+    public static <T> T getMaxOne(Class<T> clazz, Function<QueryChainWrapper<T>, QueryChainWrapper<T>> wrapper) {
         //如果存在序列号组件则需要查询最新的数据获取序列号
         QueryChainWrapper<T> query = new QueryChainWrapper<>(clazz);
-        query.orderByDesc(StrConst.ID).last(MybatisPlusConst.LIMIT_1);
-        if(ObjectUtil.isNotEmpty(createTime)){
-            query.gt(StrConst.CREATE_TIME, createTime);
+        if(ObjectUtil.isNotNull(wrapper)){
+            query = wrapper.apply(query);
         }
+        query.orderByDesc(StrConst.ID).last(MybatisPlusConst.LIMIT_1);
         return query.one();
     }
 }

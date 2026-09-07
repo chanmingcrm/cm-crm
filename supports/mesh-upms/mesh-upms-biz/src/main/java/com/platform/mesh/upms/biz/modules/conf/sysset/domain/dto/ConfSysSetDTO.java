@@ -1,11 +1,14 @@
 package com.platform.mesh.upms.biz.modules.conf.sysset.domain.dto;
 
-import java.time.LocalDateTime;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
+import com.platform.mesh.upms.api.modules.conf.enums.ConfSourceEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.time.LocalDateTime;
 
 /**
  * @description 配置系统DTO
@@ -26,6 +29,12 @@ public class ConfSysSetDTO extends BaseDTO {
     private Long id;
 
     /**
+     * 配置来源
+     */
+    @SchemaEnum(value = ConfSourceEnum.class, description = "配置来源")
+    private Integer confSource;
+
+    /**
      * 配置识别
      */
     @Schema(description = "配置识别")
@@ -41,7 +50,7 @@ public class ConfSysSetDTO extends BaseDTO {
      * 配置值
      */
     @Schema(description = "配置值")
-    private String confValue;
+    private Object confValue;
 
     /**
      * 配置描述
@@ -50,7 +59,7 @@ public class ConfSysSetDTO extends BaseDTO {
     private String confDesc;
 
     /**
-     * 创建者ID
+     * 配置密文
      */
     @Schema(description = "创建者ID")
     private Long createUserId;

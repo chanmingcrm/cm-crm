@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.onorder.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -109,7 +110,7 @@ public class CrmOnOrderController extends BaseController{
     @Log(moduleName = "客户关系订单管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/order/edit")
     public Result<CrmOnOrderVO> editOnOrder(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnOrder crmOnOrder = crmOnOrderService.editData(dataEditDTO, CrmOnOrder.class);
+        CrmOnOrder crmOnOrder = crmOnOrderService.editData(dataEditDTO, CrmOnOrder.class, CrmOnOrderData.class);
         return Result.success(BeanUtil.copyProperties(crmOnOrder, CrmOnOrderVO.class));
     }
     
@@ -179,8 +180,12 @@ public class CrmOnOrderController extends BaseController{
     @Operation(summary = "导入客户关系订单")
     @Log(moduleName = "客户关系订单管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/order/import")
-    public Result<Boolean> importOnOrder(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnOrderService.importData(moduleId,formId,file, CrmOnOrder.class, CrmOnOrderData.class));
+    public Result<ImportVO> importOnOrder(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnOrderService.importData(importDTO, CrmOnOrder.class, CrmOnOrderData.class));
     }
     
     /**

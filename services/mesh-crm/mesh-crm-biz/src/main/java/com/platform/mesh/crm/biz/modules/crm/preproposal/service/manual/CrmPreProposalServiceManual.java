@@ -1,9 +1,15 @@
 package com.platform.mesh.crm.biz.modules.crm.preproposal.service.manual;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
 import com.platform.mesh.app.api.modules.app.util.AppUtil;
+import com.platform.mesh.core.constants.StrConst;
+import com.platform.mesh.crm.api.modules.crm.constants.CrmConst;
+import com.platform.mesh.crm.biz.modules.crm.onsubproduct.service.ICrmOnSubProductService;
+import com.platform.mesh.crm.biz.modules.crm.preproposal.domain.po.CrmPreProposal;
 import com.platform.mesh.crm.biz.modules.crm.preproposaldata.domain.po.CrmPreProposalData;
 import com.platform.mesh.crm.biz.modules.crm.preproposaldata.service.ICrmPreProposalDataService;
 import org.slf4j.Logger;
@@ -12,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 
 
 /**
@@ -29,6 +34,8 @@ public class CrmPreProposalServiceManual{
     @Autowired
     private ICrmPreProposalDataService crmPreProposalDataService;
 
+    @Autowired
+    private ICrmOnSubProductService crmOnSubProductService;
 
     /**
      * 功能描述:
@@ -40,47 +47,41 @@ public class CrmPreProposalServiceManual{
         if(CollUtil.isEmpty(preProposalDataList)){
             return;
         }
+        CrmPreProposalData data = CollUtil.getFirst(preProposalDataList);
+        //删除旧数据
+        crmPreProposalDataService.lambdaUpdate().eq(CrmPreProposalData::getDataId,data.getDataId()).remove();
         //批量新增信息
         crmPreProposalDataService.saveBatch(preProposalDataList);
     }
 
     /**
      * 功能描述:
-     * 〈DB Data 数据批量修改〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
+     * 〈保存订单下的产品数据〉
+     * @param dataPO dataPO
+     * @param dataAddDTO dataAddDTO
      * @author 蝉鸣
      */
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //查询已经存在的新增数据
-        List<CrmPreProposalData> preProposalDataList = crmPreProposalDataService.lambdaQuery().eq(CrmPreProposalData::getModuleId, dataEditSimpDTO.getModuleId())
-                .eq(CrmPreProposalData::getDataId, dataId).list();
-        if(CollUtil.isEmpty(preProposalDataList)) {
-            return;
-        }
-        AppUtil.editDbData(preProposalDataList, dataEditSimpDTO);
-        if(CollUtil.isEmpty(preProposalDataList)){
-            return;
-        }
-        crmPreProposalDataService.updateBatchById(preProposalDataList);
+    public void saveSubProductList(CrmPreProposal dataPO, DataAddSimpDTO dataAddDTO) {
+        //将当前信息冗余
+        JSONArray array = JSONUtil.createArray();
+        JSONObject order = JSONUtil.createObj();
+        order.set(StrConst.ID,dataPO.getId());
+        order.set(StrConst.NAME,dataPO.getDataName());
+        array.add(order);
+        dataAddDTO.getDocData().put(AppUtil.getJsonName(CrmConst.PROPOSAL),array);
+        crmOnSubProductService.addSubProduct(dataPO,dataAddDTO.getDocData());
+        //移除子表数据，不再保存当前数据中
+        dataAddDTO.getDocData().remove(CrmConst.PRODUCT_LIST);
     }
 
     /**
      * 功能描述:
-     * 〈转移Data数据权限必须重写〉
-     * @param dataIds dataIds
-     * @param scopeUserId scopeUserId
-     * @param scopeOrgId scopeOrgId
+     * 〈获取订单下的产品列表〉
+     * @param proposalId proposalId
      * @author 蝉鸣
      */
-    public void transDbDataBatch(List<Long> dataIds, Long scopeUserId, Long scopeOrgId) {
-        if(CollUtil.isEmpty(dataIds) || ObjectUtil.isEmpty(scopeUserId) || ObjectUtil.isEmpty(scopeOrgId)) {
-            return;
-        }
-        crmPreProposalDataService.lambdaUpdate()
-                .set(CrmPreProposalData::getScopeUserId, scopeUserId)
-                .set(CrmPreProposalData::getScopeOrgId, scopeOrgId)
-                .in(CrmPreProposalData::getDataId, dataIds)
-                .update();
+    public List<Object> getSubProductList(Long proposalId) {
+        return crmOnSubProductService.getSubProductByRelDataId(proposalId);
     }
+
 }

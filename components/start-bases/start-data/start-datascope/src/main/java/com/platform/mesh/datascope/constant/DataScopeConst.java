@@ -1,5 +1,7 @@
 package com.platform.mesh.datascope.constant;
 
+import com.platform.mesh.core.constants.StrConst;
+
 /**
  * @description 数据隔离常量
  * @author 蝉鸣
@@ -9,7 +11,7 @@ public interface DataScopeConst {
 	/**
 	 * scope_user
 	 */
-	String DEFAULT_SCOPE_USER = "scope_user_json";
+	String DEFAULT_SCOPE_USER = StrConst.SCOPE_USER;
 
 	/**
 	 * scope_user_id
@@ -24,7 +26,7 @@ public interface DataScopeConst {
 	/**
 	 * scope_org
 	 */
-	String DEFAULT_SCOPE_ORG = "scope_org_json";
+	String DEFAULT_SCOPE_ORG = StrConst.SCOPE_ORG;
 
 	/**
 	 * scope_org_id
@@ -35,5 +37,16 @@ public interface DataScopeConst {
 	 * scope_org_name
 	 */
 	String DEFAULT_SCOPE_ORG_NAME = "scope_org_name";
+
+	/**
+	 * create_user
+	 */
+	String DEFAULT_CREATE_USER = StrConst.CREATE_USER;
+
+	/**
+	 * update_user
+	 */
+	String DEFAULT_UPDATE_USER = StrConst.UPDATE_USER;
+
 }
 

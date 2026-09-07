@@ -34,9 +34,15 @@ public class DocDirRel extends BasePO {
 
 
     /**
-    * 文件ID
+    * 文档ID
     */
-    private Long fileId;
+    private Long docId;
+
+
+    /**
+    * 关系类型
+    */
+    private Integer relFlag;
 
 
     /**
@@ -76,5 +82,6 @@ public class DocDirRel extends BasePO {
     @IgnoreDataScope()
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
+
 
 }

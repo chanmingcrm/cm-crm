@@ -3,4 +3,24 @@
 <mapper namespace="com.platform.mesh.app.biz.modules.app.modulesettransmapping.mapper.AppModuleSetTransMappingMapper">
 
 
+    <select id="getModuleSetTransMappingByTransId"
+            resultType="com.platform.mesh.app.biz.modules.app.modulesettransmapping.domain.po.AppModuleSetTransMapping">
+        SELECT
+            *
+        FROM
+            app_module_set_trans_mapping
+        WHERE
+            trans_id = #{transId}
+    </select>
+
+    <select id="getModuleSetTransMappingByModuleId"
+            resultType="com.platform.mesh.app.biz.modules.app.modulesettransmapping.domain.po.AppModuleSetTransMapping">
+        SELECT
+            *
+        FROM
+            app_module_set_trans_mapping
+        WHERE
+            from_module_id = #{fromModuleId}
+          AND to_module_id = #{toModuleId}
+    </select>
 </mapper>

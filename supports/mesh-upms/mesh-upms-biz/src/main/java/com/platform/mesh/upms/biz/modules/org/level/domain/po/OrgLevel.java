@@ -35,14 +35,34 @@ public class OrgLevel extends BasePO {
     private Long parentId;
 
     /**
-    * 层级标识
+    * 名称
     */
-    private Integer levelFlag;
+    private String levelNo;
 
     /**
     * 名称
     */
     private String levelName;
+
+    /**
+     * 层级标识
+     */
+    private Integer levelFlag;
+
+    /**
+     * 来源标识
+     */
+    private Integer levelSource;
+
+    /**
+     * 第三方ID
+     */
+    private String thirdId;
+
+    /**
+     * 关联的系统组织ID
+     */
+    private Long sysRelId;
 
     /**
      * 创建人ID

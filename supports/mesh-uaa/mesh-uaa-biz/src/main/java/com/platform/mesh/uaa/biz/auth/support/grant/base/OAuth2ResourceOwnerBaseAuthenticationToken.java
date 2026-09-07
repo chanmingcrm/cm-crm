@@ -1,7 +1,7 @@
 package com.platform.mesh.uaa.biz.auth.support.grant.base;
 
 import com.platform.mesh.core.constants.SymbolConst;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -78,7 +78,7 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationToken extends Abstrac
 	/**
 	 * 功能描述:
 	 * 〈参数〉
-	 * @return 正常返回:{@link Map<String,Object>}
+	 * @return 正常返回:{@link Map}
 	 * @author 蝉鸣
 	 */
 	public Map<String, Object> getAdditionalParameters() {

@@ -5,26 +5,20 @@
     <select id="selectMPage"
             resultType="com.platform.mesh.upms.biz.modules.sys.account.domain.vo.SysAccountVO">
         SELECT
-            a.*,
             a.account_id AS open_id,
             u.nick_name AS user_name,
-            u.phone
+            u.phone,
+            a.*
         FROM
         sys_account a
         LEFT JOIN sys_user u ON a.user_id = u.user_id
         <where>
-            a.del_flag != ${pageDTO.delFlag}
-            <if test="pageDTO.userId != null">
-                AND a.user_id = ${pageDTO.userId}
-            </if>
-            <if test="pageDTO.userId != null">
-                AND a.open_id = ${pageDTO.openId}
-            </if>
-            <if test="pageDTO.userName != null and pageDTO.userName != '' ">
-                AND u.nick_name LIKE CONCAT('%',${pageDTO.userName},'%')
-            </if>
-            <if test="pageDTO.nickName != null and pageDTO.nickName != '' ">
-                AND a.nick_name LIKE CONCAT('%',${pageDTO.nickName},'%')
+            a.del_flag != #{pageDTO.delFlag}
+            <if test="pageDTO.searchValue != null and pageDTO.searchValue != '' ">
+                AND (
+                   u.nick_name LIKE CONCAT('%',#{pageDTO.searchValue},'%')
+                OR a.nick_name LIKE CONCAT('%',#{pageDTO.searchValue},'%')
+                )
             </if>
         </where>
     </select>
@@ -40,4 +34,87 @@
             u.phone = #{phone}
           AND a.source_flag = #{sourceFlag}
     </select>
+
+    <select id="getByAccountId"
+            resultType="com.platform.mesh.upms.biz.modules.sys.account.domain.vo.SysAccountVO">
+        SELECT
+            IFNULL(a.nick_name,u.nick_name) AS nick_name,
+            a.*,
+            u.nick_name AS user_name
+        FROM
+            sys_account a
+                LEFT JOIN sys_user u ON a.user_id = u.user_id
+        WHERE
+          a.account_id = #{accountId}
+        LIMIT 1
+    </select>
+
+    <select id="getBOByAccountId"
+            resultType="com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO">
+        SELECT
+            IFNULL(a.nick_name,a.nick_name) AS nick_name,
+            a.*
+        FROM
+            sys_account a
+        WHERE
+              a.user_id = #{userId}
+          AND a.source_flag = #{sourceFlag}
+        LIMIT 1
+    </select>
+
+
+    <select id="getExistedByUserId" resultType="java.lang.Boolean">
+        SELECT
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM sys_account a
+                    WHERE a.user_id = #{userId}
+                      AND a.source_flag = #{sourceFlag}
+                    LIMIT 1
+                ) THEN TRUE
+            ELSE FALSE
+            END
+    </select>
+
+    <select id="getExistedByCode" resultType="java.lang.Boolean">
+        SELECT
+            CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM sys_account a
+                    WHERE a.user_id != #{userId}
+                  AND a.account_code = #{accountCode}
+                LIMIT 1
+                ) THEN TRUE
+            ELSE FALSE
+            END
+    </select>
+
+    <select id="getExistedAccountByCode"
+            resultType="com.platform.mesh.upms.biz.modules.sys.account.domain.po.SysAccount">
+        SELECT *
+        FROM sys_account a
+        WHERE a.user_id = #{userId}
+          AND a.account_code = #{accountCode}
+          AND a.source_flag = #{sourceFlag}
+        LIMIT 1
+    </select>
+
+    <select id="getBOByCodeAndSource"
+            resultType="com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO">
+        SELECT
+            IFNULL(r.nick_name,a.nick_name) AS nick_name,
+            a.*
+        FROM
+            sys_account a
+        WHERE
+            a.account_code = #{accountCode}
+          AND a.source_flag = #{sourceFlag}
+          AND a.del_flag = #{delFlag}
+        ORDER BY
+            a.create_time DESC
+        LIMIT 1
+    </select>
+
 </mapper>

@@ -2,6 +2,7 @@ package com.platform.mesh.upms.biz.modules.msg.base.api;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.core.application.controller.BaseController;
+import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.upms.api.modules.msg.domain.bo.MsgBaseBO;
 import com.platform.mesh.upms.biz.modules.msg.base.domain.dto.MsgBaseDTO;
 import com.platform.mesh.upms.biz.modules.msg.base.service.IMsgBaseService;
@@ -34,6 +35,7 @@ public class MsgBaseApi extends BaseController{
      * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
+    @AuthIgnore
     @Operation(summary = "发送消息")
     @PostMapping(value = "/api/sys/send/msg")
     Result<Boolean> sendMsg(@RequestBody MsgBaseBO msgBaseBO){

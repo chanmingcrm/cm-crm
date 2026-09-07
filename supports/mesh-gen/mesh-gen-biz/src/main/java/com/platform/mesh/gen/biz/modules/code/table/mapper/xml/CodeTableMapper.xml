@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.gen.biz.modules.code.table.mapper.CodeTableMapper">
+
+
+    <select id="selectDbTableList"
+            resultType="com.platform.mesh.gen.biz.modules.code.table.domain.bo.DbTableBO">
+        SELECT
+        table_schema,
+        table_name,
+        table_comment,
+        create_time,
+        update_time
+        FROM
+        information_schema.TABLES
+        WHERE
+        table_schema = (#{tableDTO.tableSchema})
+        AND table_name NOT LIKE '%\_data'
+        <if test="tableDTO.tableName != null and tableDTO.tableName != ''">
+            AND lower(table_name) like lower(concat('%', #{tableDTO.tableName}, '%'))
+        </if>
+        <if test="tableDTO.tableComment != null and tableDTO.tableComment != ''">
+            AND lower(table_comment) like lower(concat('%', #{tableDTO.tableComment}, '%'))
+        </if>
+        <if test="tableDTO.beginTime != null and tableDTO.beginTime != ''"><!-- 开始时间检索 -->
+            AND date_format(create_time,'%y%m%d') &gt;= date_format(#{tableDTO.beginTime},'%y%m%d')
+        </if>
+        <if test="tableDTO.endTime != null and tableDTO.endTime != ''"><!-- 结束时间检索 -->
+            AND date_format(create_time,'%y%m%d') &lt;= date_format(#{tableDTO.endTime},'%y%m%d')
+        </if>
+    </select>
+</mapper>

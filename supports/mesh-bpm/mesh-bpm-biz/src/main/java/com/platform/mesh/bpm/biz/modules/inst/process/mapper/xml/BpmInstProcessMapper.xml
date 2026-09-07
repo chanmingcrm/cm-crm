@@ -11,7 +11,7 @@
             </foreach>
         </if>
         <if test="(todoBo.userIds != null and todoBo.userIds.size() > 0)">
-            AND(bina.audit_data_id IN
+            OR(bina.audit_data_id IN
             <foreach collection="todoBo.userIds" item="user" open="(" close=")" separator=",">
                 #{user}
             </foreach>
@@ -22,7 +22,7 @@
             )
         </if>
         <if test="(todoBo.orgIds != null and todoBo.orgIds.size() > 0)">
-            AND(bina.audit_data_id IN
+            OR(bina.audit_data_id IN
             <foreach collection="todoBo.orgIds" item="org" open="(" close=")" separator=",">
                 #{org}
             </foreach>
@@ -33,7 +33,7 @@
             )
         </if>
         <if test="(todoBo.roleIds != null and todoBo.roleIds.size() > 0)">
-            AND(bina.audit_data_id IN
+            OR(bina.audit_data_id IN
             <foreach collection="todoBo.roleIds" item="role" open="(" close=")" separator=",">
                 #{role}
             </foreach>
@@ -59,7 +59,7 @@
         LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
         LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
         WHERE
-        <include refid="scope"/>
+        (<include refid="scope"/>)
         AND bip.run_flag = #{todoBo.runFlag} AND bip.inst_root_id = #{todoBo.instRootId}
         ORDER BY bip.create_time DESC
     </select>
@@ -78,8 +78,9 @@
         LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
         LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
         WHERE
-        <include refid="scope"/>
+        (<include refid="scope"/>)
         AND bip.run_flag = #{todoBo.runFlag} AND bip.inst_root_id = #{todoBo.instRootId}
+        AND bina.audit_pass != 0
         ORDER BY bip.create_time DESC
     </select>
 
@@ -97,7 +98,7 @@
         LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
         LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
         WHERE
-        <include refid="scope"/>
+        (<include refid="scope"/>)
         AND bip.run_flag = #{todoBo.runFlag} AND bip.inst_root_id = #{todoBo.instRootId}
         ORDER BY bip.create_time DESC
     </select>
@@ -105,6 +106,7 @@
     <select id="getProcessInstFollow"
             resultType="com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessOaVO">
         SELECT
+        DISTINCT
         bip.*,
         bip.id AS process_id,
         dir.module_id,
@@ -116,7 +118,7 @@
         LEFT JOIN bpm_inst_process bip ON bip.id = bina.inst_process_id
         LEFT JOIN bpm_data_inst_rel dir ON dir.inst_process_id = bina.inst_process_id
         WHERE
-        <include refid="scope"/>
+        (<include refid="scope"/>)
         OR (
             bip.create_user_id = #{todoBo.userId}
             <if test="(todoBo.moduleIds != null and todoBo.moduleIds.size() > 0)">

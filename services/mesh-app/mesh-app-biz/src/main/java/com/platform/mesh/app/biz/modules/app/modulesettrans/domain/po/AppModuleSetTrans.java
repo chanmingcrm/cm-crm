@@ -2,7 +2,6 @@ package com.platform.mesh.app.biz.modules.app.modulesettrans.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.platform.mesh.core.application.domain.po.BasePO;
-import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -34,39 +33,15 @@ public class AppModuleSetTrans extends BasePO {
 
 
     /**
-    * 模块搜索ID
-    */
-    private Long moduleSearchId;
-
-
-    /**
-     * 模块搜索字段
-     */
-    private String moduleSearchRelColumn;
-
-
-    /**
     * 模块目标ID
     */
     private Long moduleToId;
 
 
     /**
-    * 规则字段标识
+    * 删除来源数据
     */
-    private String ruleMac;
-
-
-    /**
-    * 规则数据类型
-    */
-    private String ruleDataType;
-
-
-    /**
-    * 规则数据值
-    */
-    private String ruleDataValue;
+    private Integer delFrom;
 
 
     /**
@@ -92,19 +67,5 @@ public class AppModuleSetTrans extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 用户ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
 
 }

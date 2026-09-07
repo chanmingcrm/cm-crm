@@ -1,25 +1,32 @@
 package com.platform.mesh.upms.biz.modules.msg.userrel.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.msg.enums.MsgFlagEnum;
+import com.platform.mesh.upms.biz.modules.msg.base.domain.po.MsgBase;
+import com.platform.mesh.upms.biz.modules.msg.notice.domain.po.MsgNotice;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.dto.MsgReadDTO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.dto.MsgUserRelPageDTO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.po.MsgUserRel;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.MsgUserRelVO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadModuleVO;
+import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadUserVO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadVO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.mapper.MsgUserRelMapper;
 import com.platform.mesh.upms.biz.modules.msg.userrel.service.IMsgUserRelService;
 import com.platform.mesh.upms.biz.modules.msg.userrel.service.manual.MsgUserRelServiceManual;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -110,7 +117,9 @@ public class MsgUserRelServiceImpl extends ServiceImpl<MsgUserRelMapper, MsgUser
         }
         //根据类型再次聚合
         //计算每个分类下总数
-        Map<Integer, List<UnReadModuleVO>> unReadMap = unReadModuleVOS.stream().collect(Collectors.groupingBy(UnReadModuleVO::getMsgFlag, Collectors.toList()));
+        Map<Integer, List<UnReadModuleVO>> unReadMap = unReadModuleVOS.stream()
+                .filter(msg-> ObjectUtil.isNotEmpty(msg.getMsgFlag()))
+                .collect(Collectors.groupingBy(UnReadModuleVO::getMsgFlag, Collectors.toList()));
         unReadMap.forEach((key,value)->{
             UnReadVO unReadVO = new UnReadVO();
             unReadVO.setMsgFlag(key);
@@ -124,6 +133,62 @@ public class MsgUserRelServiceImpl extends ServiceImpl<MsgUserRelMapper, MsgUser
             unReadVOS.add(unReadVO);
         });
         return unReadVOS;
+    }
+
+    /**
+     * 功能描述:
+     * 〈保存消息〉
+     * @author 蝉鸣
+     */
+    @Override
+    @Transactional(rollbackFor = BaseException.class)
+    public void saveByMsg(MsgBase msgBase, List<Long> msgUserIds) {
+        if(ObjectUtil.isEmpty(msgBase) || CollUtil.isEmpty(msgUserIds)){
+            return;
+        }
+        List<MsgUserRel> msgUserRels = msgUserIds.stream().map(msgUserId -> {
+            MsgUserRel userRel = new MsgUserRel();
+            userRel.setMsgId(msgBase.getId());
+            userRel.setUserId(msgUserId);
+            userRel.setReadFlag(YesOrNoEnum.YES.getValue());
+            userRel.setDelFlag(YesOrNoEnum.YES.getValue());
+            return userRel;
+        }).toList();
+        this.saveBatch(msgUserRels);
+        //查询人员未读数量
+        List<UnReadUserVO> unReadUserVOS = this.getBaseMapper().selectUnReadUserCount(msgUserIds,
+                YesOrNoEnum.YES.getValue(), YesOrNoEnum.YES.getValue());
+        //极光推送
+        msgUserRelServiceManual.jPush(msgBase,unReadUserVOS);
+    }
+
+    /**
+     * 功能描述:
+     * 〈保存消息〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void saveByNotice(MsgBase msgBase, MsgNotice msgNotice) {
+        //添加提醒人
+        if(ObjectUtil.isEmpty(msgNotice.getNoticeUserId())){
+            return;
+        }
+        MsgUserRel userRel = new MsgUserRel();
+        userRel.setMsgId(msgBase.getId());
+        userRel.setUserId(msgNotice.getNoticeUserId());
+        userRel.setReadFlag(YesOrNoEnum.YES.getValue());
+        userRel.setDelFlag(YesOrNoEnum.YES.getValue());
+        userRel.setCreateUserId(msgNotice.getCreateUserId());
+        userRel.setCreateTime(LocalDateTime.now());
+        userRel.setUpdateUserId(msgNotice.getCreateUserId());
+        userRel.setUpdateTime(LocalDateTime.now());
+        this.save(userRel);
+        //查询人员未读数量
+        //查询人员未读数量
+        List<UnReadUserVO> unReadUserVOS = this.getBaseMapper().selectUnReadUserCount(
+                CollUtil.newArrayList(msgNotice.getNoticeUserId()), YesOrNoEnum.YES.getValue(), YesOrNoEnum.YES.getValue());
+        //极光推送
+        msgUserRelServiceManual.jPush(msgBase,unReadUserVOS);
     }
 
 }

@@ -87,4 +87,22 @@ public class MPageUtil {
         return pageVO;
     }
 
+    /**
+     * 功能描述:
+     * 〈转换pageVO〉
+     * @param input input
+     * @param clazz clazz
+     * @return 正常返回:{@link MPage<T>}
+     * @author 蝉鸣
+     */
+    public static <T, E> PageVO<T> convertToVO(PageVO<E> input, Class<T> clazz) {
+        PageVO<T> pageVO = new PageVO<>();
+        pageVO.setCurrent(input.getCurrent());
+        pageVO.setSize(input.getSize());
+        pageVO.setTotal(input.getTotal());
+        pageVO.setPages(PageUtil.totalPage(input.getTotal(), Integer.parseInt(StrUtil.toString(input.getSize()))));
+        pageVO.setRecords(BeanUtil.copyToList(input.getRecords(), clazz));
+        return pageVO;
+    }
+
 }

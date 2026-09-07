@@ -1,5 +1,6 @@
 package com.platform.mesh.uaa.biz.auth.support.grant.password;
 
+import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.uaa.biz.auth.support.grant.base.OAuth2ResourceOwnerBaseAuthenticationProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,7 +63,7 @@ public class OAuth2ResourceOwnerPasswordAuthenticationProvider
 	@Override
 	public void checkClient(RegisteredClient registeredClient) {
 		assert registeredClient != null;
-		if (!registeredClient.getAuthorizationGrantTypes().contains(AuthorizationGrantType.PASSWORD)) {
+		if (!registeredClient.getAuthorizationGrantTypes().contains(new AuthorizationGrantType(GrantTypeConstant.PASSWORD))) {
 			throw new OAuth2AuthenticationException(OAuth2ErrorCodes.UNAUTHORIZED_CLIENT);
 		}
 	}
@@ -76,8 +77,8 @@ public class OAuth2ResourceOwnerPasswordAuthenticationProvider
 	 */
 	@Override
 	public UsernamePasswordAuthenticationToken buildToken(Map<String, Object> reqParameters) {
-		String username = (String) reqParameters.get(OAuth2ParameterNames.USERNAME);
-		String password = (String) reqParameters.get(OAuth2ParameterNames.PASSWORD);
+		String username = (String) reqParameters.get(GrantTypeConstant.USERNAME);
+		String password = (String) reqParameters.get(GrantTypeConstant.PASSWORD);
 		return new UsernamePasswordAuthenticationToken(username, password);
 	}
 

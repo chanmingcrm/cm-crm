@@ -1,10 +1,8 @@
 package com.platform.mesh.upms.biz.modules.org.memberuserrel.api;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.core.application.controller.BaseController;
+import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberRelBO;
-import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberUserRelBO;
-import com.platform.mesh.upms.biz.modules.org.memberuserrel.domain.po.OrgMemberUserRel;
 import com.platform.mesh.upms.biz.modules.org.memberuserrel.service.IOrgMemberUserRelService;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -13,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -34,21 +33,6 @@ public class OrgMemberUserRelApi extends BaseController {
     private IOrgMemberUserRelService orgMemberUserRelService;
 
 
-
-    /**
-     * 功能描述:
-     * 〈获取成员人员关联信息〉
-     * @param memberIds memberIds
-     * @return 正常返回:{@link Result<List<OrgMemberUserRelBO>>}
-     * @author 蝉鸣
-     */
-    @Operation(summary = "获取成员人员关联信息")
-    @PostMapping("/api/org/member/user/by/member/ids")
-    public Result<List<OrgMemberUserRelBO>> getOrgMemberUserRelByIds(@RequestBody List<Long> memberIds) {
-        List<OrgMemberUserRel> orgMemberUserRels = orgMemberUserRelService.lambdaQuery().in(OrgMemberUserRel::getMemberId, memberIds).list();
-        return Result.success(BeanUtil.copyToList(orgMemberUserRels,OrgMemberUserRelBO.class));
-    }
-
     /**
      * 功能描述:
      * 〈获取成员默认关联信息〉
@@ -58,7 +42,7 @@ public class OrgMemberUserRelApi extends BaseController {
      */
     @Operation(summary = "获取成员默认关联信息")
     @PostMapping("/api/org/member/user/default/rel/by/user/id")
-    public Result<OrgMemberRelBO> getOrgMemberUserDefaultRelByUserId(@RequestBody Long userId) {
+    public Result<OrgMemberRelBO> getOrgMemberUserDefaultRelByUserId(@RequestParam("userId") Long userId) {
         OrgMemberRelBO orgMemberRelBO = orgMemberUserRelService.getOrgMemberUserDefaultRelByUserId(userId);
         return Result.success(orgMemberRelBO);
     }
@@ -67,7 +51,7 @@ public class OrgMemberUserRelApi extends BaseController {
      * 功能描述:
      * 〈获取成员默认关联信息〉
      * @param memberId memberId
-     * @return 正常返回:{@link Result< OrgMemberRelBO >}
+     * @return 正常返回:{@link Result<OrgMemberRelBO>}
      * @author 蝉鸣
      */
     @Operation(summary = "获取成员默认关联信息")
@@ -84,6 +68,7 @@ public class OrgMemberUserRelApi extends BaseController {
      * @return 正常返回:{@link Result<List<OrgMemberRelBO>>}
      * @author 蝉鸣
      */
+    @AuthIgnore
     @Operation(summary = "获取成员默认关联信息")
     @PostMapping("/api/org/member/user/default/rel/by/member/ids")
     public Result<List<OrgMemberRelBO>> getOrgMemberUserDefaultRelByIds(@RequestBody List<Long> memberIds) {

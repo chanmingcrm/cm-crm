@@ -25,7 +25,7 @@ public class NodeRunFactory<T> implements InitializingBean {
 
     /**
      * 功能描述:
-     * 〈根绝类型获取对应的流程实现〉
+     * 〈根据类型获取对应的流程实现〉
      * @param nodeRun nodeRun
      * @return 正常返回:{@link NodeRunService<T>}
      * @author 蝉鸣

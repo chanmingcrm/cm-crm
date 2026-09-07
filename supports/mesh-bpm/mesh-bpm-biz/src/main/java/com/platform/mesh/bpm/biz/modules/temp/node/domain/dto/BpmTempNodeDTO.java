@@ -1,7 +1,7 @@
 package com.platform.mesh.bpm.biz.modules.temp.node.domain.dto;
 
 
-import com.platform.mesh.bpm.biz.data.noderel.domain.dto.BpmDataFormNodeRelDTO;
+import com.platform.mesh.bpm.biz.modules.data.noderel.domain.dto.BpmDataFormNodeRelDTO;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
 import com.platform.mesh.bpm.biz.soa.node.audit.enums.NodeAuditFlagEnum;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;

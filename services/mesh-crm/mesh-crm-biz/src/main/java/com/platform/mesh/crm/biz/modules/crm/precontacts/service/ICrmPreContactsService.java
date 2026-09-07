@@ -2,6 +2,10 @@ package com.platform.mesh.crm.biz.modules.crm.precontacts.service;
 
 import com.platform.mesh.app.api.modules.app.service.IAppService;
 import com.platform.mesh.crm.biz.modules.crm.precontacts.domain.po.CrmPreContacts;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.dto.CheckDTO;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO;
+
+import java.util.List;
 
 
 /**
@@ -11,4 +15,11 @@ import com.platform.mesh.crm.biz.modules.crm.precontacts.domain.po.CrmPreContact
  */
 public interface ICrmPreContactsService extends IAppService<CrmPreContacts> {
 
+    /**
+     * 功能描述:
+     * 〈查重客户关系联系人〉
+     * @param checkDTO checkDTO
+     * @author 蝉鸣
+     */
+    List<CheckVO> checkPreContacts(CheckDTO checkDTO);
 }

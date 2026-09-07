@@ -51,6 +51,7 @@ public class MsgBaseServiceImpl extends ServiceImpl<MsgBaseMapper, MsgBase> impl
                 .eq(ObjectUtil.isNotEmpty(pageDTO.getDataId()), MsgBase::getDataId, pageDTO.getDataId())
                 .eq(ObjectUtil.isNotEmpty(pageDTO.getMsgFlag()), MsgBase::getMsgFlag, pageDTO.getMsgFlag())
                 .eq(ObjectUtil.isNotEmpty(pageDTO.getMsgType()), MsgBase::getMsgType, pageDTO.getMsgType())
+                .orderByDesc(MsgBase::getCreateTime)
                 .page(baseMPage);
         return MPageUtil.convertToVO(page, MsgBaseVO.class);
     }
@@ -82,7 +83,7 @@ public class MsgBaseServiceImpl extends ServiceImpl<MsgBaseMapper, MsgBase> impl
         //保存消息信息
         this.save(msgBase);
         //保存消息接收人信息
-        msgBaseServiceManual.saveMsgUser(msgBase.getId(),baseDTO.getMsgUserIds());
+        msgBaseServiceManual.saveMsgUser(msgBase,baseDTO.getMsgUserIds());
         return Boolean.TRUE;
     }
 

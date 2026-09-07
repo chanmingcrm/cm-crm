@@ -3,16 +3,13 @@ package com.platform.mesh.security.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.redis.service.constants.CacheConstants;
-import com.platform.mesh.security.constants.SecurityConstant;
-import com.platform.mesh.security.domain.bo.LoginUserBO;
 import com.platform.mesh.security.event.UaaOauthEvent;
 import com.platform.mesh.security.utils.OAuth2AuthorizationUtils;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.lang.Nullable;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -26,6 +23,7 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.util.Assert;
 
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -37,8 +35,32 @@ import java.util.concurrent.TimeUnit;
  */
 public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationService {
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
+	private static final String AUTHORIZATION_ID = "authorization-id";
+	private static final String ANY_TOKEN = "any-token";
+
+	private final RedisTemplate<String, Object> redisTemplate;
+
+	/**
+	 * 功能描述:
+	 * 〈创建使用独立 Java 序列化配置的 OAuth2 授权存储〉
+	 * @param sourceRedisTemplate 基础 RedisTemplate
+	 * @author qingfeng
+	 */
+	public RedisOAuth2AuthorizationServiceImpl(RedisTemplate<String, Object> sourceRedisTemplate) {
+		RedisConnectionFactory connectionFactory = sourceRedisTemplate.getConnectionFactory();
+		if (connectionFactory == null) {
+			this.redisTemplate = sourceRedisTemplate;
+			return;
+		}
+		RedisTemplate<String, Object> oauthRedisTemplate = new RedisTemplate<>();
+		oauthRedisTemplate.setConnectionFactory(connectionFactory);
+		oauthRedisTemplate.setKeySerializer(sourceRedisTemplate.getKeySerializer());
+		oauthRedisTemplate.setHashKeySerializer(sourceRedisTemplate.getHashKeySerializer());
+		oauthRedisTemplate.setValueSerializer(RedisSerializer.java());
+		oauthRedisTemplate.setHashValueSerializer(RedisSerializer.java());
+		oauthRedisTemplate.afterPropertiesSet();
+		this.redisTemplate = oauthRedisTemplate;
+	}
 
 	/**
 	 * 功能描述:
@@ -49,18 +71,13 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 	@Override
 	public void save(OAuth2Authorization authorization) {
 		Assert.notNull(authorization, "authorization cannot be null");
-		Long userId = ((LoginUserBO) ((UsernamePasswordAuthenticationToken) Objects.requireNonNull(authorization.getAttribute(SecurityConstant.PRINCIPAL))).getPrincipal()).getUserId();
-
 		//redisTemplate.setValueSerializer(RedisSerializer.java())用RedisSerializer的原因是因为 OAuth2Authorization有些字段类型的原因，用其他的就会抛一些序列化异常的。
 		//Spring Security 对象由于其内部包含复杂的对象（如 OAuth2Token、Principal 等）,直接使用默认的序列化方式（如 Jackson 或 JDK 序列化）可能会导致问题
 		//保存state
 		if (OAuth2AuthorizationUtils.isState(authorization)) {
 			String state = authorization.getAttribute(OAuth2ParameterNames.STATE);
-			String registeredClientId = authorization.getRegisteredClientId();
-			String principalName = authorization.getPrincipalName();
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OAuth2ParameterNames.STATE, state), authorization, NumberConst.NUM_10.longValue(),
-					TimeUnit.MINUTES);
+			saveAuthorization(OAuth2ParameterNames.STATE, state, authorization,
+					NumberConst.NUM_10.longValue(), TimeUnit.MINUTES);
 		}
 		//保存AuthorizationCode
 		if (OAuth2AuthorizationUtils.isAuthorizationCode(authorization)) {
@@ -69,52 +86,46 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 			OAuth2AuthorizationCode authorizationCodeToken = Objects.requireNonNull(authorizationCode).getToken();
 			long between = ChronoUnit.MINUTES.between(Objects.requireNonNull(authorizationCodeToken.getIssuedAt()),
 					authorizationCodeToken.getExpiresAt());
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OAuth2ParameterNames.CODE, authorizationCodeToken.getTokenValue()),
+			saveAuthorization(OAuth2ParameterNames.CODE, authorizationCodeToken.getTokenValue(),
 					authorization, between, TimeUnit.MINUTES);
 		}
 		//保存AccessToken
 		if (OAuth2AuthorizationUtils.isAccessToken(authorization)) {
 			OAuth2AccessToken accessToken = authorization.getAccessToken().getToken();
 			long between = ChronoUnit.SECONDS.between(Objects.requireNonNull(accessToken.getIssuedAt()), accessToken.getExpiresAt());
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OAuth2ParameterNames.ACCESS_TOKEN, accessToken.getTokenValue()),
+			saveAuthorization(OAuth2ParameterNames.ACCESS_TOKEN, accessToken.getTokenValue(),
 					authorization, between, TimeUnit.SECONDS);
+			// 仅在 Access Token 已生成后同步授权记录，避免 state、code 等中间状态重复入库。
+			SpringContextHolderUtil.publishEvent(new UaaOauthEvent(authorization));
 		}
 		//保存RefreshToken
 		if (OAuth2AuthorizationUtils.isRefreshToken(authorization)) {
 			OAuth2RefreshToken refreshToken = Objects.requireNonNull(authorization.getRefreshToken()).getToken();
 			long between = ChronoUnit.SECONDS.between(Objects.requireNonNull(refreshToken.getIssuedAt()), refreshToken.getExpiresAt());
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken.getTokenValue()),
+			saveAuthorization(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken.getTokenValue(),
 					authorization, between, TimeUnit.SECONDS);
 		}
 		//保存IdToken
 		if (OAuth2AuthorizationUtils.isIdToken(authorization)) {
 			OidcIdToken oidcIdToken = Objects.requireNonNull(authorization.getToken(OidcIdToken.class)).getToken();
 			long between = ChronoUnit.SECONDS.between(Objects.requireNonNull(oidcIdToken.getIssuedAt()), oidcIdToken.getExpiresAt());
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OidcParameterNames.ID_TOKEN, oidcIdToken.getTokenValue()),
+			saveAuthorization(OidcParameterNames.ID_TOKEN, oidcIdToken.getTokenValue(),
 					authorization, between, TimeUnit.SECONDS);
 		}
 		//保存DeviceCode
 		if (OAuth2AuthorizationUtils.isDeviceCode(authorization)) {
 			OAuth2DeviceCode deviceCode = Objects.requireNonNull(authorization.getToken(OAuth2DeviceCode.class)).getToken();
 			long between = ChronoUnit.SECONDS.between(Objects.requireNonNull(deviceCode.getIssuedAt()), deviceCode.getExpiresAt());
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OAuth2ParameterNames.DEVICE_CODE, deviceCode.getTokenValue()),
+			saveAuthorization(OAuth2ParameterNames.DEVICE_CODE, deviceCode.getTokenValue(),
 					authorization, between, TimeUnit.SECONDS);
 		}
 		//保存UserCode
 		if (OAuth2AuthorizationUtils.isUserCode(authorization)) {
 			OAuth2UserCode userCode = Objects.requireNonNull(authorization.getToken(OAuth2UserCode.class)).getToken();
 			long between = ChronoUnit.SECONDS.between(Objects.requireNonNull(userCode.getIssuedAt()), userCode.getExpiresAt());
-			redisTemplate.setValueSerializer(RedisSerializer.java());
-			redisTemplate.opsForValue().set(buildKey(OAuth2ParameterNames.USER_CODE, userCode.getTokenValue()),
+			saveAuthorization(OAuth2ParameterNames.USER_CODE, userCode.getTokenValue(),
 					authorization, between, TimeUnit.SECONDS);
 		}
-		//添加到db
-		SpringContextHolderUtil.publishEvent(new UaaOauthEvent(authorization));
 	}
 
 	/**
@@ -131,38 +142,39 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 		//保存state
 		if (OAuth2AuthorizationUtils.isState(authorization)) {
 			String token = authorization.getAttribute(OAuth2ParameterNames.STATE);
-			keys.add(buildKey(OAuth2ParameterNames.STATE, token));
+			addTokenKeys(keys, OAuth2ParameterNames.STATE, token);
 		}
 		//保存AuthorizationCode
 		if (OAuth2AuthorizationUtils.isAuthorizationCode(authorization)) {
 			OAuth2AuthorizationCode authorizationCodeToken = Objects.requireNonNull(authorization.getToken(OAuth2AuthorizationCode.class)).getToken();
-			keys.add(buildKey(OAuth2ParameterNames.CODE, authorizationCodeToken.getTokenValue()));
+			addTokenKeys(keys, OAuth2ParameterNames.CODE, authorizationCodeToken.getTokenValue());
 		}
 		//保存AccessToken
 		if (OAuth2AuthorizationUtils.isAccessToken(authorization)) {
 			OAuth2AccessToken accessToken = authorization.getAccessToken().getToken();
-			keys.add(buildKey(OAuth2ParameterNames.ACCESS_TOKEN, accessToken.getTokenValue()));
+			addTokenKeys(keys, OAuth2ParameterNames.ACCESS_TOKEN, accessToken.getTokenValue());
 		}
 		//保存RefreshToken
 		if (OAuth2AuthorizationUtils.isRefreshToken(authorization)) {
 			OAuth2RefreshToken refreshToken = Objects.requireNonNull(authorization.getRefreshToken()).getToken();
-			keys.add(buildKey(OAuth2ParameterNames.REFRESH_TOKEN, refreshToken.getTokenValue()));
+			addTokenKeys(keys, OAuth2ParameterNames.REFRESH_TOKEN, refreshToken.getTokenValue());
 		}
 		//保存IdToken
 		if (OAuth2AuthorizationUtils.isIdToken(authorization)) {
 			OidcIdToken oidcIdToken = Objects.requireNonNull(authorization.getToken(OidcIdToken.class)).getToken();
-			keys.add(buildKey(OidcParameterNames.ID_TOKEN, oidcIdToken.getTokenValue()));
+			addTokenKeys(keys, OidcParameterNames.ID_TOKEN, oidcIdToken.getTokenValue());
 		}
 		//保存DeviceCode
 		if (OAuth2AuthorizationUtils.isDeviceCode(authorization)) {
 			OAuth2DeviceCode deviceCode = Objects.requireNonNull(authorization.getToken(OAuth2DeviceCode.class)).getToken();
-			keys.add(buildKey(OAuth2ParameterNames.DEVICE_CODE, deviceCode.getTokenValue()));
+			addTokenKeys(keys, OAuth2ParameterNames.DEVICE_CODE, deviceCode.getTokenValue());
 		}
 		//保存UserCode
 		if (OAuth2AuthorizationUtils.isUserCode(authorization)) {
 			OAuth2UserCode userCode = Objects.requireNonNull(authorization.getToken(OAuth2UserCode.class)).getToken();
-			keys.add(buildKey(OAuth2ParameterNames.USER_CODE, userCode.getTokenValue()));
+			addTokenKeys(keys, OAuth2ParameterNames.USER_CODE, userCode.getTokenValue());
 		}
+		keys.add(buildKey(AUTHORIZATION_ID, authorization.getId()));
 		//批量删除keys
 		redisTemplate.delete(keys);
 	}
@@ -177,8 +189,8 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 	@Override
 	@Nullable
 	public OAuth2Authorization findById(String id) {
-//		return (OAuth2Authorization) redisTemplate.opsForValue().get(buildKey("", id));
-		throw new UnsupportedOperationException();
+		Assert.hasText(id, "id cannot be empty");
+		return (OAuth2Authorization) redisTemplate.opsForValue().get(buildKey(AUTHORIZATION_ID, id));
 	}
 
 	/**
@@ -193,9 +205,40 @@ public class RedisOAuth2AuthorizationServiceImpl implements OAuth2AuthorizationS
 	@Nullable
 	public OAuth2Authorization findByToken(String token, @Nullable OAuth2TokenType tokenType) {
 		Assert.hasText(token, "token cannot be empty");
-		Assert.notNull(tokenType, "tokenType cannot be empty");
-		redisTemplate.setValueSerializer(RedisSerializer.java());
-		return (OAuth2Authorization) redisTemplate.opsForValue().get(buildKey(tokenType.getValue(), token));
+		String type = tokenType == null ? ANY_TOKEN : tokenType.getValue();
+		return (OAuth2Authorization) redisTemplate.opsForValue().get(buildKey(type, token));
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈同时保存类型索引、通用 Token 索引和授权 ID 索引〉
+	 * @param type Token 类型
+	 * @param token Token 值
+	 * @param authorization OAuth2 授权信息
+	 * @param timeout 有效期
+	 * @param timeUnit 有效期单位
+	 * @author qingfeng
+	 */
+	private void saveAuthorization(String type, String token, OAuth2Authorization authorization,
+			long timeout, TimeUnit timeUnit) {
+		Duration expiration = Duration.of(timeout, timeUnit.toChronoUnit());
+		redisTemplate.opsForValue().set(buildKey(type, token), authorization, expiration);
+		redisTemplate.opsForValue().set(buildKey(ANY_TOKEN, token), authorization, expiration);
+		redisTemplate.opsForValue().set(buildKey(AUTHORIZATION_ID, authorization.getId()),
+				authorization, expiration);
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈收集指定 Token 的类型索引和通用索引〉
+	 * @param keys 待删除 Redis Key
+	 * @param type Token 类型
+	 * @param token Token 值
+	 * @author qingfeng
+	 */
+	private void addTokenKeys(List<String> keys, String type, String token) {
+		keys.add(buildKey(type, token));
+		keys.add(buildKey(ANY_TOKEN, token));
 	}
 
 	/**

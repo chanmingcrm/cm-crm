@@ -47,6 +47,11 @@ public class AppFormColumnSorting extends BasePO {
     private Long columnId;
 
     /**
+     * 批次ID
+     */
+    private Long batchId;
+
+    /**
     * 横坐标
     */
     private Integer xAddr;

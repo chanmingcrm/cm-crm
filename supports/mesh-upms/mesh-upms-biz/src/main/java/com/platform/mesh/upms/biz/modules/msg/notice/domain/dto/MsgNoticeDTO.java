@@ -4,7 +4,9 @@ import com.platform.mesh.core.application.domain.dto.BaseDTO;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.upms.api.modules.msg.enums.MsgFlagEnum;
 import com.platform.mesh.upms.api.modules.msg.enums.MsgTypeEnum;
+import com.platform.mesh.upms.biz.modules.msg.notice.enums.NoticeLoopEnum;
 import com.platform.mesh.upms.biz.modules.msg.notice.enums.NoticeTypeEnum;
+import com.platform.mesh.utils.format.TimeUnitEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -63,13 +65,13 @@ public class MsgNoticeDTO extends BaseDTO {
     /**
      * 消息标识
      */
-    @Schema(description = "消息标识")
+    @SchemaEnum(value = MsgFlagEnum.class, description = "消息标识")
     private Integer msgFlag;
 
     /**
      * 消息类型
      */
-    @Schema(description = "消息类型")
+    @SchemaEnum(value = MsgTypeEnum.class, description = "消息类型")
     private Integer msgType;
 
     /**
@@ -105,7 +107,7 @@ public class MsgNoticeDTO extends BaseDTO {
     /**
      * 提醒循环类型
      */
-    @Schema(description = "提醒循环类型")
+    @SchemaEnum(value = NoticeLoopEnum.class, description = "提醒循环类型")
     private Integer noticeLoop;
 
     /**
@@ -129,7 +131,7 @@ public class MsgNoticeDTO extends BaseDTO {
     /**
      * 提醒间隔单位
      */
-    @Schema(description = "提醒间隔单位")
+    @SchemaEnum(value = TimeUnitEnum.class, description = "提醒间隔单位")
     private Integer noticeIntervalUnit;
 
     /**

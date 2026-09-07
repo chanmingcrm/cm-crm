@@ -3,4 +3,57 @@
 <mapper namespace="com.platform.mesh.crm.biz.modules.crm.onpayment.mapper.CrmOnPaymentMapper">
 
 
+    <select id="getSumReceivedMoneyById"
+            resultType="com.platform.mesh.crm.biz.modules.crm.onpayment.domain.bo.PaymentSumBO">
+        WITH target_record AS (
+            SELECT
+                customer_id,
+                contract_id,
+                order_id
+            FROM crm_on_payment
+            WHERE id = #{paymentId}
+        ),
+             all_ids AS (
+                 SELECT
+                     customer_id,
+                     contract_id,
+                     order_id
+                 FROM target_record
+             ),
+             customer_totals AS (
+                 SELECT
+                     p.customer_id,
+                     SUM(p.real_money) AS customer_total_money
+                 FROM crm_on_payment p
+                          INNER JOIN all_ids a ON p.customer_id = a.customer_id
+                 WHERE process_pass = #{passFlag}
+                 GROUP BY p.customer_id
+             ),
+             contract_totals AS (
+                 SELECT
+                     p.contract_id,
+                     SUM(p.real_money) AS contract_total_money
+                 FROM crm_on_payment p
+                          INNER JOIN all_ids a ON p.contract_id = a.contract_id
+                 WHERE process_pass = #{passFlag}
+                 GROUP BY p.contract_id
+             ),
+             order_totals AS (
+                 SELECT
+                     p.order_id,
+                     SUM(p.real_money) AS order_total_money
+                 FROM crm_on_payment p
+                          INNER JOIN all_ids a ON p.order_id = a.order_id
+                 WHERE process_pass = #{passFlag}
+                 GROUP BY p.order_id
+             )
+        SELECT
+            COALESCE(c.customer_total_money, 0) AS customer_money,
+            COALESCE(ct.contract_total_money, 0) AS contract_money,
+            COALESCE(ot.order_total_money, 0) AS order_money
+        FROM target_record t
+                 LEFT JOIN customer_totals c ON t.customer_id = c.customer_id
+                 LEFT JOIN contract_totals ct ON t.contract_id = ct.contract_id
+                 LEFT JOIN order_totals ot ON t.order_id = ot.order_id;
+    </select>
 </mapper>

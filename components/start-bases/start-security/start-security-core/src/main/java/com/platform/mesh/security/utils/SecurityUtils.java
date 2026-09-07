@@ -1,5 +1,6 @@
 package com.platform.mesh.security.utils;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.security.constants.SecurityConstant;
 import com.platform.mesh.security.domain.bo.LoginUserBO;
@@ -7,6 +8,8 @@ import com.platform.mesh.security.exception.SecurityExceptionEnum;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+
+import java.util.Objects;
 
 /**
  * @author 蝉鸣
@@ -31,7 +34,7 @@ public class SecurityUtils {
 	 * @author 蝉鸣
 	 */
 	public static Long getUserId() {
-		return getLoginUser().getUserId();
+		return Objects.requireNonNull(getLoginUser()).getUserId();
 	}
 
 	/**
@@ -41,7 +44,7 @@ public class SecurityUtils {
 	 * @author 蝉鸣
 	 */
 	public static String getUsername() {
-		return getLoginUser().getUsername();
+		return Objects.requireNonNull(getLoginUser()).getUsername();
 	}
 
 	/**
@@ -67,8 +70,9 @@ public class SecurityUtils {
 	 */
 	public static LoginUserBO getLoginUser() {
 		Authentication authentication = getAuthentication();
-		if (authentication == null) {
-			throw SecurityExceptionEnum.SECURITY_NO_USER_INFO.getBaseException();
+		if (ObjectUtil.isNull(authentication)) {
+            return null;
+//			throw SecurityExceptionEnum.SECURITY_NO_USER_INFO.getBaseException();
 		}
 		return getLoginUser(authentication);
 	}
@@ -124,7 +128,7 @@ public class SecurityUtils {
 	 * @author 蝉鸣
 	 */
 	public static boolean isAdmin(Long userId) {
-		return userId != null && 1831933911445983232L == userId;
+		return userId != null && 1932009374029611111L == userId;
 //		return userId != null && 1L == userId;
 	}
 

@@ -6,34 +6,37 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.platform.mesh.bpm.api.modules.inst.domain.dto.BpmProcessStartDTO;
-import com.platform.mesh.bpm.biz.data.form.domain.po.BpmDataFormRel;
-import com.platform.mesh.bpm.biz.data.form.service.IBpmDataFormRelService;
-import com.platform.mesh.bpm.biz.data.inst.domain.po.BpmDataInstRel;
-import com.platform.mesh.bpm.biz.data.inst.service.IBpmDataInstRelService;
+import com.platform.mesh.bpm.biz.modules.data.form.domain.po.BpmDataFormRel;
+import com.platform.mesh.bpm.biz.modules.data.form.service.IBpmDataFormRelService;
+import com.platform.mesh.bpm.biz.modules.data.inst.domain.po.BpmDataInstRel;
+import com.platform.mesh.bpm.biz.modules.data.inst.service.IBpmDataInstRelService;
+import com.platform.mesh.bpm.biz.modules.data.msg.domain.po.BpmDataMsgQueue;
+import com.platform.mesh.bpm.biz.modules.data.msg.service.IBpmDataMsgQueueService;
+import com.platform.mesh.bpm.biz.modules.data.nodedata.service.IBpmDataFormNodeDataService;
+import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
+import com.platform.mesh.bpm.biz.modules.inst.node.service.IBpmInstNodeService;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.po.BpmInstNodeAudit;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service.IBpmInstNodeAuditService;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.po.BpmInstNodeSub;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.service.IBpmInstNodeSubService;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.bo.BpmInstProcessTodoBO;
+import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessAuditVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessRunVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.exception.InstProcessExceptionEnum;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
-import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
-import com.platform.mesh.bpm.biz.modules.inst.node.service.IBpmInstNodeService;
-import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.service.IBpmTempProcessService;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.NodeAuditDataService;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.factory.NodeAuditDataFactory;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.factory.ProcessTypeFactory;
 import com.platform.mesh.core.enums.base.BaseEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.security.utils.SecurityUtils;
 import com.platform.mesh.utils.function.FutureHandleUtil;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
@@ -80,6 +83,12 @@ public class BpmInstProcessServiceManual {
     @Autowired
     private IBpmDataFormRelService bpmDataFormRelService;
 
+    @Autowired
+    private IBpmDataMsgQueueService bpmDataMsgQueueService;
+
+    @Autowired
+    private IBpmDataFormNodeDataService bpmDataFormNodeDataService;
+
 
     /**
      * 功能描述:
@@ -120,19 +129,33 @@ public class BpmInstProcessServiceManual {
      * @param startDTO startDTO
      * @author 蝉鸣
      */
-    public void addDataInstRel(BpmInstProcess bpmInstProcess, BpmProcessStartDTO startDTO) {
-        //校验当前数据是否已有运行中的流程
-        Boolean checkDataRel = bpmDataInstRelService.checkDataRelHasRun(startDTO.getDataId(),bpmInstProcess.getTempProcessId(),Boolean.TRUE);
-        if(checkDataRel){
-            throw InstProcessExceptionEnum.DATA_HAS_RUNNING.getBaseException();
-        }
+    public BpmDataInstRel addDataInstRel(BpmInstProcess bpmInstProcess, BpmProcessStartDTO startDTO) {
         BpmDataInstRel bpmDataInstRel = BeanUtil.copyProperties(startDTO, BpmDataInstRel.class);
         bpmDataInstRel.setTempProcessId(bpmInstProcess.getTempProcessId());
         bpmDataInstRel.setInstProcessId(bpmInstProcess.getId());
         bpmDataInstRel.setProcessName(bpmInstProcess.getProcessName());
         bpmDataInstRel.setProcessVersion(bpmInstProcess.getProcessVersion());
         bpmDataInstRel.setProcessFlag(bpmInstProcess.getProcessFlag());
+        bpmDataInstRel.setColumnType(startDTO.getColumnType());
+        bpmDataInstRel.setModuleSchema(startDTO.getModuleSchema());
+        bpmDataInstRel.setExtendJson(startDTO.getExtendJson());
         bpmDataInstRelService.save(bpmDataInstRel);
+        return bpmDataInstRel;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取实例与数据ID〉
+     * @param instProcessId instProcessId
+     * @author 蝉鸣
+     */
+    public BpmDataInstRel getDataInstRel(Long instProcessId) {
+        List<BpmDataInstRel> dataInstRelList = bpmDataInstRelService.lambdaQuery().eq(BpmDataInstRel::getInstProcessId, instProcessId).list();
+        if(CollUtil.isEmpty(dataInstRelList)) {
+            return null;
+        }else{
+            return CollUtil.getFirst(dataInstRelList);
+        }
     }
 
     /**
@@ -149,7 +172,6 @@ public class BpmInstProcessServiceManual {
         List<BpmInstNode> bpmInstNodes = bpmInstNodeService.selectNextNode(bpmInstProcess);
         //递归执行
         bpmInstNodeService.handleTargetNode(bpmInstNodes);
-
     }
 
     /**
@@ -162,6 +184,7 @@ public class BpmInstProcessServiceManual {
     public BpmInstProcessRunVO getProcessInstRunInfo(BpmInstProcess instProcess) {
         BpmInstProcessRunVO processVO = new BpmInstProcessRunVO();
         processVO.setInstProcessId(instProcess.getId());
+        processVO.setRunFlag(instProcess.getRunFlag());
         //获取当前流程的父流程
         BpmInstNodeSub bpmInstNodeSub = bpmInstNodeSubService.selectNodeSubByChildProcessId(instProcess.getId());
         if (ObjectUtil.isNotEmpty(bpmInstNodeSub)) {
@@ -265,5 +288,33 @@ public class BpmInstProcessServiceManual {
         }
         return relList.stream().map(BpmDataFormRel::getModuleId).distinct().toList();
     }
+
+    /**
+     * 功能描述:
+     * 〈持久化流程消息并发送〉
+     * @param bpmDataInstRel bpmDataInstRel
+     * @author 蝉鸣
+     */
+    public void saveAndSendBpmMsg(BpmInstProcess bpmInstProcess, BpmDataInstRel bpmDataInstRel) {
+        //持久化消息
+        BpmDataMsgQueue bpmDataMsgQueue = bpmDataMsgQueueService.saveBpmMsg(bpmInstProcess, bpmDataInstRel);
+        //发送消息
+        bpmDataMsgQueueService.sendBpmMsg(bpmDataMsgQueue);
+    }
+
+    /**
+     * 功能描述:
+     * 〈查询当前数据是否已经有运行中的流程审批〉
+     * @param dataId dataId
+     * @param tempProcessId tempProcessId
+     * @param filterProcessId filterProcessId
+     * @author 蝉鸣
+     */
+    public Boolean checkDataRelHasRun(Long dataId, Long tempProcessId, Boolean filterProcessId) {
+        //校验当前数据是否已有运行中的流程
+        return bpmDataInstRelService.checkDataRelHasRun(dataId,tempProcessId,filterProcessId);
+    }
+
+
 }
 

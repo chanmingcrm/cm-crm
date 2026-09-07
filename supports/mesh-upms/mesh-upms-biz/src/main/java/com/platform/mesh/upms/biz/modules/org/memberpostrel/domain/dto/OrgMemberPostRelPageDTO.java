@@ -17,6 +17,7 @@ import lombok.experimental.Accessors;
 @Schema(description="成员-岗位DTO")
 public class OrgMemberPostRelPageDTO extends PageDTO {
 
+
     /**
     * 层级ID
     */

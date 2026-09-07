@@ -45,27 +45,15 @@ public class BpmTempActionServiceImpl extends ServiceImpl<BpmTempActionMapper, B
     /**
      * 功能描述:
      * 〈获取当前节点下动作信息〉
-     * @param nodeId nodeId
+     * @param tempNodeId tempNodeId
      * @return 正常返回:{@link List<BpmTempAction>}
      * @author 蝉鸣
      */
     @Override
-    public List<BpmTempAction> selectActionsByNodeId(Long nodeId) {
+    public List<BpmTempAction> selectActionsByNodeId(Long tempNodeId) {
         //根据节点ID查询所有的动作
-        return this.lambdaQuery().list();
+        return this.lambdaQuery().eq(BpmTempAction::getTempNodeId,tempNodeId).list();
     }
 
-    /**
-     * 功能描述:
-     * 〈获取当前节点下过程下动作信息〉
-     * @param processId processId
-     * @return 正常返回:{@link List<BpmTempAction>}
-     * @author 蝉鸣
-     */
-    @Override
-    public List<BpmTempAction> selectActionsByProcessId(Long processId) {
-        //根据过程ID查询所有的动作
-        return this.lambdaQuery().list();
-    }
 }
 

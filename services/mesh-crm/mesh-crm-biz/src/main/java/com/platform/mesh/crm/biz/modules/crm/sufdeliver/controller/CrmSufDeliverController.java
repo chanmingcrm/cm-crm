@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.sufdeliver.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.sufdeliver.domain.po.CrmSufDeliver;
 import com.platform.mesh.crm.biz.modules.crm.sufdeliver.domain.vo.CrmSufDeliverVO;
 import com.platform.mesh.crm.biz.modules.crm.sufdeliver.service.ICrmSufDeliverService;
@@ -113,7 +110,7 @@ public class CrmSufDeliverController extends BaseController{
     @Log(moduleName = "客户关系标的交付管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/suf/deliver/edit")
     public Result<CrmSufDeliverVO> editSufDeliver(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmSufDeliver crmSufDeliver = crmSufDeliverService.editData(dataEditDTO, CrmSufDeliver.class);
+        CrmSufDeliver crmSufDeliver = crmSufDeliverService.editData(dataEditDTO, CrmSufDeliver.class, CrmSufDeliverData.class);
         return Result.success(BeanUtil.copyProperties(crmSufDeliver,CrmSufDeliverVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmSufDeliverController extends BaseController{
     @Operation(summary = "导入客户关系标的交付")
     @Log(moduleName = "客户关系标的交付管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/suf/deliver/import")
-    public Result<Boolean> importSufDeliver(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmSufDeliverService.importData(moduleId,formId,file, CrmSufDeliver.class, CrmSufDeliverData.class));
+    public Result<ImportVO> importSufDeliver(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmSufDeliverService.importData(importDTO, CrmSufDeliver.class, CrmSufDeliverData.class));
     }
     
     /**

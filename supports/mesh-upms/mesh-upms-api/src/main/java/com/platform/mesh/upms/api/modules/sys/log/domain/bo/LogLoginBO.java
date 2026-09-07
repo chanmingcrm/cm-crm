@@ -61,18 +61,6 @@ public class LogLoginBO extends BaseBO {
 	private String loginAddr;
 
 	/**
-	 * 登录URL
-	 */
-	@Schema(description = "登录URL")
-	private String loginUrl;
-
-	/**
-	 * 登录参数
-	 */
-	@Schema(description = "登录参数")
-	private String loginParam;
-
-	/**
 	 * 登录标识
 	 */
 	@Schema(description = "登录标识")

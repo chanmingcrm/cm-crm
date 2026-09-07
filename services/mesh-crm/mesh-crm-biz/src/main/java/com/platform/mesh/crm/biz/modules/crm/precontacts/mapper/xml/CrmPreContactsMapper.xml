@@ -3,4 +3,23 @@
 <mapper namespace="com.platform.mesh.crm.biz.modules.crm.precontacts.mapper.CrmPreContactsMapper">
 
 
+    <select id="checkPreContacts"
+            resultType="com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO">
+        SELECT
+            pct.id,
+            pct.module_id,
+            pct.data_name,
+            pct.phone,
+            pct.create_time,
+            pct.scope_user_id,
+            pcu.data_name AS customer_name
+        FROM
+            crm_pre_contacts pct
+            LEFT JOIN crm_pre_customer pcu ON pcu.id = pct.customer_id
+        WHERE
+            pct.data_name LIKE CONCAT('%', #{checkDTO.checkValue}, '%')
+        ORDER BY
+            pct.update_time DESC
+        LIMIT 10;
+    </select>
 </mapper>

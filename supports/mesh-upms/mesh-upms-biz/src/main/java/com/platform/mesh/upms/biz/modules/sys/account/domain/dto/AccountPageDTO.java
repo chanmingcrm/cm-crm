@@ -4,42 +4,28 @@ import com.platform.mesh.core.application.domain.dto.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.io.Serial;
+import lombok.experimental.Accessors;
 
 /**
  * @description
  * @author 蝉鸣
  */
 @Data
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
+@Schema(description = "账户分页DTO")
 public class AccountPageDTO extends PageDTO {
 
-	@Serial
-	private static final long serialVersionUID = 1L;
+	/**
+	 * 关键词搜索
+	 */
+	@Schema(description = "关键词搜索")
+	private String searchValue;
 
 	/**
-	 * delFlag
+	 * 删除标识
 	 */
-	@Schema(description = "delFlag")
+	@Schema(description = "删除标识",hidden = true)
 	private Integer delFlag;
-
-	/**
-	 * userId
-	 */
-	@Schema(description = "userId")
-	private Long userId;
-
-	/**
-	 * userName
-	 */
-	@Schema(description = "userName")
-	private String userName;
-
-	/**
-	 * nickName
-	 */
-	@Schema(description = "nickName")
-	private String nickName;
 
 }

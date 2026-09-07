@@ -12,4 +12,12 @@ import com.platform.mesh.crm.biz.modules.crm.oninvoice.domain.po.CrmOnInvoice;
  */
 public interface ICrmOnInvoiceService extends IAppService<CrmOnInvoice> {
 
+    /**
+     * 功能描述:
+     * 〈修改订单开票金额〉
+     * @param orderId orderId
+     * @author 蝉鸣
+     */
+    void updateInvoiceMoney(Long orderId);
+
 }

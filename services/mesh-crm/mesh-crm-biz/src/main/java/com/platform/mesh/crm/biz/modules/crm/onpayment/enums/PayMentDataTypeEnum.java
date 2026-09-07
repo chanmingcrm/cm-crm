@@ -1,15 +1,19 @@
 package com.platform.mesh.crm.biz.modules.crm.onpayment.enums;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.base.BaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+
+import java.math.BigDecimal;
 
 /**
  * @description
  * @author 蝉鸣
  */
 @Schema(description = "款项类型枚举",enumAsRef = true)
-public enum PayMentDataTypeEnum implements BaseEnum<PayMentDataTypeEnum, Integer> {
+public enum PaymentDataTypeEnum implements BaseEnum<PaymentDataTypeEnum, Integer> {
 
     /**
      * 元状态
@@ -39,7 +43,7 @@ public enum PayMentDataTypeEnum implements BaseEnum<PayMentDataTypeEnum, Integer
 
     private final String desc;
 
-    PayMentDataTypeEnum(Integer code, Integer value, String desc) {
+    PaymentDataTypeEnum(Integer code, Integer value, String desc) {
         this.code = code;
         this.value = value;
         this.desc = desc;
@@ -49,9 +53,25 @@ public enum PayMentDataTypeEnum implements BaseEnum<PayMentDataTypeEnum, Integer
     public Integer getValue() {
         return this.value;
     }
+
     @Override
     public String getDesc() {
         return this.desc;
     }
+
+    public BigDecimal getResultMoney(BigDecimal sourceMoney,BigDecimal targetMoney) {
+        if(ObjectUtil.isEmpty(sourceMoney)){
+            sourceMoney = BigDecimal.ZERO;
+        }
+        if(ObjectUtil.isEmpty(targetMoney)){
+            targetMoney = BigDecimal.ZERO;
+        }
+        if(NumberConst.NUM_1.equals(code)){
+            return sourceMoney.add(targetMoney);
+        }else{
+            return sourceMoney.subtract(targetMoney);
+        }
+    }
+
 
 }

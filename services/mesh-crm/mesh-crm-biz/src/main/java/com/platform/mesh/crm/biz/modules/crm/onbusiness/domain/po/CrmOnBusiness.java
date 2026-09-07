@@ -26,15 +26,31 @@ public class CrmOnBusiness extends AppPO {
     /**
      * 总计金额
      */
-    private BigDecimal totalMoney;
+    private BigDecimal totalMoney = BigDecimal.ZERO;
 
     /**
      * 折扣金额
      */
-    private BigDecimal discountMoney;
+    private BigDecimal discountMoney = BigDecimal.ZERO;
 
     /**
      * 实际金额
      */
-    private BigDecimal realMoney;
+    private BigDecimal realMoney = BigDecimal.ZERO;
+
+    /**
+     * 最新的流程实例ID
+     */
+    private Long instProcessId;
+
+    /**
+     * 最新的流程实例审批状态
+     */
+    private Integer processPass;
+
+    /**
+     * 最新的流程实例阶段
+     */
+    private String processStage;
+
 }

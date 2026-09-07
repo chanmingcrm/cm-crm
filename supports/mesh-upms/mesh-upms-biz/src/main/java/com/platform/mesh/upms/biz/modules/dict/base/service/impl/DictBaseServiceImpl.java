@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.mybatis.plus.utils.SqlUtil;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.biz.modules.dict.base.domain.dto.DictBaseDTO;
 import com.platform.mesh.upms.biz.modules.dict.base.domain.dto.DictBasePageDTO;
 import com.platform.mesh.upms.biz.modules.dict.base.domain.po.DictBase;
@@ -112,7 +113,6 @@ public class DictBaseServiceImpl extends ServiceImpl<DictBaseMapper, DictBase> i
      */
     @Override
     public Boolean deleteBase(Long baseId) {
-        
         return this.removeById(baseId);
     }
 

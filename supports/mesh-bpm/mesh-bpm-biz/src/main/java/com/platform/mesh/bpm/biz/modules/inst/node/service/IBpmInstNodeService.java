@@ -51,6 +51,16 @@ public interface IBpmInstNodeService extends IService<BpmInstNode> {
      * @return 正常返回:{@link List<BpmInstNode>}
      * @author 蝉鸣
      */
+    List<BpmInstNodeVO> selectNodeVOByInstProcessIdAndRunFlag(Long instProcessId, Integer runFlag);
+
+    /**
+     * 功能描述:
+     * 〈获取实例下节点信息〉
+     * @param instProcessId instProcessId
+     * @param runFlag runFlag
+     * @return 正常返回:{@link List<BpmInstNode>}
+     * @author 蝉鸣
+     */
     List<BpmInstNode> selectNodeByInstProcessIdAndRunFlag(Long instProcessId, Integer runFlag);
 
     /**
@@ -102,7 +112,7 @@ public interface IBpmInstNodeService extends IService<BpmInstNode> {
      * @return 正常返回:{@link BpmInstNode}
      * @author 蝉鸣
      */
-    BpmInstNode gotoTargetNode(Long instNodeId);
+    Boolean gotoTargetNode(Long instNodeId);
 
     /**
      * 功能描述:
@@ -120,5 +130,13 @@ public interface IBpmInstNodeService extends IService<BpmInstNode> {
      * @author 蝉鸣
      */
     BpmInstNodeBO getInstNodeData(Long instNodeId);
+
+    /**
+     * 功能描述:
+     * 〈发送审批回调消息〉
+     * @param instNode instNode
+     * @author 蝉鸣
+     */
+    void sendBpmMsg(BpmInstNode instNode);
 }
 

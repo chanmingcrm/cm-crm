@@ -1,15 +1,17 @@
 package com.platform.mesh.redis.service;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.platform.mesh.core.constants.NumberConst;
 import org.redisson.api.*;
 import org.redisson.api.options.KeysScanParams;
-import org.redisson.config.Config;
 
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,14 +23,6 @@ import java.util.stream.Stream;
 public class RedissonUtil {
 
 	private static final RedissonClient CLIENT = SpringUtil.getBean(RedissonClient.class);
-
-	public static NameMapper getNameMapper() {
-		Config config = CLIENT.getConfig();
-		if (config.isClusterConfig()) {
-			return config.useClusterServers().getNameMapper();
-		}
-		return config.useSingleServer().getNameMapper();
-	}
 
 	/**
 	 * 限流
@@ -400,9 +394,11 @@ public class RedissonUtil {
 	 */
 	public static Collection<String> keys(final String pattern) {
 		KeysScanParams scanParams = new KeysScanParams();
-		scanParams.pattern(getNameMapper().map(pattern));
-		Stream<String> stream = CLIENT.getKeys().getKeysStream(scanParams);
-		return stream.map(key -> getNameMapper().unmap(key)).collect(Collectors.toList());
+		scanParams.pattern(pattern);
+		// ✅ 自动关闭流，防止游标泄漏
+		try (Stream<String> stream = CLIENT.getKeys().getKeysStream(scanParams)) {
+			return stream.collect(Collectors.toList());
+		}
 	}
 
 	/**
@@ -410,7 +406,7 @@ public class RedissonUtil {
 	 * @param pattern 字符串前缀
 	 */
 	public static void deleteKeys(final String pattern) {
-		CLIENT.getKeys().deleteByPattern(getNameMapper().map(pattern));
+		CLIENT.getKeys().deleteByPattern(pattern);
 	}
 
 	/**
@@ -419,7 +415,26 @@ public class RedissonUtil {
 	 */
 	public static Boolean hasKey(String key) {
 		RKeys rKeys = CLIENT.getKeys();
-		return rKeys.countExists(getNameMapper().map(key)) > 0;
+		return rKeys.countExists(key) > 0;
+	}
+
+	/**
+	 * 获取Redisson分布式锁:跨JVM/分布式环境有效，严格的互斥锁，同一时刻只有一个客户端能持有锁，分布式环境下的资源排他访问
+	 * @param key 键
+	 */
+	public static RLock getLock(String key) {
+		return CLIENT.getLock(key);
+	}
+
+	/**
+	 * 获取信号量锁:semaphore:单个JVM多线程控制，纯内存操作，性能极高，无网络开销，适合高频、低延迟的并发控制
+	 * @param semaphore 允许线程访问数量
+	 */
+	public static Semaphore getLock(Integer semaphore) {
+		if(ObjectUtil.isNull(semaphore)){
+			semaphore = NumberConst.NUM_1;
+		}
+		return new Semaphore(semaphore);
 	}
 
 }

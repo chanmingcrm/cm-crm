@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.po.AppFormColumnSetEvent;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.service.manual.AppFormColumnSetEventServiceManual;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetprocess.domain.po.AppFormColumnSetProcess;
@@ -70,4 +69,5 @@ public class AppFormColumnSetProcessServiceImpl extends ServiceImpl<AppFormColum
         //批量保存
         this.saveBatch(targetProcesss);
     }
+
 }

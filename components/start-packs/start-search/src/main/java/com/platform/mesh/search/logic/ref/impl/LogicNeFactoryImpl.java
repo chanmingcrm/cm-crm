@@ -87,10 +87,18 @@ public class LogicNeFactoryImpl implements LogicRefService {
         if (ObjectUtil.isEmpty(condDTO.getColumnMac())) {
             return null;
         }
-        return QueryBuilders.term(ne->{
+        if(isJson(condDTO.getCompMac())){
+            return QueryBuilders.bool(bool->bool.mustNot(not->not.matchPhrase(ne->{
+                ne.field(condDTO.getColumnMac());
+                ne.query(CollUtil.getFirst(condDTO.getSearchValues()));
+                return ne;
+            })));
+        }
+        return QueryBuilders.bool(bool->bool.mustNot(not->not.term(ne->{
             ne.field(condDTO.getColumnMac());
             ne.value(CollUtil.getFirst(condDTO.getSearchValues()));
             return ne;
-        });
+        })));
+
     }
 }

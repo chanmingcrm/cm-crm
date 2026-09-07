@@ -1,5 +1,6 @@
 package com.platform.mesh.uaa.biz.auth.support.grant.password;
 
+import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.security.utils.OAuth2AuthorizationUtils;
 import com.platform.mesh.uaa.biz.auth.support.grant.base.OAuth2ResourceOwnerBaseAuthenticationConverter;
 import org.springframework.security.core.Authentication;
@@ -30,7 +31,7 @@ public class OAuth2ResourceOwnerPasswordAuthenticationConverter
 	 */
 	@Override
 	public boolean support(String grantType) {
-		return AuthorizationGrantType.PASSWORD.getValue().equals(grantType);
+		return GrantTypeConstant.PASSWORD.equals(grantType);
 	}
 
 	/**
@@ -45,7 +46,7 @@ public class OAuth2ResourceOwnerPasswordAuthenticationConverter
 	@Override
 	public OAuth2ResourceOwnerPasswordAuthenticationToken buildToken(Authentication clientPrincipal,
 																	 Set<String> requestedScopes, Map<String, Object> additionalParameters) {
-		return new OAuth2ResourceOwnerPasswordAuthenticationToken(AuthorizationGrantType.PASSWORD, clientPrincipal,
+		return new OAuth2ResourceOwnerPasswordAuthenticationToken(new AuthorizationGrantType(GrantTypeConstant.PASSWORD), clientPrincipal,
 				requestedScopes, additionalParameters);
 	}
 
@@ -59,16 +60,16 @@ public class OAuth2ResourceOwnerPasswordAuthenticationConverter
 	public void checkParams(HttpServletRequest request) {
 		MultiValueMap<String, String> parameters = OAuth2AuthorizationUtils.getParameters(request);
 		// username (REQUIRED)
-		String username = parameters.getFirst(OAuth2ParameterNames.USERNAME);
-		if (!StringUtils.hasText(username) || parameters.get(OAuth2ParameterNames.USERNAME).size() != 1) {
-			OAuth2AuthorizationUtils.throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.USERNAME,
+		String username = parameters.getFirst(GrantTypeConstant.USERNAME);
+		if (!StringUtils.hasText(username) || parameters.get(GrantTypeConstant.USERNAME).size() != 1) {
+			OAuth2AuthorizationUtils.throwError(OAuth2ErrorCodes.INVALID_REQUEST, GrantTypeConstant.USERNAME,
 					OAuth2AuthorizationUtils.ACCESS_TOKEN_REQUEST_ERROR_URI);
 		}
 
 		// password (REQUIRED)
-		String password = parameters.getFirst(OAuth2ParameterNames.PASSWORD);
-		if (!StringUtils.hasText(password) || parameters.get(OAuth2ParameterNames.PASSWORD).size() != 1) {
-			OAuth2AuthorizationUtils.throwError(OAuth2ErrorCodes.INVALID_REQUEST, OAuth2ParameterNames.PASSWORD,
+		String password = parameters.getFirst(GrantTypeConstant.PASSWORD);
+		if (!StringUtils.hasText(password) || parameters.get(GrantTypeConstant.PASSWORD).size() != 1) {
+			OAuth2AuthorizationUtils.throwError(OAuth2ErrorCodes.INVALID_REQUEST, GrantTypeConstant.PASSWORD,
 					OAuth2AuthorizationUtils.ACCESS_TOKEN_REQUEST_ERROR_URI);
 		}
 	}

@@ -1,11 +1,10 @@
 package com.platform.mesh.utils.excel.enums;
 
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.core.enums.base.BaseEnum;

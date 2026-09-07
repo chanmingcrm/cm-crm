@@ -3,15 +3,12 @@ package com.platform.mesh.security.utils;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
-import com.platform.mesh.core.constants.HttpConst;
+import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.core.constants.NumberConst;
-import com.platform.mesh.core.constants.StrConst;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.redis.service.RedissonUtil;
 import com.platform.mesh.redis.service.constants.CacheConstants;
-import com.platform.mesh.security.constants.SecurityConstant;
 import com.platform.mesh.security.domain.bo.LoginUserBO;
 import com.platform.mesh.upms.api.modules.dict.base.domian.bo.DictBaseValueBO;
 import com.platform.mesh.upms.api.modules.dict.base.feign.RemoteDictService;
@@ -24,18 +21,13 @@ import com.platform.mesh.upms.api.modules.sys.user.domain.bo.*;
 import com.platform.mesh.upms.api.modules.sys.user.feign.RemoteUserService;
 import com.platform.mesh.utils.result.Result;
 import com.platform.mesh.utils.result.ResultUtil;
-import com.platform.mesh.utils.spring.ServletUtil;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.stereotype.Component;
 
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
@@ -93,64 +85,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static LoginUserBO getLoginUser() {
-        // 基于 header[login-user] 获取用户ID
-        LoginUserBO userByHeader = getUserByHeader(ServletUtil.getRequestInst());
-        if(ObjectUtil.isNotEmpty(userByHeader)){
-            return userByHeader;
-        }
-        // 基于Token 获取用户ID
-        LoginUserBO userByToken = getUserByToken(ServletUtil.getRequestInst());
-        if(ObjectUtil.isNotEmpty(userByToken)){
-            return userByToken;
-        }
-        // 基于授权信息获取用户ID
-        LoginUserBO userByAuthentication = SecurityUtils.getLoginUser();
-        if(ObjectUtil.isNotEmpty(userByAuthentication)){
-            return userByAuthentication;
-        }
-        return null;
-    }
-
-    /**
-     * 功能描述:
-     * 〈通过请求头获取登录人员〉
-     * @param request request
-     * @return 正常返回:{@link LoginUserBO}
-     * @author 蝉鸣
-     */
-    private static LoginUserBO getUserByHeader(HttpServletRequest request) {
-        String userHeader = request.getHeader(HttpConst.LOGIN_USER);
-        // 解码，解决中文乱码问题
-        try {
-            String userDecoder = URLDecoder.decode(userHeader, StandardCharsets.UTF_8);
-            if(ObjectUtil.isNotEmpty(userDecoder)){
-                return JSONUtil.toBean(userDecoder,LoginUserBO.class);
-            }
-        } catch (Exception ignore) {}
-        return null;
-    }
-
-    /**
-     * 功能描述:
-     * 〈通过token获取登录人员〉
-     * @param request request
-     * @return 正常返回:{@link LoginUserBO}
-     * @author 蝉鸣
-     */
-    private static LoginUserBO getUserByToken(HttpServletRequest request) {
-        String userAuthorization = request.getHeader(HttpConst.AUTHORIZATION);
-        if(ObjectUtil.isNotEmpty(userAuthorization)){
-            if(userAuthorization.startsWith(StrConst.BEARER)){
-                String replace = userAuthorization.replace(StrConst.BEARER + SymbolConst.SPACE, SymbolConst.BLANK);
-                Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.OAUTH_ACCESS_PREFIX));
-                if(cacheOptional.isPresent()){
-                    OAuth2Authorization authorization = (OAuth2Authorization) Objects.requireNonNull(cacheOptional.get().get(replace)).get();
-                    assert authorization != null;
-                    return  ((LoginUserBO) ((UsernamePasswordAuthenticationToken) Objects.requireNonNull(authorization.getAttribute(SecurityConstant.PRINCIPAL))).getPrincipal());
-                }
-            }
-        }
-        return null;
+        return SecurityUtils.getLoginUser();
     }
 
     /**
@@ -205,6 +140,8 @@ public class UserCacheUtil {
         delAccountMenuCache(accountId);
         //清空组织信息
         delAccountOrgCache(accountId);
+        //清空权限信息
+        delDataPrefixCache(CacheConstants.SYS_ACCOUNT_SCOPE,accountId);
     }
 
     /**
@@ -215,7 +152,7 @@ public class UserCacheUtil {
      */
     public static void setAccountInfoCache(SysAccountBO sysAccountBO) {
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_ACCOUNT_DETAILS));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(sysAccountBO.getAccountId(), sysAccountBO));
+        cacheOptional.ifPresent(cache -> cache.put(sysAccountBO.getAccountId(), sysAccountBO));
     }
 
     /**
@@ -230,7 +167,12 @@ public class UserCacheUtil {
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_ACCOUNT_DETAILS));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
-            Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId));
+            Optional<Cache.ValueWrapper> valueWrapper;
+            try {
+                valueWrapper = Optional.ofNullable(cache.get(accountId));
+            } catch (SerializationException exception) {
+                valueWrapper = Optional.empty();
+            }
             if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof SysAccountBO accountBO){
                 //重置key有效时间
                 resetExpire(CacheConstants.USER_ACCOUNT_DETAILS, accountId);
@@ -270,7 +212,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void setAccountRoleCache(Long accountId,List<SysRoleBO> roleBOS) {
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_ROLE_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_ROLE_DETAILS)));
         cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId, roleBOS));
     }
 
@@ -283,7 +225,7 @@ public class UserCacheUtil {
      */
     public static List<SysRoleBO> getAccountRoleCache(Long accountId) {
         List<SysRoleBO> roleBOS = CollUtil.newArrayList();
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_ROLE_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_ROLE_DETAILS)));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
             Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId));
@@ -315,7 +257,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void delAccountRoleCache(Long accountId) {
-        delDataPrefixCache(CacheConstants.USER_ROLE_DETAILS,accountId);
+        delDataPrefixCache(StrUtil.format(CacheConstants.USER_ROLE_DETAILS),accountId);
     }
 
     /**
@@ -326,7 +268,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void setAccountMenuCache(Long accountId,List<SysMenuBO> menuBOS) {
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_MENU_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_MENU_DETAILS)));
         cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId, menuBOS));
     }
 
@@ -339,7 +281,7 @@ public class UserCacheUtil {
      */
     public static List<SysMenuBO> getAccountMenuCache(Long accountId) {
         List<SysMenuBO> menuBOS = CollUtil.newArrayList();
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_MENU_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_MENU_DETAILS)));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
             Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId));
@@ -371,7 +313,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void delAccountMenuCache(Long accountId) {
-        delDataPrefixCache(CacheConstants.USER_MENU_DETAILS,accountId);
+        delDataPrefixCache(StrUtil.format(CacheConstants.USER_MENU_DETAILS),accountId);
     }
 
     /**
@@ -382,7 +324,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void setAccountOrgCache(Long accountId,List<SysOrgBO> orgBOS) {
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_ORG_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_ORG_DETAILS)));
         cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId, orgBOS));
     }
 
@@ -395,13 +337,13 @@ public class UserCacheUtil {
      */
     public static List<SysOrgBO> getAccountOrgCache(Long accountId) {
         List<SysOrgBO> orgBOS = CollUtil.newArrayList();
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_ORG_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_ORG_DETAILS)));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
             Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId));
             if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof List<?> orgBoList){
                 //重置key有效时间
-                resetExpire(CacheConstants.USER_ORG_DETAILS, accountId);
+                resetExpire(StrUtil.format(CacheConstants.USER_ORG_DETAILS), accountId);
                 return BeanUtil.copyToList(orgBoList,SysOrgBO.class);
             }else{
                 cache.evictIfPresent(accountId);
@@ -427,7 +369,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void delAccountOrgCache(Long accountId) {
-        delDataPrefixCache(CacheConstants.USER_ORG_DETAILS,accountId);
+        delDataPrefixCache(StrUtil.format(CacheConstants.USER_ORG_DETAILS),accountId);
     }
 
     /**
@@ -438,7 +380,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void setAccountChildCache(Long accountId,List<OrgMemberRelBO> relBOS) {
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_CHILD_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_CHILD_DETAILS)));
         cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId, relBOS));
     }
 
@@ -451,13 +393,13 @@ public class UserCacheUtil {
      */
     public static List<OrgMemberRelBO> getAccountChildCache(Long accountId) {
         List<OrgMemberRelBO> relBOS = CollUtil.newArrayList();
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.USER_CHILD_DETAILS));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(StrUtil.format(CacheConstants.USER_CHILD_DETAILS)));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
             Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId));
             if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof List<?> relBoList){
                 //重置key有效时间
-                resetExpire(CacheConstants.USER_CHILD_DETAILS, accountId);
+                resetExpire(StrUtil.format(CacheConstants.USER_CHILD_DETAILS), accountId);
                 return BeanUtil.copyToList(relBoList,OrgMemberRelBO.class);
             }else{
                 cache.evictIfPresent(accountId);
@@ -483,7 +425,7 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static void delAccountChildCache(Long accountId) {
-        delDataPrefixCache(CacheConstants.USER_CHILD_DETAILS,accountId);
+        delDataPrefixCache(StrUtil.format(CacheConstants.USER_CHILD_DETAILS),accountId);
     }
 
     /**
@@ -495,7 +437,7 @@ public class UserCacheUtil {
      */
     public static void setSysUserInfoCache(Long userId,SysUserBO sysUserBO) {
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_USER_DETAILS));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(userId, sysUserBO));
+        cacheOptional.ifPresent(cache -> cache.put(userId, sysUserBO));
     }
 
     /**
@@ -551,7 +493,7 @@ public class UserCacheUtil {
     public static void setSysOrgInfoCache(Result<SysOrgInfoBO> orgResult) {
         SysOrgInfoBO orgInfoBO = orgResult.getData();
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_ORG_DETAILS));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(orgInfoBO.getLevelId(), orgInfoBO));
+        cacheOptional.ifPresent(cache -> cache.put(orgInfoBO.getLevelId(), orgInfoBO));
     }
 
     /**
@@ -604,10 +546,10 @@ public class UserCacheUtil {
      * @param orgResult orgResult
      * @author 蝉鸣
      */
-    public static void setSysDictNameCache(Long accountId,Result<DictBaseValueBO> orgResult) {
+    public static void setSysDictCache(String key,Result<DictBaseValueBO> orgResult) {
         DictBaseValueBO dictBO = orgResult.getData();
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_DICT_NAME));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId.toString().concat(dictBO.getDictName()), dictBO));
+        cacheOptional.ifPresent(cache -> cache.put(key, dictBO));
     }
 
     /**
@@ -618,18 +560,18 @@ public class UserCacheUtil {
      * @author 蝉鸣
      */
     public static DictBaseValueBO getSysDictByName(Long dictId,String dictName) {
-        Long accountId = Objects.requireNonNull(getLoginUser()).getAccountId();
         DictBaseValueBO dictBO = null;
+        String key = dictId.toString();
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_DICT_NAME));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
-            Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId.toString().concat(dictName)));
+            Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(key));
             if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof DictBaseValueBO dict){
                 //重置key有效时间
-                resetExpire(CacheConstants.SYS_DICT_NAME, accountId.toString().concat(dictName));
+                resetExpire(CacheConstants.SYS_DICT_NAME, key);
                 return dict;
             }else{
-                cache.evictIfPresent(accountId.toString().concat(dictName));
+                cache.evictIfPresent(key);
             }
         }
         if(ObjectUtil.isEmpty(dictBO)){
@@ -639,7 +581,43 @@ public class UserCacheUtil {
             if (dict.isPresent()) {
                 dictBO = dict.get();
                 //设置缓存
-                setSysDictNameCache(accountId,dictResult);
+                setSysDictCache(key,dictResult);
+            }
+        }
+        return dictBO;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取系统字典缓存〉
+     * @param dictMac dictMac
+     * @param dictValue dictValue
+     * @return 正常返回:{@link SysAccountInfoBO}
+     * @author 蝉鸣
+     */
+    public static DictBaseValueBO getSysDictByMac(String dictMac,Integer dictValue) {
+        DictBaseValueBO dictBO = null;
+        String key = dictMac.concat(dictValue.toString());
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_DICT_NAME));
+        if(cacheOptional.isPresent()){
+            Cache cache = cacheOptional.get();
+            Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(key));
+            if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof DictBaseValueBO dict){
+                //重置key有效时间
+                resetExpire(CacheConstants.SYS_DICT_NAME, key);
+                return dict;
+            }else{
+                cache.evictIfPresent(key);
+            }
+        }
+        if(ObjectUtil.isEmpty(dictBO)){
+            //重新请求
+            Result<DictBaseValueBO> dictResult = remoteDictService.getFistSysDictByMac(dictMac,dictValue);
+            Optional<DictBaseValueBO> dict = ResultUtil.of(dictResult).getData();
+            if (dict.isPresent()) {
+                dictBO = dict.get();
+                //设置缓存
+                setSysDictCache(key,dictResult);
             }
         }
         return dictBO;
@@ -648,12 +626,11 @@ public class UserCacheUtil {
     /**
      * 功能描述:
      * 〈清除系统字典缓存〉
-     * @param dictName dictName
      * @author 蝉鸣
      */
-    public static void delSysDictNameCache(String dictName) {
+    public static void delSysDictCache() {
         Long accountId = Objects.requireNonNull(getLoginUser()).getAccountId();
-        delDataPrefixCache(CacheConstants.SYS_DICT_NAME,accountId.toString().concat(dictName));
+        delDataPrefixCache(CacheConstants.SYS_DICT_NAME,accountId.toString());
     }
 
     /**
@@ -662,10 +639,10 @@ public class UserCacheUtil {
      * @param orgResult orgResult
      * @author 蝉鸣
      */
-    public static void setAccountLevelByName(Long accountId,Result<OrgLevelBO> orgResult) {
+    public static void setTenantLevelByName(Long accountId,Result<OrgLevelBO> orgResult) {
         OrgLevelBO orgLevelBO = orgResult.getData();
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_ACCOUNT_LEVEL_NAME));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId.toString().concat(orgLevelBO.getLevelName()), orgLevelBO));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_TENANT_LEVEL_NAME));
+        cacheOptional.ifPresent(cache -> cache.put(accountId.toString().concat(orgLevelBO.getLevelName()), orgLevelBO));
     }
 
     /**
@@ -675,16 +652,16 @@ public class UserCacheUtil {
      * @return 正常返回:{@link SysAccountInfoBO}
      * @author 蝉鸣
      */
-    public static OrgLevelBO getAccountLevelByName(String levelName) {
+    public static OrgLevelBO getTenantLevelByName(String levelName) {
         Long accountId = Objects.requireNonNull(getLoginUser()).getAccountId();
         OrgLevelBO orgLevelBO = null;
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_ACCOUNT_LEVEL_NAME));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_TENANT_LEVEL_NAME));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
             Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId.toString().concat(levelName)));
             if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof OrgLevelBO level){
                 //重置key有效时间
-                resetExpire(CacheConstants.SYS_ACCOUNT_LEVEL_NAME, accountId.toString().concat(levelName));
+                resetExpire(CacheConstants.SYS_TENANT_LEVEL_NAME, accountId.toString().concat(levelName));
                 return level;
             }else{
                 cache.evictIfPresent(accountId.toString().concat(levelName));
@@ -697,7 +674,7 @@ public class UserCacheUtil {
             if (levelBO.isPresent()) {
                 orgLevelBO = levelBO.get();
                 //设置缓存
-                setAccountLevelByName(accountId,levelResult);
+                setTenantLevelByName(accountId,levelResult);
             }
         }
         return orgLevelBO;
@@ -709,10 +686,10 @@ public class UserCacheUtil {
      * @param memberResult memberResult
      * @author 蝉鸣
      */
-    public static void setAccountMemberInfoCache(Long accountId, Result<OrgMemberBO> memberResult) {
+    public static void setTenantMemberInfoCache(Long accountId, Result<OrgMemberBO> memberResult) {
         OrgMemberBO orgMemberBO = memberResult.getData();
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_ACCOUNT_MEMBER_NAME));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(accountId.toString().concat(orgMemberBO.getMemberName()), orgMemberBO));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_TENANT_MEMBER_NAME));
+        cacheOptional.ifPresent(cache -> cache.put(accountId.toString().concat(orgMemberBO.getMemberName()), orgMemberBO));
     }
 
     /**
@@ -722,16 +699,16 @@ public class UserCacheUtil {
      * @return 正常返回:{@link SysAccountInfoBO}
      * @author 蝉鸣
      */
-    public static OrgMemberBO getAccountMemberByName(String memberName) {
+    public static OrgMemberBO getTenantMemberByName(String memberName) {
         Long accountId = Objects.requireNonNull(getLoginUser()).getAccountId();
         OrgMemberBO orgMemberBO = null;
-        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_ACCOUNT_MEMBER_NAME));
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_TENANT_MEMBER_NAME));
         if(cacheOptional.isPresent()){
             Cache cache = cacheOptional.get();
             Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(accountId.toString().concat(memberName)));
             if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof OrgMemberBO member){
                 //重置key有效时间
-                resetExpire(CacheConstants.SYS_ACCOUNT_MEMBER_NAME, accountId.toString().concat(memberName));
+                resetExpire(CacheConstants.SYS_TENANT_MEMBER_NAME, accountId.toString().concat(memberName));
                 return member;
             }else{
                 cache.evictIfPresent(accountId.toString().concat(memberName));
@@ -744,7 +721,54 @@ public class UserCacheUtil {
             if (memberBO.isPresent()) {
                 orgMemberBO = memberBO.get();
                 //设置缓存
-                setAccountMemberInfoCache(accountId,memberResult);
+                setTenantMemberInfoCache(accountId,memberResult);
+            }
+        }
+        return orgMemberBO;
+    }
+
+
+    /**
+     * 功能描述:
+     * 〈设置系统组织缓存〉
+     * @param memberResult memberResult
+     * @author 蝉鸣
+     */
+    public static void setMemberByUserInfoCache(Result<OrgMemberRelBO> memberResult) {
+        OrgMemberRelBO orgMemberBO = memberResult.getData();
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_TENANT_MEMBER_NAME));
+        cacheOptional.ifPresent(cache -> cache.put(orgMemberBO.getUserId(), orgMemberBO));
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取系统成员缓存〉
+     * @param userId userId
+     * @return 正常返回:{@link OrgMemberBO}
+     * @author 蝉鸣
+     */
+    public static OrgMemberRelBO getMemberByUserId(Long userId) {
+        OrgMemberRelBO orgMemberBO = null;
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_TENANT_MEMBER_NAME));
+        if(cacheOptional.isPresent()){
+            Cache cache = cacheOptional.get();
+            Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(userId));
+            if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof OrgMemberRelBO member){
+                //重置key有效时间
+                resetExpire(CacheConstants.SYS_TENANT_MEMBER_NAME, userId);
+                return member;
+            }else{
+                cache.evictIfPresent(userId);
+            }
+        }
+        if(ObjectUtil.isEmpty(orgMemberBO)){
+            //重新请求
+            Result<OrgMemberRelBO> memberResult = remoteOrgMemberService.getOrgMemberUserDefaultRelByUserId(userId);
+            Optional<OrgMemberRelBO> memberBO = ResultUtil.of(memberResult).getData();
+            if (memberBO.isPresent()) {
+                orgMemberBO = memberBO.get();
+                //设置缓存
+                setMemberByUserInfoCache(memberResult);
             }
         }
         return orgMemberBO;
@@ -758,7 +782,7 @@ public class UserCacheUtil {
      */
     public static <T> void setUserPrefixCache(Long userId,String prefix,Object object) {
         Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(prefix));
-        cacheOptional.ifPresent(cache -> cache.putIfAbsent(userId, object));
+        cacheOptional.ifPresent(cache -> cache.put(userId, object));
     }
 
     /**
@@ -838,10 +862,10 @@ public class UserCacheUtil {
 
     /**
      * 功能描述:
-     * 〈查询是否当前管理员〉
+     * 〈查询是否当前租户管理员〉
      * @author 蝉鸣
      */
-    public static Boolean isAccountAdmin() {
+    public static Boolean isTenantAdmin() {
         //先模拟返回
         LoginUserBO loginUser = getLoginUser();
         if(ObjectUtil.isNull(loginUser)){
@@ -863,4 +887,59 @@ public class UserCacheUtil {
         }
         return Boolean.FALSE;
     }
+
+    /**
+     * 功能描述:
+     * 〈查询租户具有哪些应用模块:避免一些初始化数据〉
+     * @author 蝉鸣
+     */
+    public static List<Long> getAppModules() {
+        List<Long> appModuleIds = CollUtil.newArrayList();
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_APP_MODULE));
+        if(cacheOptional.isPresent()){
+            Cache cache = cacheOptional.get();
+            Optional<Cache.ValueWrapper> valueWrapper = Optional.ofNullable(cache.get(CacheConstants.SYS_APP_MODULE));
+            if(valueWrapper.isPresent() && valueWrapper.get().get() instanceof List<?> moduleIds){
+                //重置key有效时间
+                resetExpire(CacheConstants.SYS_APP_MODULE, CacheConstants.SYS_APP_MODULE);
+                return moduleIds.stream().filter(ObjectUtil::isNotEmpty).map(id->Long.parseLong(id.toString())).toList();
+            }else{
+                cache.evictIfPresent(CacheConstants.SYS_APP_MODULE);
+            }
+        }
+        if(ObjectUtil.isEmpty(appModuleIds)){
+            //重新请求
+            Result<List<Long>> moduleResult = remoteUserService.getAppModules();
+            Optional<List<Long>> module = ResultUtil.of(moduleResult).getData();
+            if (module.isPresent()) {
+                appModuleIds = module.get();
+                //设置缓存
+                setAppModules(moduleResult);
+            }
+        }
+        return appModuleIds;
+    }
+
+    /**
+     * 功能描述:
+     * 〈设置租户应用缓存〉
+     * @param moduleResult moduleResult
+     * @author 蝉鸣
+     */
+    public static void setAppModules(Result<List<Long>> moduleResult) {
+        List<Long> moduleIds = moduleResult.getData();
+        Optional<Cache> cacheOptional = Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_APP_MODULE));
+        cacheOptional.ifPresent(cache -> cache.put(CacheConstants.SYS_APP_MODULE, moduleIds));
+    }
+
+    /**
+     * 功能描述:
+     * 〈删除应用模块缓存〉
+     * @author 蝉鸣
+     */
+    public static void delAppModules() {
+        Optional.ofNullable(cacheManager.getCache(CacheConstants.SYS_APP_MODULE))
+                .ifPresent(cache -> cache.evictIfPresent(CacheConstants.SYS_APP_MODULE));
+    }
+
 }

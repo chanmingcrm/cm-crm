@@ -3,7 +3,7 @@
 */
 // ==================== ↓↓↓↓↓↓ 全局配置 ↓↓↓↓↓↓ ====================
 def GIT_AUTH = "jenkins_gitlab"
-def GIT_URL = "http://192.168.0.7:9980/product/platform/pc/mesh-platform.git"
+def GIT_URL = "http://woscosmos.nat100.top/product/platform/pc/mesh-platform.git"
 def PROJECT_NAME = "mesh-platform"
 // ==================== ↓↓↓↓↓↓ 动态变量 ↓↓↓↓↓↓ ====================
 def SERVICE_NAMES = "${PROJECT_SERVICE_NAME}".split(',')
@@ -105,7 +105,7 @@ pipeline {
                     echo '========== 构建部署包 =========='
 
                     // 创建统一的构建目录
-                    sh 'mkdir -p ./build/server'
+                    sh 'mkdir -p ./builds/server'
 
                     // 遍历所有服务
                     SERVICE_NAMES.each { serviceName ->
@@ -114,14 +114,14 @@ pipeline {
                         def moduleConfig = getModuleConfig(serviceName)
                         def modulePath = moduleConfig.path
                         def jarName = moduleConfig.jarName
-                        def targetDir = "./build/server/${moduleConfig.name}"
+                        def targetDir = "./builds/server/${moduleConfig.name}"
 
                         // 创建目标目录
                         sh "mkdir -p ${targetDir}"
 
                         // 复制运行脚本
                         sh """
-                        cp ./build/script/shell/run.sh ${targetDir}/
+                        cp ./builds/script/shell/run.sh ${targetDir}/
                         chmod +x ${targetDir}/run.sh
                         """
 
@@ -163,7 +163,7 @@ pipeline {
                                                 #!/bin/bash
 
                                                 echo '=== 开始部署 ${moduleConfig.name} ==='
-                                                cd ${REMOTE_DIR}/build/server/${moduleConfig.name}
+                                                cd ${REMOTE_DIR}/builds/server/${moduleConfig.name}
 
                                                 # 执行部署脚本
                                                 chmod +x run.sh
@@ -179,7 +179,7 @@ pipeline {
                                                 fi
                                                 """,
                                                 execTimeout: 180000, // 3分钟超时
-                                                sourceFiles: "build/server/${moduleConfig.name}/**",
+                                                sourceFiles: "builds/server/${moduleConfig.name}/**",
                                                 remoteDirectory: "${REMOTE_DIR}",
                                                 removePrefix: ""
                                             )

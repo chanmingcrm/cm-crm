@@ -3,13 +3,13 @@ package com.platform.mesh.upms.biz.modules.sys.menu.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.AppMenuBO;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.RouteDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysMenuDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysMenuPageDTO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysRouteDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.RouteVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuSVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuVO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysRouteVO;
 
 import java.util.List;
 import java.util.Map;
@@ -74,10 +74,10 @@ public interface ISysMenuService extends IService<SysMenu> {
      * 功能描述:
      * 〈获取路由信息〉
      * @param routeDTO routeDTO
-     * @return 正常返回:{@link SysRouteVO}
+     * @return 正常返回:{@link RouteVO}
      * @author 蝉鸣
      */
-    SysRouteVO getMenuRouteInfo(SysRouteDTO routeDTO);
+    RouteVO getMenuRouteInfo(RouteDTO routeDTO);
 
     /**
      * 功能描述:
@@ -105,6 +105,15 @@ public interface ISysMenuService extends IService<SysMenu> {
      * @author 蝉鸣
      */
     Boolean deleteMenu(Long menuId);
+
+    /**
+     * 功能描述:
+     * 〈删除菜单〉
+     * @param menuId menuId
+     * @return 正常返回:{@link Boolean}
+     * @author 蝉鸣
+     */
+    Boolean clearMenu(Long menuId);
 
     /***
      * 功能描述:
@@ -134,4 +143,5 @@ public interface ISysMenuService extends IService<SysMenu> {
      */
     Boolean appModuleMenuClear(List<Long> moduleIds);
 
+    List<Long> getAppModules();
 }

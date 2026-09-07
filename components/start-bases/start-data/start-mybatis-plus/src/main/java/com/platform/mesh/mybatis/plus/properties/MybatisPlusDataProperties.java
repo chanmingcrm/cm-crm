@@ -30,7 +30,7 @@ public class MybatisPlusDataProperties {
 	private Boolean enablePage = true;
 
 	/**
-	 * 需要忽略数据权限的表名
+	 * 需要忽略多租户的表名
 	 */
 	private MybatisPlusScopeProperties scope;
 

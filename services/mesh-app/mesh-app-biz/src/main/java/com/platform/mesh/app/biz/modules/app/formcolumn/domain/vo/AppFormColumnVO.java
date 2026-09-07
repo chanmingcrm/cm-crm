@@ -23,7 +23,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段关联VO")
+@Schema(description ="表单字段关联VO")
 public class AppFormColumnVO extends TreeVO<AppFormColumnVO> {
 
 
@@ -230,6 +230,13 @@ public class AppFormColumnVO extends TreeVO<AppFormColumnVO> {
 
 
     /**
+     * 可修改标识YesOrNoEnum
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "可修改标识")
+    private Integer editFlag;
+
+
+    /**
      * 删除标识YesOrNoEnum
      */
     @Schema(description = "删除标识YesOrNoEnum")
@@ -271,12 +278,18 @@ public class AppFormColumnVO extends TreeVO<AppFormColumnVO> {
     private String styleSvg;
 
 
-
     /**
      * 字段能否修改标识
      */
     @SchemaEnum(value = YesOrNoEnum.class, description = "字段能否修改标识")
     private Integer canEditFlag;
+
+
+    /**
+     * 系统字段标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "系统字段标识")
+    private Integer sysFlag;
 
 
     /**

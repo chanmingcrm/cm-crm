@@ -1,8 +1,11 @@
 package com.platform.mesh.app.api.modules.app.enums.comp;
 
+import cn.hutool.core.collection.CollUtil;
 import com.platform.mesh.core.enums.base.BaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
+
+import java.util.List;
 
 /**
  * 表单类型枚举
@@ -22,6 +25,7 @@ public enum FormTypeEnum implements BaseEnum<FormTypeEnum, Integer> {
     HEAD_IMPORT(2,203,"导入表头"),
     PAGE_LIST(3,301,"列表页面"),
     PAGE_INFO(3,302,"详情页面"),
+    BI_PANEL(4,401,"BI页面"),
     ;
 
 
@@ -46,5 +50,15 @@ public enum FormTypeEnum implements BaseEnum<FormTypeEnum, Integer> {
     @Override
     public String getDesc() {
         return this.desc;
+    }
+
+    public static List<Integer> getValueByCode(Integer code) {
+        List<Integer> valueList = CollUtil.newArrayList();
+        for (FormTypeEnum value : values()) {
+            if (value.getCode().equals(code)) {
+                valueList.add(value.getValue());
+            }
+        }
+        return valueList;
     }
 }

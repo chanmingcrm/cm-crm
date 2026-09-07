@@ -10,6 +10,8 @@ import com.platform.mesh.upms.biz.modules.sys.account.domain.po.SysAccount;
 import com.platform.mesh.upms.biz.modules.sys.account.domain.vo.AccountVO;
 import com.platform.mesh.upms.biz.modules.sys.account.domain.vo.SysAccountVO;
 
+import java.util.List;
+
 /**
  * 约定当前service 只提供当前controller.api 相关接口
  * @description 用户信息
@@ -35,7 +37,7 @@ public interface ISysAccountService extends IService<SysAccount> {
      * @return 正常返回:{@link SysAccount}
      * @author 蝉鸣
      */
-    SysAccount getByAccountCode(String accountCode, Integer sourceFlag);
+    SysAccountBO getByAccountCode(String accountCode, Integer sourceFlag);
 
     /**
      * 功能描述:
@@ -45,6 +47,24 @@ public interface ISysAccountService extends IService<SysAccount> {
      * @author 蝉鸣
      */
     SysAccountVO getByOpenId(Long openId);
+
+    /**
+     * 功能描述:
+     * 〈根据accountId获取账户〉
+     * @param accountId accountId
+     * @return 正常返回:{@link SysAccount}
+     * @author 蝉鸣
+     */
+    SysAccountVO getByAccountId(Long accountId);
+
+    /**
+     * 功能描述:
+     * 〈根据accountId获取账户〉
+     * @param accountId accountId
+     * @return 正常返回:{@link SysAccount}
+     * @author 蝉鸣
+     */
+    SysAccountBO getBOByAccountId(Long accountId);
 
     /**
      * 功能描述:
@@ -66,7 +86,7 @@ public interface ISysAccountService extends IService<SysAccount> {
 
     /**
      * 功能描述:
-     * 〈根据OpenId删除账户〉
+     * 〈修改账户成本中心〉
      * @param changeDTO changeDTO
      * @author 蝉鸣
      */
@@ -111,5 +131,43 @@ public interface ISysAccountService extends IService<SysAccount> {
      * @author 蝉鸣
      */
     SysAccountBO thirdBindAccount(SysAccountBO accountBO);
+
+    /**
+     * 功能描述:
+     * 〈绑定租户授权账户〉
+     * @param bindDTO bindDTO
+     * @return 正常返回:{@link Boolean}
+     * @author 蝉鸣
+     */
+    Boolean bindByTenantAuth(AccountBindDTO bindDTO);
+
+    /**
+     * 功能描述:
+     * 〈查询无效组织的账户〉
+     * @param userIds userIds
+     * @return 正常返回:{@link List<Long>}
+     * @author 蝉鸣
+     */
+    List<Long> getInvalidOrgAccountByUserIds(List<Long> userIds);
+
+    /**
+     * 功能描述:
+     * 〈查询已经绑定的账户类型〉
+     * @param userId userId
+     * @param tenantId tenantId
+     * @return 正常返回:{@link List<Integer>}
+     * @author 蝉鸣
+     */
+    List<Integer> bindSourceType(Long userId);
+
+    /**
+     * 功能描述:
+     * 〈解绑账户〉
+     * @param sourceFlag sourceFlag
+     * @param userId userId
+     * @param tenantId tenantId
+     * @author 蝉鸣
+     */
+    void unBindAccount(Integer sourceFlag, Long userId);
 
 }

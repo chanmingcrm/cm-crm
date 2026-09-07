@@ -5,13 +5,13 @@ import com.platform.mesh.utils.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebExceptionHandler;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -21,7 +21,7 @@ import java.util.Objects;
  * @author 蝉鸣
  */
 @Order(-1)
-public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
+public class GlobalExceptionHandler implements WebExceptionHandler {
 
 	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 

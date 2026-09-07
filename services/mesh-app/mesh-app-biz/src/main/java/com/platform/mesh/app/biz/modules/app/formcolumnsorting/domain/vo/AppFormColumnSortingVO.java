@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段排序VO")
+@Schema(description ="表单字段排序VO")
 public class AppFormColumnSortingVO extends BaseVO {
 
 

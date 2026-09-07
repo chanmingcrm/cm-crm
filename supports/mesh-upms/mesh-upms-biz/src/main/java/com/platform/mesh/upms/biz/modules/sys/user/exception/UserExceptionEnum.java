@@ -14,7 +14,7 @@ public enum UserExceptionEnum implements BaseExceptionEnum<UserExceptionEnum, St
      * 异常信息
      */
     ADD_NO_ARGS("upms-user",500, null,  "用户参数为空"),
-    ADD_NO_INVALID("upms-user",501, null,  "用户参数异常"),
+    ADD_NO_INVALID("upms-user",501, null,  "用户异常"),
     USER_INIT_EXISTS_PHONE("upms-user",502, null,  "用户初始化手机已存在"),
     ;
 

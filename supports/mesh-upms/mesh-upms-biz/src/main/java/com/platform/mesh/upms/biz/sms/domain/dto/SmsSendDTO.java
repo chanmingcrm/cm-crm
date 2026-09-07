@@ -26,5 +26,15 @@ public class SmsSendDTO {
 	@SchemaEnum(value = SmsFlagEnum.class,description = "短信类型")
 	private Integer smsFlag;
 
+	/**
+	 * 签名
+	 */
+	@Schema(description = "签名")
+	private String sign;
 
+	/**
+	 * 校验码
+	 */
+	@Schema(description = "校验码")
+	private String encryptCode;
 }

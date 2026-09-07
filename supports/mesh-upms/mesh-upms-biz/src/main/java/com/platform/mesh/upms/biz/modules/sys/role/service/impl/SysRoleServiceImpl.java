@@ -1,14 +1,17 @@
 package com.platform.mesh.upms.biz.modules.sys.role.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.mybatis.plus.extention.MPage;
-import com.platform.mesh.mybatis.plus.query.LambdaQueryWrapperX;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.redis.service.constants.CacheConstants;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.biz.modules.sys.role.domain.dto.SysRoleDTO;
 import com.platform.mesh.upms.biz.modules.sys.role.domain.dto.SysRolePageDTO;
 import com.platform.mesh.upms.biz.modules.sys.role.domain.po.SysRole;
@@ -17,6 +20,7 @@ import com.platform.mesh.upms.biz.modules.sys.role.exception.RoleExceptionEnum;
 import com.platform.mesh.upms.biz.modules.sys.role.mapper.SysRoleMapper;
 import com.platform.mesh.upms.biz.modules.sys.role.service.ISysRoleService;
 import com.platform.mesh.upms.biz.modules.sys.role.service.manual.SysRoleServiceManual;
+import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
@@ -42,20 +46,16 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     /**
      * 功能描述:
      * 〈根据条件分页查询角色列表〉
-     * @param pageEntity pageEntity
+     * @param pageDTO pageDTO
      * @return 正常返回:{@link MPage<SysRoleVO>}
      * @author 蝉鸣
      */
     @Override
-    public PageVO<SysRoleVO> selectPage(SysRolePageDTO pageEntity) {
-        MPage<SysRole> userMPage = MPageUtil.pageEntityToMPage(pageEntity, SysRole.class);
-        LambdaQueryWrapperX<SysRole> lambdaQueryWrapperX = new LambdaQueryWrapperX<>();
-        lambdaQueryWrapperX.eqIfPresent(SysRole::getId,pageEntity.getId());
-        lambdaQueryWrapperX.eqIfPresent(SysRole::getSort,pageEntity.getSort());
-        lambdaQueryWrapperX.eqIfPresent(SysRole::getDelFlag,YesOrNoEnum.YES.getValue());
-        MPage<SysRole> userPage = page(userMPage,lambdaQueryWrapperX);
+    public PageVO<SysRoleVO> selectPage(SysRolePageDTO pageDTO) {
+        MPage<SysRole> userMPage = MPageUtil.pageEntityToMPage(pageDTO, SysRole.class);
+        MPage<SysRole> userPage = this.getBaseMapper().selectMPage(userMPage,pageDTO);
         //封装角色信息
-        return sysRoleServiceManual.packUserPackVO(userPage);
+        return MPageUtil.convertToVO(userPage, SysRoleVO.class);
     }
 
     /**
@@ -80,7 +80,8 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
      */
     @Override
     public SysRoleVO addRole(SysRoleDTO roleDTO) {
-        SysRole sysRole = BeanUtil.copyProperties(roleDTO, SysRole.class);
+        SysRole sysRole = new SysRole();
+        BeanUtil.copyProperties(roleDTO, sysRole, ObjFieldUtil.ignoreDefault());
         sysRole.setActFlag(YesOrNoEnum.YES.getValue());
         sysRole.setDelFlag(YesOrNoEnum.YES.getValue());
         sysRole.setInitFlag(YesOrNoEnum.NO.getValue());
@@ -114,6 +115,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         SysRole sysRole = getById(roleId);
         if(ObjectUtil.isEmpty(sysRole)) {
             throw RoleExceptionEnum.ADD_NO_INVALID.getBaseException();
+        }
+        if (YesOrNoEnum.INIT.getValue().equals(sysRole.getInitFlag())
+                || YesOrNoEnum.YES.getValue().equals(sysRole.getInitFlag())) {
+            throw RoleExceptionEnum.ADD_DELETE_INIT_ERROR.getBaseException();
         }
         // 清空userinfo缓存
         Objects.requireNonNull(cacheManager.getCache(CacheConstants.USER_ROLE_DETAILS)).clear();

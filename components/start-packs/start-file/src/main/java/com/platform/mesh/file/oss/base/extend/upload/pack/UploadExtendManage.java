@@ -1,5 +1,6 @@
 package com.platform.mesh.file.oss.base.extend.upload.pack;
 
+import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.file.oss.base.extend.upload.UploadExtendOssClient;
 import com.platform.mesh.file.oss.base.extend.upload.constant.UploadExtendConst;
 import com.platform.mesh.file.oss.base.extend.upload.model.MultiPartBO;
@@ -44,9 +45,12 @@ public class UploadExtendManage {
         UploadProcess uploadProcess;
         //上传uploadId
         String uploadId;
+        boolean acquired = false;
+        boolean createdNew = false;
         try {
             //采用信号量加锁
             UploadExtendConst.uploadSemaphore.acquire();
+            acquired = true;
             //如果有缓存文件信息直接获取
             if (UploadExtendConst.UPLOAD_PROCESS_STORAGE.containsKey(filename)) {
                 uploadProcess = UploadExtendConst.UPLOAD_PROCESS_STORAGE.get(filename);
@@ -56,22 +60,22 @@ public class UploadExtendManage {
                 //校验文件分片与上传分片编号是否一致
                 Optional.ofNullable(uploadProcess.getUploadPartList())
                         .ifPresent(uploadPartList ->
-                            isUploaded.set(uploadPartList.stream()
-                                    .anyMatch(uploadPart ->
-                                            Objects.equals(uploadPart.getPartNum(), multiPartBO.getPartNum())
-                                    )
-                            )
-                        );
+                                isUploaded.set(uploadPartList.stream()
+                                        .anyMatch(uploadPart -> Objects.equals(uploadPart.getPartNum(), multiPartBO.getPartNum()))));
                 //跳过已上传分片
                 if (isUploaded.get()) {
                     log.info("文件【{}】分块【{}】已经上传，跳过", multiPartBO.getFilename(), multiPartBO.getPartNum());
                     return uploadProcess;
                 }
             } else {
+                if (UploadExtendConst.UPLOAD_PROCESS_STORAGE.size() >= UploadExtendConst.MAX_UPLOAD_PROCESS) {
+                    throw new IllegalStateException("upload process cache is full");
+                }
                 //如果没有缓存文件信息初始化上传信息
                 uploadId = ossClient.initiateMultipartUpload(filename);
                 uploadProcess = new UploadProcess().setFilename(filename).setUploadId(uploadId).setTempPath(uploadId);
                 UploadExtendConst.UPLOAD_PROCESS_STORAGE.put(filename, uploadProcess);
+                createdNew = true;
             }
 
             //获取已上传信息
@@ -79,14 +83,22 @@ public class UploadExtendManage {
             //获取上传地址
             String uploadAddr = ossClient.uploadMultipart(multiPartBO, uploadId);
             //添加最新上传信息
-            uploadPartList.add(new UploadPart( multiPartBO.getPartNum(),uploadAddr));
+            uploadPartList.add(new UploadPart(multiPartBO.getPartNum(), uploadAddr));
             //更新缓存上传信息
             UploadExtendConst.UPLOAD_PROCESS_STORAGE.put(filename, uploadProcess.setUploadPartList(uploadPartList));
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+            throw new BaseException(e);
+        } catch (RuntimeException e) {
+            if (createdNew) {
+                UploadExtendConst.UPLOAD_PROCESS_STORAGE.remove(filename);
+            }
+            throw e;
         } finally {
-            //释放锁
-            UploadExtendConst.uploadSemaphore.release();
+            if (acquired) {
+                //释放锁
+                UploadExtendConst.uploadSemaphore.release();
+            }
         }
         //返回上传进度信息
         return uploadProcess;

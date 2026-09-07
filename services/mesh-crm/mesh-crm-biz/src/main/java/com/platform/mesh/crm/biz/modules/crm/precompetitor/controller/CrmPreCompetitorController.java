@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.precompetitor.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -109,7 +110,7 @@ public class CrmPreCompetitorController extends BaseController{
     @Log(moduleName = "客户关系竞品分析管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/competitor/edit")
     public Result<CrmPreCompetitorVO> editPreCompetitor(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreCompetitor crmPreCompetitor = crmPreCompetitorService.editData(dataEditDTO, CrmPreCompetitor.class);
+        CrmPreCompetitor crmPreCompetitor = crmPreCompetitorService.editData(dataEditDTO, CrmPreCompetitor.class, CrmPreCompetitorData.class);
         return Result.success(BeanUtil.copyProperties(crmPreCompetitor,CrmPreCompetitorVO.class));
     }
     
@@ -179,8 +180,12 @@ public class CrmPreCompetitorController extends BaseController{
     @Operation(summary = "导入客户关系竞品分析")
     @Log(moduleName = "客户关系竞品分析管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/competitor/import")
-    public Result<Boolean> importPreCompetitor(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreCompetitorService.importData(moduleId,formId,file, CrmPreCompetitor.class, CrmPreCompetitorData.class));
+    public Result<ImportVO> importPreCompetitor(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreCompetitorService.importData(importDTO, CrmPreCompetitor.class, CrmPreCompetitorData.class));
     }
     
     /**

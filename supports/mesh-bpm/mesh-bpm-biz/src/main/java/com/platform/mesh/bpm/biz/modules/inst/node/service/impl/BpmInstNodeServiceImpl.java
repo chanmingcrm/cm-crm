@@ -18,7 +18,7 @@ import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,6 +70,20 @@ public class BpmInstNodeServiceImpl extends ServiceImpl<BpmInstNodeMapper, BpmIn
     @Override
     public List<BpmInstNodeVO> selectInstNodeByInstProcessId(Long instProcessId) {
         return this.getBaseMapper().selectInstNodeByInstProcessId(instProcessId);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取实例下节点信息〉
+     * @param instProcessId instProcessId
+     * @param runFlag runFlag
+     * @return 正常返回:{@link List<BpmInstNode>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<BpmInstNodeVO> selectNodeVOByInstProcessIdAndRunFlag(Long instProcessId, Integer runFlag) {
+        //查询当前流程运行节点
+        return this.getBaseMapper().selectNodeVOByInstProcessIdAndRunFlag(instProcessId,runFlag);
     }
 
     /**
@@ -168,10 +182,12 @@ public class BpmInstNodeServiceImpl extends ServiceImpl<BpmInstNodeMapper, BpmIn
         //如果未完成：例如串签，多人审批还有人员未审批则不进行流转操作
         BpmInstNodePassBO passBO = bpmInstNodeServiceManual.passInstNode(bpmInstNode,handleDTO.getAuditAccountId(),handleDTO.getAuditPass());
         if(passBO.getCanPass()){
-            //工作则修改状态
+            //通过则修改状态
             bpmInstNode.setPassFlag(NodePassEnum.PASS.getValue());
         }else{
             bpmInstNode.setPassFlag(passBO.getAuditPass());
+            //设置流程未提交状态，待被驳回人修改提交信息
+            bpmInstNodeServiceManual.handleNodePass(bpmInstNode);
         }
         //依据审批类型重置审批结果
         Map<String, String> params = handleDTO.getParams();
@@ -222,10 +238,22 @@ public class BpmInstNodeServiceImpl extends ServiceImpl<BpmInstNodeMapper, BpmIn
      * @author 蝉鸣
      */
     @Override
-    public BpmInstNode gotoTargetNode(Long nodeId){
+    public Boolean gotoTargetNode(Long nodeId){
         BpmInstNode instNode = getById(nodeId);
+        if(ObjectUtil.isEmpty(instNode)){
+            return Boolean.FALSE;
+        }
+        //如果当前节点不是审批节点则返回
+        if(!NodeTypeEnum.AUDIT_NODE.getValue().equals(instNode.getNodeFlag())){
+            return Boolean.FALSE;
+        }
+        //设置其他运行中为已完成，设置当前节点为运行中
+        this.lambdaUpdate().set(BpmInstNode::getRunFlag,NodeRunEnum.END.getValue()).eq(BpmInstNode::getRunFlag,NodeRunEnum.RUNNING.getValue()).update();
+        instNode.setRunFlag(NodeRunEnum.RUNNING.getValue());
+        this.updateById(instNode);
+        //触发事件
         bpmInstNodeServiceManual.inInstNode(instNode);
-        return instNode;
+        return Boolean.TRUE;
     }
 
     /**
@@ -250,5 +278,20 @@ public class BpmInstNodeServiceImpl extends ServiceImpl<BpmInstNodeMapper, BpmIn
     public BpmInstNodeBO getInstNodeData(Long instNodeId) {
         return this.getBaseMapper().getInstNodeData(instNodeId);
     }
+
+    /**
+     * 功能描述:
+     * 〈发送审批回调消息〉
+     * @param instNode instNode
+     * @author 蝉鸣
+     */
+    @Override
+    public void sendBpmMsg(BpmInstNode instNode) {
+        //如果是审批节点发送
+        if(NodeTypeEnum.AUDIT_NODE.getValue().equals(instNode.getNodeFlag())){
+            bpmInstNodeServiceManual.sendBpmMsg(instNode);
+        }
+    }
+
 }
 

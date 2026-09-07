@@ -57,7 +57,7 @@ public class SysUser extends BasePO {
 
 
 	/**
-	 * 帐号状态（0正常 1停用）
+	 * 帐号状态（1正常 2停用）
 	 */
 	private Integer userFlag;
 

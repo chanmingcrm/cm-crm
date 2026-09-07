@@ -9,6 +9,7 @@ import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleBaseVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleFastPageVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelDictVO;
+import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.service.IAppModuleBaseService;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
@@ -22,6 +23,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -160,6 +163,20 @@ public class AppModuleBaseController extends BaseController{
         MPage<AppModuleRelDictVO> dictPage = appModuleBaseService.selectRelDictPage(appModuleRelPageDTO);
         PageVO<AppModuleRelDictVO> voPage = MPageUtil.convertToVO(dictPage, AppModuleRelDictVO.class);
         return Result.success(voPage);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取模块关联字典分页〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link Result<List<AppModuleBaseVO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取模块关联模块")
+    @PostMapping("/app/module/base/rel/module")
+    public Result<List<AppModuleRelVO>> selectRelModuleList(@RequestBody AppModuleRelPageDTO pageDTO) {
+        List<AppModuleRelVO> moduleRelVOS = appModuleBaseService.selectRelModuleList(pageDTO);
+        return Result.success(moduleRelVOS);
     }
 
 }

@@ -2,7 +2,6 @@ package com.platform.mesh.app.biz.modules.app.formbase.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.platform.mesh.core.application.domain.po.BasePO;
-import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -121,19 +120,5 @@ public class AppFormBase extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 用户ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
 
 }

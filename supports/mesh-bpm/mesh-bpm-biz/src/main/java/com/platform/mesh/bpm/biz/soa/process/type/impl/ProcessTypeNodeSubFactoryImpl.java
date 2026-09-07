@@ -1,6 +1,5 @@
 package com.platform.mesh.bpm.biz.soa.process.type.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.bpm.biz.modules.hist.node.domain.vo.BpmHistNodeVO;
@@ -11,7 +10,6 @@ import com.platform.mesh.bpm.biz.modules.inst.node.domain.vo.BpmInstNodeVO;
 import com.platform.mesh.bpm.biz.modules.inst.node.service.IBpmInstNodeService;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.dto.BpmInstNodeSubDTO;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.po.BpmInstNodeSub;
-import com.platform.mesh.bpm.biz.modules.inst.nodesub.enums.InitNodeSubEnum;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.service.IBpmInstNodeSubService;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
@@ -25,22 +23,17 @@ import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.service.IBpmTempProcessService;
-import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
-import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.utils.function.FutureHandleUtil;
-import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -55,9 +48,6 @@ public class ProcessTypeNodeSubFactoryImpl implements ProcessTypeService {
 
     @Autowired
     private IBpmTempNodeSubService bpmTempNodeSubService;
-
-    @Autowired
-    private IBpmInstNodeSubService bpmInstNodeSubService;
 
     /**
      * 功能描述:
@@ -130,7 +120,9 @@ public class ProcessTypeNodeSubFactoryImpl implements ProcessTypeService {
                 //递归创建流程模板
                 List<BpmTempProcessDesignVO> processDesignVOS = FutureHandleUtil.runWithResult(childProcessIds, tempProcessService::getProcessTemp);
                 processDesignVOS.forEach(processDesignVO->{
-                    processDesignVO.getProcessVO().setParentProcessId(processVO.getId());
+                    if(ObjectUtil.isNotEmpty(processDesignVO) && ObjectUtil.isNotEmpty(processDesignVO.getProcessVO())){
+                        processDesignVO.getProcessVO().setParentProcessId(processVO.getId());
+                    }
                 });
                 //填充流程模板信息
                 nodeVO.setProcessDesignVOs(processDesignVOS);
@@ -186,14 +178,23 @@ public class ProcessTypeNodeSubFactoryImpl implements ProcessTypeService {
         //初始化子流程
         IBpmInstProcessService instProcessService = SpringContextHolderUtil.getBean(IBpmInstProcessService.class);
         List<BpmInstNodeSub> instNodeSubs = FutureHandleUtil.runWithResult(bpmTempNodeSubs, instProcessService::initSubProcessInst);
+        List<Long> subInstProcessIds = CollUtil.newArrayList();
         //补充子流程信息
         for (BpmInstNodeSub instNodeSub : instNodeSubs) {
+            //收集所有的子流程
+            subInstProcessIds.add(instNodeSub.getInstChildProcessId());
             //设置父流程实例ID
             instNodeSub.setInstProcessId(instProcess.getId());
             //设置父节点实例ID
             if(ObjectUtil.isNotEmpty(instNodeMap) && instNodeMap.containsKey(instNodeSub.getTempNodeId())) {
                 instNodeSub.setInstNodeId(CollUtil.getFirst(instNodeMap.get(instNodeSub.getTempNodeId())).getId());
             }
+        }
+        //设置流程实例父ID
+        if(CollUtil.isNotEmpty(subInstProcessIds)){
+            instProcessService.lambdaUpdate()
+                    .set(BpmInstProcess::getInstRootId, instProcess.getId())
+                    .in(BpmInstProcess::getId, subInstProcessIds).update();
         }
         IBpmInstNodeSubService instNodeSubService = SpringContextHolderUtil.getBean(IBpmInstNodeSubService.class);
         instNodeSubService.saveBatch(instNodeSubs);
@@ -286,5 +287,17 @@ public class ProcessTypeNodeSubFactoryImpl implements ProcessTypeService {
                 nodeVO.setProcessVOs(processHistVOS);
             }
         });
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+
     }
 }

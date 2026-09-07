@@ -2,6 +2,7 @@ package com.platform.mesh.app.biz.modules.app.formcolumn.domain.vo;
 
 import com.platform.mesh.app.api.modules.app.enums.comp.ColumnTypeEnum;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.utils.excel.enums.DataTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,7 +17,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段关联VO")
+@Schema(description ="表单字段关联VO")
 public class AppFormColumnSimpVO extends BaseVO {
 
 
@@ -221,4 +222,10 @@ public class AppFormColumnSimpVO extends BaseVO {
     @Schema(description = "隐藏标识HiddenFlagEnum")
     private Integer hiddenFlag;
 
+
+    /**
+     * 可修改标识YesOrNoEnum
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "可修改标识")
+    private Integer editFlag;
 }

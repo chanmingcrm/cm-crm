@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.cc.setwork.mapper.CcSetWorkMapper">
+
+
+    <select id="getCurrentSetWork"
+            resultType="com.platform.mesh.ai.biz.modules.cc.setwork.domain.po.CcSetWork">
+        SELECT
+            *
+        FROM
+            cc_set_work
+        WHERE (
+        (start_time &lt;= end_time AND #{localTime} BETWEEN start_time AND end_time)
+        OR
+        (start_time &gt; end_time AND (#{localTime} &gt;= start_time OR #{localTime} &lt;= end_time))
+        )
+    </select>
+</mapper>

@@ -19,7 +19,7 @@ public final class FormIdentityLoginConfigurer
 	 * @author 蝉鸣
 	 */
 	@Override
-	public void init(HttpSecurity http) throws Exception {
+	public void init(HttpSecurity http) {
 		// SSO登录成功处理
 		http.formLogin(formLogin -> {
 			formLogin.loginPage("/token/login");

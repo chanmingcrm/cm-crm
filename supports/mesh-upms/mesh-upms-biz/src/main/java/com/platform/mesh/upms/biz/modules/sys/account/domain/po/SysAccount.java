@@ -36,6 +36,16 @@ public class SysAccount implements Serializable {
 	private Long userId;
 
 	/**
+	 * 第三方用户ID
+	 */
+	private String thirdUserId;
+
+	/**
+	 * 第三方统一ID
+	 */
+	private String thirdUnionId;
+
+	/**
 	 * 账号码
 	 */
 	private String accountCode;

@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.Year;
 
 /**
  * @description 客户关系目标
@@ -28,14 +27,24 @@ public class CrmAllGoal extends BasePO {
     private Long id;
 
     /**
-    * 表单ID
+    * 模块ID
     */
     private Long moduleId;
+
+    /**
+    * 模块名称
+    */
+    private String moduleName;
 
     /**
     * 数据ID
     */
     private Long dataId;
+
+    /**
+     * 数据名称
+     */
+    private String dataName;
 
     /**
     * 数据标识
@@ -45,7 +54,7 @@ public class CrmAllGoal extends BasePO {
     /**
     * 数据标识
     */
-    private Year yearTime;
+    private Integer yearTime;
 
     /**
     * 年度目标
@@ -152,5 +161,6 @@ public class CrmAllGoal extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
+
 
 }

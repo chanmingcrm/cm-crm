@@ -13,7 +13,9 @@ import com.platform.mesh.core.enums.base.BaseEnum;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.core.exception.BaseException;
+import com.platform.mesh.mybatis.plus.constant.MybatisPlusConst;
 import com.platform.mesh.mybatis.plus.extention.MPage;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.mybatis.plus.utils.SqlUtil;
 import com.platform.mesh.redis.service.constants.CacheConstants;
@@ -22,13 +24,13 @@ import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.upms.api.modules.sys.account.enums.MenuTypeEnum;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.AppMenuBO;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.RouteDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysMenuDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysMenuPageDTO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.dto.SysRouteDTO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.RouteVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuSVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuVO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysRouteVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.exception.MenuExceptionEnum;
 import com.platform.mesh.upms.biz.modules.sys.menu.mapper.SysMenuMapper;
 import com.platform.mesh.upms.biz.modules.sys.menu.service.ISysMenuService;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -90,6 +93,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 		if(SecurityUtils.isAdmin(accountBO.getUserId())){
 			return this.lambdaQuery()
 					.in(CollUtil.isNotEmpty(filters),SysMenu::getMenuType,filters)
+					.ne(SysMenu::getDelFlag,YesOrNoEnum.NO.getValue())
 					.notIn(CollUtil.isNotEmpty(ignoreTypes),SysMenu::getMenuType,ignoreTypes).list();
 		}
 		//查询当前用户下关联的菜单
@@ -106,7 +110,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 	 */
 	@Override
 	public SysMenuSVO getSMenuInfoById(Long menuId) {
-		SysMenu sysMenu = this.getById(menuId);
+		SysMenu sysMenu = this.getBaseMapper().getUniById(menuId);
 		SysMenuSVO sysMenuSVO = new SysMenuSVO();
 		if(ObjectUtil.isEmpty(sysMenu)){
 			return sysMenuSVO;
@@ -147,11 +151,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 	 * 功能描述:
 	 * 〈获取路由信息〉
 	 * @param routeDTO routeDTO
-	 * @return 正常返回:{@link SysRouteVO}
+	 * @return 正常返回:{@link RouteVO}
 	 * @author 蝉鸣
 	 */
 	@Override
-	public SysRouteVO getMenuRouteInfo(SysRouteDTO routeDTO) {
+	public RouteVO getMenuRouteInfo(RouteDTO routeDTO) {
 //		String childrenSql= SqlUtil.getCommonChildrenSql(SysMenu.class, routeDTO.getMenuId());
 		//查询子项demo
 //		List<SysMenu> childList = this.lambdaQuery().apply(childrenSql).list();
@@ -165,7 +169,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 		ignoreMenuTypes.add(MenuTypeEnum.CATEGORY.getValue());
 		ignoreMenuTypes.add(MenuTypeEnum.COMPONENT.getValue());
 		//返回当前角色下的菜单
+		//开启取消租户隔离设定
+		
 		List<SysMenu> sysMenus = getMenuInfoByAccountId(routeDTO.getAccountId(),CollUtil.newArrayList(),ignoreMenuTypes);
+		//关闭租户隔离设定
+		
 		return sysMenuServiceManual.getMenuRouteInfo(sysMenus);
 	}
 
@@ -205,11 +213,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 			String fieldName = ObjFieldUtil.getFieldName(SysMenuDTO::getId);
 			throw MenuExceptionEnum.ADD_NO_INVALID.getBaseException(CollUtil.newArrayList(fieldName));
 		}
-		BeanUtil.copyProperties(menuDTO, sysMenu);
+        BeanUtil.copyProperties(menuDTO, sysMenu);
 		if(CollUtil.isNotEmpty(menuDTO.getParams())){
 			String params = JSONUtil.toJsonStr(menuDTO.getParams());
 			sysMenu.setParams(params);
 		}
+        //如果是当前租户与菜单一致则修改
 		this.updateById(sysMenu);
 		//修改子节点状态
 		String childrenSql= SqlUtil.getCommonChildrenSql(SysMenu.class, menuDTO.getId());
@@ -218,8 +227,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 		if(CollUtil.isEmpty(childList)){
 			return BeanUtil.copyProperties(sysMenu, SysMenuVO.class);
 		}
-		childList.forEach(menu->{menu.setHideMenu(menuDTO.getHideMenu());});
-		this.updateBatchById(childList);
+        List<SysMenu> sysMenus = childList
+                .stream()
+                .map(menu -> menu.setHideMenu(menuDTO.getHideMenu())).toList();
+        this.updateBatchById(sysMenus);
+        //保存自定义菜单
 		return BeanUtil.copyProperties(sysMenu, SysMenuVO.class);
 	}
 
@@ -235,16 +247,38 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 	public Boolean deleteMenu(Long menuId) {
 		// 清空userinfo缓存
 		Objects.requireNonNull(cacheManager.getCache(CacheConstants.USER_MENU_DETAILS)).clear();
-		// 删除菜单
-		//修改子节点状态
-		String childrenSql= SqlUtil.getCommonChildrenSql(SysMenu.class, menuId);
+		SysMenu sysMenu = getById(menuId);
+		List<SysMenu> menus = CollUtil.newArrayList(sysMenu);
+		List<Long> menuIds = CollUtil.newArrayList(menus.stream().map(SysMenu::getId).toList());
+
 		//查询子项demo
+		String childrenSql= SqlUtil.getCommonChildrenSql(SysMenu.class, menuId);
 		List<SysMenu> childList = this.lambdaQuery().apply(childrenSql).list();
-		List<Long> childIds = childList.stream().map(SysMenu::getId).filter(ObjectUtil::isNotEmpty).toList();
+		menuIds.addAll(childList.stream().map(SysMenu::getId).toList());
+		this.lambdaUpdate()
+				.set(SysMenu::getDelFlag,YesOrNoEnum.NO.getValue())
+				.in(SysMenu::getId,menuIds).update();
+		return Boolean.TRUE;
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈删除菜单〉
+	 * @param menuId menuId
+	 * @return 正常返回:{@link Boolean}
+	 * @author 蝉鸣
+	 */
+	@Override
+	@Transactional(rollbackFor = BaseException.class)
+	public Boolean clearMenu(Long menuId) {
+		// 清空userinfo缓存
+		Objects.requireNonNull(cacheManager.getCache(CacheConstants.USER_MENU_DETAILS)).clear();
 		List<Long> menuIds = CollUtil.newArrayList(menuId);
-		if(CollUtil.isNotEmpty(childIds)){
-			menuIds.addAll(childIds);
-		}
+		//查询子项demo
+		String childrenSql= SqlUtil.getCommonChildrenSql(SysMenu.class, menuId);
+		List<SysMenu> childList = this.lambdaQuery().apply(childrenSql).list();
+		menuIds.addAll(childList.stream().map(SysMenu::getId).toList());
+		sysMenuServiceManual.clearRoleMenuRel(menuIds);
 		return this.removeBatchByIds(menuIds);
 	}
 
@@ -260,11 +294,28 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 	public MPage<SysMenu> getMenuPage(SysMenuPageDTO pageDTO) {
 		MPage<SysMenu> mPage = MPageUtil.pageEntityToMPage(pageDTO, SysMenu.class);
 		Long userId = UserCacheUtil.getUserId();
-		//查询是否当前管理员
-		Boolean tenantAdmin = UserCacheUtil.isAccountAdmin();
+		//查询是否当前租户管理员
+		Boolean tenantAdmin = UserCacheUtil.isTenantAdmin();
 		pageDTO.setUserId(userId);
 		pageDTO.setIsAdmin(tenantAdmin);
 		pageDTO.setDelFlag(YesOrNoEnum.NO.getValue());
+		//是否需要子级
+		//获取当前层级下的所有子层级
+		if(YesOrNoEnum.YES.getValue().equals(pageDTO.getNeedChild())){
+			// 删除层级
+			String childrenSql = SqlUtil.getCommonChildrenSql(SysMenu.class, pageDTO.getParentId());
+			//查询子项demo
+			List<SysMenu> childList = this.lambdaQuery().apply(childrenSql).list();
+			if(CollUtil.isNotEmpty(childList)){
+				List<Long> ids = childList.stream().map(SysMenu::getId).toList();
+				pageDTO.setMenuIds(ids);
+				pageDTO.setParentId(null);
+			}else{
+				pageDTO.setMenuIds(null);
+			}
+		}else{
+			pageDTO.setMenuIds(null);
+		}
 		return this.getBaseMapper().getMenuPage(mPage,pageDTO);
 	}
 
@@ -283,11 +334,17 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 		String mac = appMenuBO.getRelId().toString();
 		switch (operationTypeEnum){
 			case INSERT://新增模块
-				List<SysMenu> sysMenus = this.lambdaQuery().eq(SysMenu::getModuleId, appMenuBO.getParentModuleId()).list();
-				if (CollUtil.isNotEmpty(sysMenus)) {
-					appMenuBO.setParentModuleId(sysMenus.getFirst().getId());
-				}else{
+				List<SysMenu> sysMenus = this.lambdaQuery().eq(SysMenu::getModuleId, appMenuBO.getParentModuleId())
+						.eq(SysMenu::getMenuType,appMenuBO.getMenuType()-NumberConst.NUM_1).list();
+				if (CollUtil.isEmpty(sysMenus)) {
 					appMenuBO.setParentModuleId(NumberConst.NUM_0.longValue());
+				}else{
+					SysMenu sysMenu = sysMenus.getLast();
+					if(YesOrNoEnum.NO.getValue().equals(sysMenu.getDelFlag())){
+						sysMenu.setDelFlag(YesOrNoEnum.YES.getValue());
+						this.updateById(sysMenu);
+					}
+					appMenuBO.setParentModuleId(sysMenu.getId());
 				}
 				Long menuId = IdUtil.getSnowflake().nextId();
 				SysMenu sysMenu = sysMenuServiceManual.getAddMenu(appMenuBO);
@@ -297,24 +354,27 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 				}
 				this.save(sysMenu);
 				break;
-			case UPDATE://编辑模块
-				List<SysMenu> updateMenus;
-				//如果是组件根据Mac查询
-				if(MenuTypeEnum.COMPONENT.getValue().equals(appMenuBO.getMenuType())){
-					updateMenus = this.lambdaQuery()
-							.eq(SysMenu::getModuleId, appMenuBO.getModuleId())
-							.eq(SysMenu::getMac, mac)
-							.list();
-				}else{
-					//根据模块ID查询
-					updateMenus = this.lambdaQuery().eq(SysMenu::getModuleId, appMenuBO.getModuleId()).list();
-				}
-				if(CollUtil.isNotEmpty(updateMenus)){
-					List<SysMenu> editMenu = sysMenuServiceManual.getEditMenu(updateMenus, appMenuBO);
-					this.updateBatchById(editMenu);
-				}else{
+			case UPDATE:
+				//编辑模块
+				SysMenu updateMenu = this.getBaseMapper().selectUpdateMenu(appMenuBO.getModuleId(),appMenuBO.getMenuType(), mac);
+				if(ObjectUtil.isEmpty(updateMenu)){
 					appMenuBO.setOperateType(OperateTypeEnum.INSERT.getValue());
 					addOrEditMenu(appMenuBO);
+				}else{
+					List<SysMenu> parentMenus = this.lambdaQuery().eq(SysMenu::getModuleId, appMenuBO.getParentModuleId())
+							.eq(SysMenu::getMenuType,appMenuBO.getMenuType()-NumberConst.NUM_1).list();
+					if (CollUtil.isEmpty(parentMenus)) {
+						updateMenu.setParentId(NumberConst.NUM_0.longValue());
+					}else{
+						SysMenu parentMenu = parentMenus.getLast();
+						if(YesOrNoEnum.NO.getValue().equals(parentMenu.getDelFlag())){
+							parentMenu.setDelFlag(YesOrNoEnum.YES.getValue());
+							this.updateById(parentMenu);
+						}
+						updateMenu.setParentId(parentMenu.getId());
+					}
+					List<SysMenu> editMenu = sysMenuServiceManual.getEditMenu(CollUtil.newArrayList(updateMenu), appMenuBO);
+					this.updateBatchById(editMenu);
 				}
 				break;
 		}
@@ -361,4 +421,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenu> impl
 		return Boolean.TRUE;
 	}
 
+	/**
+	 * 功能描述:
+	 * 〈获取租户下的应用〉
+	 * @return 正常返回:{@link List<Long>}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public List<Long> getAppModules() {
+		return this.getBaseMapper().getAppModules();
+	}
 }

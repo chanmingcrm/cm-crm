@@ -8,7 +8,6 @@ import com.platform.mesh.bpm.biz.soa.node.auditdata.domain.vo.NodeAuditDataVO;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @description 节点通过工厂
@@ -23,6 +22,15 @@ public interface NodeAuditDataService {
      * @author 蝉鸣
      */
     NodeAuditDataTypeEnum nodeAuditData();
+
+    /**
+     * 功能描述:
+     * 〈节点处理〉
+     * @param auditDataIds auditDataIds
+     * @return 正常返回:{@link List<Long>}
+     * @author 蝉鸣
+     */
+    List<Long> getAuditDataIds(List<Long> auditDataIds);
 
     /**
      * 功能描述:

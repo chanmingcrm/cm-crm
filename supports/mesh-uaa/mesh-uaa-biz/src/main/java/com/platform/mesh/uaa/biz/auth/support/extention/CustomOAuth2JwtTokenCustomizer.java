@@ -1,8 +1,8 @@
 package com.platform.mesh.uaa.biz.auth.support.extention;
 
+import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.security.constants.SecurityConstant;
 import com.platform.mesh.security.domain.bo.LoginUserBO;
-import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysUserBO;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public final class CustomOAuth2JwtTokenCustomizer implements OAuth2TokenCustomizer<JwtEncodingContext> {
 
-	private static final Set<String> ID_TOKEN_CLAIMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+	private static final Set<String> ID_TOKEN_CLAIMS = Set.of(
 			IdTokenClaimNames.ISS,
 			IdTokenClaimNames.SUB,
 			IdTokenClaimNames.AUD,
@@ -39,7 +39,7 @@ public final class CustomOAuth2JwtTokenCustomizer implements OAuth2TokenCustomiz
 			IdTokenClaimNames.AZP,
 			IdTokenClaimNames.AT_HASH,
 			IdTokenClaimNames.C_HASH
-	)));
+	);
 
 	/**
 	 * 功能描述:
@@ -62,7 +62,7 @@ public final class CustomOAuth2JwtTokenCustomizer implements OAuth2TokenCustomiz
 				existingClaims.putAll(thirdPartyClaims);
 			});
 		}
-		AuthorizationGrantType[] types = {AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.CLIENT_CREDENTIALS, AuthorizationGrantType.REFRESH_TOKEN, AuthorizationGrantType.PASSWORD};
+		AuthorizationGrantType[] types = {AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.CLIENT_CREDENTIALS, AuthorizationGrantType.REFRESH_TOKEN, new AuthorizationGrantType(GrantTypeConstant.PASSWORD)};
 		List<AuthorizationGrantType> grantTypes = new ArrayList<>(Arrays.asList(types));
 		if (grantTypes.contains(context.getAuthorizationGrantType()) &&
 				OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
@@ -89,18 +89,16 @@ public final class CustomOAuth2JwtTokenCustomizer implements OAuth2TokenCustomiz
 	 * 功能描述:
 	 * 〈扩展claims〉
 	 * @param principal principal
-	 * @return 正常返回:{@link Map<String,Object>}
+	 * @return 正常返回:{@link Map}
 	 * @author 蝉鸣
 	 */
 	private Map<String, Object> extractClaims(Authentication principal) {
 		Map<String, Object> claims;
-		if (principal.getPrincipal() instanceof OidcUser) {
-			OidcUser oidcUser = (OidcUser) principal.getPrincipal();
-			OidcIdToken idToken = oidcUser.getIdToken();
+		if (principal.getPrincipal() instanceof OidcUser oidcUser) {
+            OidcIdToken idToken = oidcUser.getIdToken();
 			claims = idToken.getClaims();
-		} else if (principal.getPrincipal() instanceof OAuth2User) {
-			OAuth2User oauth2User = (OAuth2User) principal.getPrincipal();
-			claims = oauth2User.getAttributes();
+		} else if (principal.getPrincipal() instanceof OAuth2User oauth2User) {
+            claims = oauth2User.getAttributes();
 		} else {
 			claims = Collections.emptyMap();
 		}

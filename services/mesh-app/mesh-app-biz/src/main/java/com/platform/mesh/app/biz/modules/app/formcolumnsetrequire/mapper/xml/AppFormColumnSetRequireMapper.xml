@@ -3,4 +3,26 @@
 <mapper namespace="com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.mapper.AppFormColumnSetRequireMapper">
 
 
+    <select id="selectAddRequire"
+            resultType="com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.vo.AppFormColumnSetRequireVO">
+        WITH form_base_ranked AS (
+            SELECT
+                module_id,
+                id,
+                ROW_NUMBER() OVER (PARTITION BY module_id ORDER BY id) as rn
+            FROM app_form_base
+            WHERE form_type = 101
+        )
+        SELECT
+            mb.module_name,
+            fbr.id AS form_id,
+            fcsr.*
+        FROM
+            app_form_column_set_require fcsr
+            INNER JOIN app_module_base mb ON mb.id = fcsr.module_id AND mb.ai_flag = 1
+            LEFT JOIN form_base_ranked fbr ON fbr.module_id = fcsr.module_id AND fbr.rn = 1
+        WHERE
+            require_url LIKE '%/add/simp'
+
+    </select>
 </mapper>

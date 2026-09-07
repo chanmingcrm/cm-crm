@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.doc.online.mapper.DocOnlineMapper">
+
+    <select id="selectPage" resultType="com.platform.mesh.upms.biz.modules.doc.online.domain.po.DocOnline">
+        SELECT
+            ol.id,
+            ol.doc_flag,
+            ol.doc_title,
+            ol.doc_keyword,
+            ol.doc_desc,
+            <!-- 根据 needContent 判断是否查询大字段 -->
+            <if test="pageDTO.needContent != null and pageDTO.needContent == 1">
+                ol.doc_context,
+                ol.doc_app_context,
+            </if>
+            ol.star_level,
+            ol.pub_flag,
+            ol.create_user_id,
+            ol.create_time,
+            ol.update_user_id,
+            ol.update_time,
+            ol.scope_user_id,
+            ol.scope_org_id,
+            ol.tenant_id
+        FROM
+            doc_online ol
+                LEFT JOIN doc_dir_rel rel ON ol.id = rel.doc_id
+        <where>
+            <if test="pageDTO.docFlag != null">
+                AND ol.doc_flag = #{pageDTO.docFlag}
+            </if>
+            <if test="pageDTO.docDirId != null">
+                AND rel.dir_id = #{pageDTO.docDirId}
+            </if>
+            <if test="pageDTO.docTitle != null and pageDTO.docTitle != '' ">
+                AND ol.doc_title LIKE #{pageDTO.docTitle}
+            </if>
+            <if test="pageDTO.docKeyword != null and pageDTO.docTitle != '' ">
+                AND ol.doc_keyword LIKE #{pageDTO.docKeyword}
+            </if>
+        </where>
+        ORDER BY ol.create_time DESC
+    </select>
+
+    <select id="getOnlineHomeInfoById"
+            resultType="com.platform.mesh.upms.biz.modules.doc.online.domain.po.DocOnline">
+        SELECT
+            *
+        FROM
+            doc_online
+        WHERE id = #{onlineId}
+        AND doc_flag = #{docFlag}
+    </select>
+
+    <select id="getLastOne"
+            resultType="com.platform.mesh.upms.biz.modules.doc.online.domain.po.DocOnline">
+        SELECT
+            *
+        FROM
+            doc_online
+        WHERE doc_flag = #{lastDTO.docFlag}
+        <choose>
+            <when test="lastDTO.lastFlag !=null and lastDTO.lastFlag == 1">
+                AND id &lt; #{lastDTO.id}
+            ORDER BY create_time DESC
+            LIMIT 1
+            </when>
+            <otherwise>
+                AND id &gt; #{lastDTO.id}
+            ORDER BY create_time ASC
+            LIMIT 1
+            </otherwise>
+        </choose>
+    </select>
+
+</mapper>

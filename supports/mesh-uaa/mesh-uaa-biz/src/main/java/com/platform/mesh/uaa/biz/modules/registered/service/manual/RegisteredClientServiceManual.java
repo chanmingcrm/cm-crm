@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.uaa.biz.modules.client.domain.po.Oauth2RegisteredClient;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -37,11 +38,11 @@ public class RegisteredClientServiceManual {
 	public TokenSettings getDefaultTokenSettings(){
 		return TokenSettings.builder()
 				// 令牌存活时间：2小时
-				.accessTokenTimeToLive(Duration.ofHours(2))
+				.accessTokenTimeToLive(Duration.ofDays(NumberConst.NUM_7))
 				// 令牌可以刷新，重新获取
-				.reuseRefreshTokens(true)
+				.reuseRefreshTokens(Boolean.TRUE)
 				// 刷新时间：30天（30天内当令牌过期时，可以用刷新令牌重新申请新令牌，不需要再认证）
-				.refreshTokenTimeToLive(Duration.ofDays(30))
+				.refreshTokenTimeToLive(Duration.ofDays(NumberConst.NUM_31))
 				//加上则token为不加密
 //				.accessTokenFormat(OAuth2TokenFormat.REFERENCE)
 				.build();

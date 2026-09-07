@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.cc.userworkrel.mapper.CcUserWorkRelMapper">
+
+
+    <select id="getWorkUserList"
+            resultType="com.platform.mesh.ai.biz.modules.cc.userworkrel.domain.bo.CcUserWorkRelBO">
+        SELECT
+            uwr.*,
+            IF(la.user_hash IS NULL, 0 ,1) last
+        FROM
+            cc_user_work_rel uwr
+            LEFT JOIN (
+                SELECT
+                    user_hash
+                FROM
+                    cc_group_user_rel
+                WHERE
+                    user_type = #{userType}
+                ORDER BY
+                    create_time DESC
+            ) la ON la.user_hash = uwr.user_hash
+	        WHERE
+	            cc_work_id IN
+	            <foreach collection="workIds" item="workId" open="(" close=")" separator=",">
+	                #{workId}
+	            </foreach>
+	            AND uwr.tenant_id = #{tenantId}
+	            AND uwr.user_type = #{userType}
+            ORDER BY
+                COALESCE(uwr.sort_num, uwr.id),
+                uwr.id
+	    </select>
+	</mapper>

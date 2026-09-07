@@ -15,19 +15,11 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 @Schema(description="系统角色表")
 public class SysRolePageDTO extends PageDTO {
-    /**
-     * 角色自增ID
-     */
-    @Schema(description = "角色自增ID")
-    private Long id;
+
     /**
      * 角色名
      */
     @Schema(description = "角色名")
     private String roleName;
-    /**
-     * 排序
-     */
-    @Schema(description = "排序")
-    private Integer sort;
+
 }

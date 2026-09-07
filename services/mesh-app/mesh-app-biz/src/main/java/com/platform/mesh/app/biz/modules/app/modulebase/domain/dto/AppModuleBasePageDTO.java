@@ -55,4 +55,11 @@ public class AppModuleBasePageDTO extends PageDTO {
      */
     @SchemaEnum(value = YesOrNoEnum.class,description = "删除标识",hidden = true)
     private Integer delFlag;
+
+
+    /**
+     * AI标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class,description = "AI标识",hidden = true)
+    private Integer aiFlag;
 }

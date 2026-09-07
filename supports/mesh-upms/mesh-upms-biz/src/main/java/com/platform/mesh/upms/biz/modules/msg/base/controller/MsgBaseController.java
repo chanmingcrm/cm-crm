@@ -1,25 +1,20 @@
 package com.platform.mesh.upms.biz.modules.msg.base.controller;
 
-import com.platform.mesh.core.application.domain.dto.PageDTO;
+import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.core.enums.custom.OperateTypeEnum;
+import com.platform.mesh.log.annotation.Log;
+import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.biz.modules.msg.base.domain.dto.MsgBaseDTO;
 import com.platform.mesh.upms.biz.modules.msg.base.domain.dto.MsgBasePageDTO;
-import com.platform.mesh.upms.biz.modules.msg.base.domain.po.MsgBase;
 import com.platform.mesh.upms.biz.modules.msg.base.domain.vo.MsgBaseVO;
 import com.platform.mesh.upms.biz.modules.msg.base.service.IMsgBaseService;
-import com.platform.mesh.core.application.controller.BaseController;
-import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.mybatis.plus.extention.MPage;
-import com.platform.mesh.log.annotation.Log;
-import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -31,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping
 public class MsgBaseController extends BaseController{
+
     @Autowired
     private IMsgBaseService msgBaseService;
 

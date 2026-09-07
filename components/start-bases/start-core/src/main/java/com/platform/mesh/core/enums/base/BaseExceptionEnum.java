@@ -1,9 +1,9 @@
 package com.platform.mesh.core.enums.base;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.platform.mesh.core.enums.convert.EnumJsonDeserializer;
-import com.platform.mesh.core.enums.convert.EnumJsonSerializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+//import com.platform.mesh.core.enums.convert.EnumJsonDeserializer;
+//import com.platform.mesh.core.enums.convert.EnumJsonSerializer;
 import com.platform.mesh.core.exception.BaseException;
 import org.springframework.util.ObjectUtils;
 
@@ -18,8 +18,8 @@ import java.util.List;
  * @param <V> 枚举value的类型
  * @author 蝉鸣
  */
-@JsonSerialize(using = EnumJsonSerializer.class)
-@JsonDeserialize(using = EnumJsonDeserializer.class)
+//@JsonSerialize(using = EnumJsonSerializer.class)
+//@JsonDeserialize(using = EnumJsonDeserializer.class)
 public interface BaseExceptionEnum<E extends Enum<E>, V extends Serializable>{
 
     /**

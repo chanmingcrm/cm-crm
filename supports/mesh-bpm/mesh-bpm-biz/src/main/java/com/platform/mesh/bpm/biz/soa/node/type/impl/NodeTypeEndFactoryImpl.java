@@ -2,6 +2,7 @@ package com.platform.mesh.bpm.biz.soa.node.type.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.core.enums.bpm.ProcessPassEnum;
 import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
 import com.platform.mesh.bpm.biz.modules.inst.node.service.IBpmInstNodeService;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.bo.BpmInstNodePassBO;
@@ -10,11 +11,12 @@ import com.platform.mesh.bpm.biz.modules.inst.nodesub.service.IBpmInstNodeSubSer
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.bpm.biz.soa.node.run.factory.NodeRunFactory;
-import com.platform.mesh.bpm.biz.soa.process.pass.enums.ProcessPassEnum;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.bpm.biz.soa.process.run.ProcessRunService;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.NodeTypeService;
 import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;
+import com.platform.mesh.bpm.biz.soa.process.run.factory.ProcessRunFactory;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,9 @@ public class NodeTypeEndFactoryImpl implements NodeTypeService<BpmInstNode> {
 
     @Autowired
     private NodeRunFactory<BpmInstNode> nodeRunFactory;
+
+    @Autowired
+    private ProcessRunFactory<BpmInstProcess> processRunFactory;
 
     /**
      * 功能描述:
@@ -62,15 +67,21 @@ public class NodeTypeEndFactoryImpl implements NodeTypeService<BpmInstNode> {
         IBpmInstProcessService instProcessService = SpringContextHolderUtil.getBean(IBpmInstProcessService.class);
         BpmInstProcess bpmInstProcess = instProcessService.getById(instNode.getInstProcessId());
         bpmInstProcess.setRunFlag(ProcessRunEnum.END.getValue());
-        bpmInstProcess.setPassFlag(ProcessPassEnum.PASS.getValue());
+        //获取当前流程结束Pass状态
+        if(ProcessPassEnum.INIT.getValue().equals(bpmInstProcess.getPassFlag())){
+            bpmInstProcess.setPassFlag(ProcessPassEnum.PASS.getValue());
+        }
         instProcessService.updateById(bpmInstProcess);
+        //执行流程结束逻辑
+        ProcessRunService<BpmInstProcess> processRunService = processRunFactory.getProcessRunService(ProcessRunEnum.END);
+        processRunService.handle(bpmInstProcess);
         //设置流程下所有执行中的节点为初始状态
         instNodeService.lambdaUpdate()
                 .set(BpmInstNode::getRunFlag,NodeRunEnum.INIT.getValue())
                 .eq(BpmInstNode::getInstProcessId,instNode.getInstProcessId())
                 .eq(BpmInstNode::getRunFlag,NodeRunEnum.RUNNING.getValue())
                 .update();
-        //查询当前流程父节点，如果所有流程都结束则执行节点动作
+        //查询当前流程父节点
         IBpmInstNodeSubService instNodeSubService = SpringContextHolderUtil.getBean(IBpmInstNodeSubService.class);
         BpmInstNodeSub nodeSub = instNodeSubService.selectNodeSubByChildProcessId(instNode.getInstProcessId());
         if(ObjectUtil.isNotEmpty(nodeSub)){
@@ -78,7 +89,7 @@ public class NodeTypeEndFactoryImpl implements NodeTypeService<BpmInstNode> {
             nodeSub.setChildProcessRunFlag(ProcessRunEnum.END.getValue());
             nodeSub.setChildProcessPassFlag(ProcessPassEnum.PASS.getValue());
             instNodeSubService.updateById(nodeSub);
-            //执行父节点
+            //当前子流程已结束，执行父节点
             BpmInstNode bpmInstNode = instNodeService.getById(nodeSub.getInstNodeId());
             instNodeService.handleTargetNode(CollUtil.newArrayList(bpmInstNode));
         }

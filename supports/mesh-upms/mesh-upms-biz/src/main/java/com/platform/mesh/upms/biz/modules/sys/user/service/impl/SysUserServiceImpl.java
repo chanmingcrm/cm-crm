@@ -5,9 +5,13 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.security.utils.UserCacheUtil;
+import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysAccountInfoBO;
+import com.platform.mesh.upms.biz.modules.org.level.domain.po.OrgLevel;
 import com.platform.mesh.upms.biz.modules.sys.account.domain.po.SysAccount;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.dto.SysUserDTO;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.dto.SysUserPageDTO;
@@ -48,9 +52,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	@Override
 	public PageVO<SysUserVO> selectPage(SysUserPageDTO sysUserPageDTO) {
 		MPage<SysUser> mPage = MPageUtil.pageEntityToMPage(sysUserPageDTO, SysUser.class);
-		MPage<SysUser> page = this.getBaseMapper().selectMPage(mPage,sysUserPageDTO);
+		MPage<SysUserVO> page = this.getBaseMapper().selectMPage(mPage,sysUserPageDTO);
 		//封装用户信息
-		return sysUserServiceManual.packUserPackVO(page);
+		sysUserServiceManual.packUserVO(page.getRecords());
+        return MPageUtil.convertToVO(page, SysUserVO.class);
 	}
 
 	/**
@@ -62,11 +67,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	@Override
 	public SysAccountInfoBO getUserInfoByAccountCode(String accountCode, Integer sourceFlag) {
 		//根据账户名称获取帐户信息
-		SysAccount account = sysUserServiceManual.getByAccountCode(accountCode,sourceFlag);
+		SysAccountBO accountBO = sysUserServiceManual.getByAccountCode(accountCode,sourceFlag);
+		if(ObjectUtil.isEmpty(accountBO)){
+			return null;
+		}
 		//获取用户信息
-		SysUser sysUser = this.getById(account.getUserId());
+		SysUser sysUser = this.getById(accountBO.getUserId());
 		//获取VO
-		return sysUserServiceManual.getLoginUserInfoBO(sysUser, account);
+		return sysUserServiceManual.getLoginUserInfoBO(sysUser, accountBO);
 	}
 
 	/**
@@ -80,6 +88,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	public SysUserInfoVO getUserInfoByAccountId(Long accountId) {
 		//根据账户名称获取帐户信息
 		SysAccount account = sysUserServiceManual.getByAccountId(accountId);
+        if(ObjectUtil.isEmpty(account)){
+            return new SysUserInfoVO();
+        }
 		//获取用户信息
 		SysUser sysUser = this.getById(account.getUserId());
 		//获取VO
@@ -87,8 +98,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	}
 
 	@Override
-	public SysUser getUserById(Long userId) {
-		return getById(userId);
+	public SysUserVO getUserById(Long userId) {
+        SysUser sysUser = getById(userId);
+        return sysUserServiceManual.getUserVO(sysUser);
 	}
 
 	/***
@@ -107,13 +119,23 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 		SysUser user = BeanUtil.copyProperties(sysUserDTO,SysUser.class);
 		List<SysUser> sysUsers = this.lambdaQuery().eq(SysUser::getPhone, sysUserDTO.getPhone()).list();
 		if(CollUtil.isEmpty(sysUsers)){
+            user.setNickName(sysUserDTO.getUserName());
 			this.save(user);
 		}else{
 			user = CollUtil.getFirst(sysUsers);
+            user.setNickName(sysUserDTO.getUserName());
+            this.updateById(user);
 		}
 		//添加账户
-		SysAccount sysAccount = sysUserServiceManual.initAccount(user);
-		return BeanUtil.copyProperties(user,SysUserVO.class);
+		OrgLevel level = sysUserServiceManual.getDefaultLevel(sysUserDTO.getPostIds());
+		List<SysAccount> sysAccounts = sysUserServiceManual.initAccount(user, level);
+		//添加人员与角色关系
+		sysUserServiceManual.initUserRoleRel(user.getUserId(),sysUserDTO.getRoleIds());
+		//添加人员与组织关系
+		sysUserServiceManual.initUserPostRel(user.getUserId(),sysUserDTO.getPostIds());
+        SysUserVO sysUserVO = BeanUtil.copyProperties(user, SysUserVO.class);
+        sysUserVO.setUserName(user.getNickName());
+        return sysUserVO;
 	}
 
 	/***
@@ -127,7 +149,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	@Override
 	public SysUserVO editUser(SysUserDTO sysUserDTO) {
 		SysUser user = BeanUtil.copyProperties(sysUserDTO,SysUser.class);
+        user.setNickName(sysUserDTO.getUserName());
 		updateById(user);
+		//同步修改账户，手机号
+		sysUserServiceManual.editPhone(user.getUserId(),sysUserDTO.getPhone());
+		//同步修改账户，成员昵称
+		sysUserServiceManual.editNickName(user.getUserId(),sysUserDTO.getUserName());
+		//添加人员与角色关系
+		sysUserServiceManual.initUserRoleRel(user.getUserId(),sysUserDTO.getRoleIds());
+		//添加人员与组织关系
+		sysUserServiceManual.initUserPostRel(user.getUserId(),sysUserDTO.getPostIds());
+		//清除缓存
+		UserCacheUtil.clearSysAccountInfoCache(UserCacheUtil.getAccountId());
 		return BeanUtil.copyProperties(user,SysUserVO.class);
 	}
 
@@ -141,7 +174,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 	 */
 	@Override
 	public Boolean deleteSysUser(Long userId) {
-		return removeById(userId);
+        //删除账号
+        sysUserServiceManual.delAccount(userId);
+        //删除成员
+        sysUserServiceManual.delMember(userId);
+        //设置人员账号为已删除
+        return lambdaUpdate().set(SysUser::getDelFlag, YesOrNoEnum.NO.getValue()).eq(SysUser::getUserId,userId).update();
+	}
+
+	@Override
+	public List<Long> getUserIdsByModules(List<Long> moduleIds) {
+		if (CollUtil.isEmpty(moduleIds)) {
+			return CollUtil.newArrayList();
+		}
+		return getBaseMapper().getUserIdsByModules(moduleIds);
 	}
 
 }

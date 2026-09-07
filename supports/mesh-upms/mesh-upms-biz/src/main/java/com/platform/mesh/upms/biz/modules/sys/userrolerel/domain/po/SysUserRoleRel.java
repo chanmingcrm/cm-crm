@@ -28,6 +28,7 @@ public class SysUserRoleRel extends BasePO {
 	 */
 	@TableId(value = "id",type = IdType.ASSIGN_ID)
 	private Long id;
+
 	/**
 	 * 用户ID
 	 */
@@ -36,6 +37,11 @@ public class SysUserRoleRel extends BasePO {
 	 * 角色ID
 	 */
 	private Long roleId;
+
+	/**
+	 * 初始化标识
+	 */
+	private Integer initFlag;
 
 	/**
 	 * 创建人
@@ -48,17 +54,5 @@ public class SysUserRoleRel extends BasePO {
 	 */
 	@TableField(fill = FieldFill.INSERT)
 	private LocalDateTime createTime;
-
-	/**
-	 * 用户ID
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Long scopeUserId;
-
-	/**
-	 * 组织ID
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Long scopeOrgId;
 
 }

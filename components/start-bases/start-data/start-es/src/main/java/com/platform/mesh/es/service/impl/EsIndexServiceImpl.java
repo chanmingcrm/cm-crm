@@ -14,6 +14,7 @@ import co.elastic.clients.transport.endpoints.BooleanResponse;
 import co.elastic.clients.util.NamedValue;
 import com.platform.mesh.core.constants.DateConst;
 import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.es.constant.EsConst;
 import com.platform.mesh.es.domain.bo.EsIndexMappingBO;
 import com.platform.mesh.es.domain.bo.EsIndexSettingBO;
@@ -86,14 +87,14 @@ public class EsIndexServiceImpl implements IEsIndexService {
      * 功能描述:
      * 〈获取索引〉
      * @param indexNames indexNames
-     * @return 正常返回:{@link Map<String,IndexState>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, IndexState> getIndex(List<String> indexNames){
         GetIndexRequest request = GetIndexRequest.of(builder -> builder.index(indexNames));
         try {
             GetIndexResponse getIndexResponse = elasticsearchClient.indices().get(request);
-            return getIndexResponse.result();
+            return getIndexResponse.indices();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -170,8 +171,9 @@ public class EsIndexServiceImpl implements IEsIndexService {
         PutMappingRequest request = PutMappingRequest.of(builder -> builder
                 .index(esIndexMappingBO.getIndexName())
                 .dynamic(DynamicMapping.True)
-                .dynamicDateFormats(CollUtil.toList(DateConst.PARSE_PATTERNS))
-                .dynamicTemplates(setDynamicTemplate())
+                //dynamicDateFormats优先级最高,匹配后将固定格式无法多格式解析时间和DynamicTemplate动态模板中时间解析冲突
+//                .dynamicDateFormats(CollUtil.toList(DateConst.PARSE_PATTERNS))
+                .dynamicTemplates(this.setDynamicTemplate())
                 .properties(esIndexMappingBO.getProperties()));
         try {
             PutMappingResponse putMappingResponse = elasticsearchClient.indices().putMapping(request);
@@ -185,14 +187,14 @@ public class EsIndexServiceImpl implements IEsIndexService {
      * 功能描述:
      * 〈获取索引映射〉
      * @param indexNames indexNames
-     * @return 正常返回:{@link Map<String,IndexMappingRecord>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, IndexMappingRecord> getMapping(List<String> indexNames){
         GetMappingRequest request = GetMappingRequest.of(builder -> builder.index(indexNames));
         try {
             GetMappingResponse response = elasticsearchClient.indices().getMapping(request);
-            return response.result();
+            return response.mappings();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -202,7 +204,7 @@ public class EsIndexServiceImpl implements IEsIndexService {
     /**
      * 功能描述:
      * 〈设置索引分词器配置〉
-     * @return 正常返回:{@link Map<String,Analyzer>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, Analyzer> setAnalyzer(){
@@ -217,7 +219,7 @@ public class EsIndexServiceImpl implements IEsIndexService {
     /**
      * 功能描述:
      * 〈设置索引规范化器配置〉
-     * @return 正常返回:{@link Map<String,Normalizer>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, Normalizer> setNormalizer(){
@@ -237,18 +239,20 @@ public class EsIndexServiceImpl implements IEsIndexService {
      */
     public List<NamedValue<DynamicTemplate>> setDynamicTemplate(){
         List<NamedValue<DynamicTemplate>> templates = CollUtil.newArrayList();
+        //模板具有顺序,动态字段将根据从上到下解析，匹配后返回不再向下继续匹配
         templates.add(setIdDynamicTemplate());
-        templates.add(setStringDynamicTemplate());
         templates.add(setNumDynamicTemplate());
         templates.add(setDateDynamicTemplate());
         templates.add(setListDynamicTemplate());
+        templates.add(setTextDynamicTemplate());
+        templates.add(setKeyDynamicTemplate());
         return templates;
     }
 
     /**
      * 功能描述:
      * 〈设置字符串转Long类型〉
-     * @return 正常返回:{@link Map<String,DynamicTemplate>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public NamedValue<DynamicTemplate> setIdDynamicTemplate(){
@@ -268,7 +272,7 @@ public class EsIndexServiceImpl implements IEsIndexService {
      * @return 正常返回:{@link NamedValue<DynamicTemplate>}
      * @author 蝉鸣
      */
-    public NamedValue<DynamicTemplate> setStringDynamicTemplate(){
+    public NamedValue<DynamicTemplate> setTextDynamicTemplate(){
         //文本映射
         Property property = TextProperty.of(builder -> builder
                 .analyzer(EsConst.ANALYZER_ICU)
@@ -279,9 +283,26 @@ public class EsIndexServiceImpl implements IEsIndexService {
         )._toProperty();
         DynamicTemplate dynamicTemplate = DynamicTemplate.of(builder -> builder
                 .matchMappingType(EsConst.MAPPING_TYPE_STR)
+                .match(EsConst.MAPPING_MATCH_TEXT,EsConst.MAPPING_MATCH_TEXTAREA,EsConst.MAPPING_MATCH_TEXT_MULTI,EsConst.MAPPING_PREFIX_SIGN)
                 .mapping(property)
         );
-        return NamedValue.of(EsConst.MAPPING_TEMP_STR, dynamicTemplate);
+        return NamedValue.of(EsConst.MAPPING_TEMP_TEXT, dynamicTemplate);
+    }
+
+    /**
+     * 功能描述:
+     * 〈设置字符串转关键字类型〉
+     * @return 正常返回:{@link NamedValue<DynamicTemplate>}
+     * @author 蝉鸣
+     */
+    public NamedValue<DynamicTemplate> setKeyDynamicTemplate(){
+        //文本映射
+        Property property = KeywordProperty.of(builder -> builder)._toProperty();
+        DynamicTemplate dynamicTemplate = DynamicTemplate.of(builder -> builder
+                .matchMappingType(EsConst.MAPPING_TYPE_STR)
+                .mapping(property)
+        );
+        return NamedValue.of(EsConst.MAPPING_TEMP_KEY, dynamicTemplate);
     }
 
     /**
@@ -292,10 +313,10 @@ public class EsIndexServiceImpl implements IEsIndexService {
      */
     public NamedValue<DynamicTemplate> setNumDynamicTemplate(){
         //文本映射
-        Property property = DynamicProperty.of(builder -> builder)._toProperty();
+        Property property = DoubleNumberProperty.of(builder -> builder)._toProperty();
         DynamicTemplate dynamicTemplate = DynamicTemplate.of(builder -> builder
-                .matchMappingType(EsConst.MAPPING_TYPE_STR)
-                .match(EsConst.MAPPING_MATCH_NUM)
+                .matchMappingType(EsConst.MAPPING_TYPE_OBJ)
+                .match(EsConst.MAPPING_MATCH_NUM,EsConst.MAPPING_MATCH_MONEY)
                 .mapping(property)
         );
         return NamedValue.of(EsConst.MAPPING_TEMP_NUM, dynamicTemplate);
@@ -309,13 +330,14 @@ public class EsIndexServiceImpl implements IEsIndexService {
      */
     public NamedValue<DynamicTemplate> setDateDynamicTemplate(){
         //文本映射
+        String join = String.join(SymbolConst.OR, DateConst.PARSE_PATTERNS);
         Property property = DateProperty.of(builder -> {
-            builder.format(DateConst.ES_YYYY_MM__DD__HH_MM_SS);
+            builder.format(join);
             return builder;
         })._toProperty();
         DynamicTemplate dynamicTemplate = DynamicTemplate.of(builder -> builder
                 .matchMappingType(EsConst.MAPPING_TYPE_STR)
-                .match(EsConst.MAPPING_MATCH_TIME)
+                .match(EsConst.MAPPING_MATCH_DATE,EsConst.MAPPING_MATCH_TIME)
                 .mapping(property)
         );
         return NamedValue.of(EsConst.MAPPING_TEMP_TIME, dynamicTemplate);
@@ -329,10 +351,10 @@ public class EsIndexServiceImpl implements IEsIndexService {
      */
     public NamedValue<DynamicTemplate> setListDynamicTemplate(){
         //文本映射
-        Property property = NestedProperty.of(builder -> builder)._toProperty();
+        Property property = FlattenedProperty.of(builder -> builder)._toProperty();
         DynamicTemplate dynamicTemplate = DynamicTemplate.of(builder -> builder
                 .matchMappingType(EsConst.MAPPING_TYPE_OBJ)
-                .match(EsConst.MAPPING_MATCH_JSON)
+                .match(EsConst.MAPPING_MATCH_JSON,EsConst.MAPPING_MATCH_ARRAY)
                 .mapping(property)
         );
         return NamedValue.of(EsConst.MAPPING_TEMP_JSON, dynamicTemplate);

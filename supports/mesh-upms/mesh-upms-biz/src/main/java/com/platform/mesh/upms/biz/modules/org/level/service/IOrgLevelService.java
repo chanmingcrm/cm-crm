@@ -56,6 +56,15 @@ public interface IOrgLevelService extends IService<OrgLevel> {
      * @return 正常返回:{@link OrgLevelVO}
      * @author 蝉鸣
      */
+    OrgLevel getLevelById(Long levelId);
+
+    /**
+     * 功能描述:
+     * 〈获取当前组织信息〉
+     * @param levelId levelId
+     * @return 正常返回:{@link OrgLevelVO}
+     * @author 蝉鸣
+     */
     OrgLevelVO getLevelInfoById(Long levelId);
 
     /**
@@ -102,5 +111,22 @@ public interface IOrgLevelService extends IService<OrgLevel> {
      * @author 蝉鸣
      */
     Boolean deleteLevel(List<Long> levelIds);
+
+    /**
+     * 功能描述:
+     * 〈初始化组织〉
+     * @param sysUser sysUser
+     * @author 蝉鸣
+     */
+    OrgLevel initTenantOrg(SysUser sysUser);
+
+    /**
+     * 功能描述:
+     * 〈获取人员默认组织〉
+     * @param userId userId
+     * @param tenantId tenantId
+     * @author 蝉鸣
+     */
+    OrgLevel getOrgInfoByUserId(Long userId, Long tenantId);
 }
 

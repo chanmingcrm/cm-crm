@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段事件DTO")
+@Schema(description ="表单字段事件DTO")
 public class AppFormColumnSetProcessDTO extends BaseDTO {
 
 

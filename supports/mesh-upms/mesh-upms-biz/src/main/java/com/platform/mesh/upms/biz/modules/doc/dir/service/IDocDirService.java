@@ -1,13 +1,11 @@
 package com.platform.mesh.upms.biz.modules.doc.dir.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.dto.DocDirDTO;
+import com.platform.mesh.upms.biz.modules.doc.dir.domain.dto.DocDirPageDTO;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.po.DocDir;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.vo.DocDirVO;
-
-import java.util.List;
-
-
 
 
 /**
@@ -17,6 +15,14 @@ import java.util.List;
  */
 public interface IDocDirService extends IService<DocDir> {
 
+    /**
+     * 功能描述:
+     * 〈获取官网目录〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link MPage<DocDir>}
+     * @author 蝉鸣
+     */
+    MPage<DocDir> selectHomePage(DocDirPageDTO pageDTO);
 
     /**
      * 功能描述:
@@ -53,4 +59,12 @@ public interface IDocDirService extends IService<DocDir> {
      * @author 蝉鸣
      */
     Boolean deleteDir(Long dirId);
+
+    /**
+     * 功能描述:
+     * 〈获取开放文件夹〉
+     * @return 正常返回:{@link DocDir}
+     * @author 蝉鸣
+     */
+    DocDir getOneOpenDir();
 }

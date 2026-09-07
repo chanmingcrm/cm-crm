@@ -3,6 +3,7 @@ package com.platform.mesh.es.service;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.es.domain.bo.EsDocGetBO;
 import com.platform.mesh.es.domain.bo.EsDocPutBO;
+import com.platform.mesh.es.domain.dto.EsDocUGetDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,15 @@ public interface IEsDocService {
 
     /**
      * 功能描述:
+     * 〈是否存在文档〉
+     * @param moduleIndex moduleIndex
+     * @param docMap docMap
+     * @author 蝉鸣
+     */
+    Object getExistData(String moduleIndex, Map<String, Object> docMap);
+
+    /**
+     * 功能描述:
      * 〈获取文档〉
      * @param indexName indexName
      * @param dataId dataId
@@ -80,6 +90,16 @@ public interface IEsDocService {
      * @author 蝉鸣
      */
     Object getDocumentById(String indexName,Object dataId);
+
+    /**
+     * 功能描述:
+     * 〈获取文档〉
+     * @param indexName indexName
+     * @param dataIds dataIds
+     * @return 正常返回:{@link List<Object>}
+     * @author 蝉鸣
+     */
+    List<Object> getDocumentByIds(String indexName,List<?> dataIds);
 
     /**
      * 功能描述:
@@ -99,6 +119,15 @@ public interface IEsDocService {
      * @author 蝉鸣
      */
     PageVO<Object> searchDocument(EsDocGetBO esDocGetBO);
+
+
+    /**
+     * 功能描述:
+     * 〈联合查询〉
+     * @param esDocUGetDTO uniQueryBO
+     * @author 蝉鸣
+     */
+    PageVO<Object> uniDocument(EsDocUGetDTO esDocUGetDTO);
 
 
 }

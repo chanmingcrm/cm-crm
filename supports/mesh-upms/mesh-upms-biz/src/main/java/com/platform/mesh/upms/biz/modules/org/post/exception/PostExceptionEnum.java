@@ -15,6 +15,8 @@ public enum PostExceptionEnum implements BaseExceptionEnum<PostExceptionEnum, St
      */
     ADD_NO_ARGS("org-post",500, null,  "层级参数为空"),
     ADD_NO_INVALID("org-post",501, null,  "层级参数异常"),
+    ADD_EXIST_LEAD("org-post",502, null,  "当前组织下已经存在决策岗位"),
+    ADD_EXIST_LEAD_NUM("org-post",503, null,  "当前岗位下的成员数量大于1人"),
     ;
 
     /**

@@ -33,28 +33,52 @@ public class CrmOnContractVO extends AppVO {
     private Long businessId;
 
     /**
-     * 订单ID
-     */
-    @Schema(description = "订单ID")
-    private Long orderId;
-
-    /**
      * 总计金额
      */
     @Schema(description = "总计金额")
-    private BigDecimal totalMoney;
+    private BigDecimal totalMoney = BigDecimal.ZERO;
 
     /**
      * 折扣金额
      */
     @Schema(description = "实际金额")
-    private BigDecimal discountMoney;
+    private BigDecimal discountMoney = BigDecimal.ZERO;
 
     /**
      * 实际金额
      */
     @Schema(description = "实际金额")
-    private BigDecimal realMoney;
+    private BigDecimal realMoney = BigDecimal.ZERO;
+
+    /**
+     * 成本金额
+     */
+    @Schema(description = "成本金额")
+    private BigDecimal costMoney = BigDecimal.ZERO;
+
+    /**
+     * 已收金额
+     */
+    @Schema(description = "已收金额")
+    private BigDecimal receivedMoney = BigDecimal.ZERO;
+
+    /**
+     * 未收金额
+     */
+    @Schema(description = "未收金额")
+    private BigDecimal unreceivedMoney = BigDecimal.ZERO;
+
+    /**
+     * 发票金额
+     */
+    @Schema(description = "发票金额")
+    private BigDecimal invoiceMoney = BigDecimal.ZERO;
+
+    /**
+     * 利润金额
+     */
+    @Schema(description = "利润金额")
+    private BigDecimal profitMoney = BigDecimal.ZERO;
 
     /**
      * 开始时间

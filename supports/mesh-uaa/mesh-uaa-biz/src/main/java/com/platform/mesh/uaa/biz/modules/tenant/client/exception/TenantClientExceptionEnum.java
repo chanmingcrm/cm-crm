@@ -6,10 +6,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 
  /**
- * @description 授权客户端系统关系异常枚举
+ * @description 授权客户端租户关系异常枚举
  * @author 蝉鸣
  */
-@Schema(description = "授权客户端系统关系异常枚举",enumAsRef = true)
+@Schema(description = "授权客户端租户关系异常枚举",enumAsRef = true)
 public enum TenantClientExceptionEnum implements BaseExceptionEnum<TenantClientExceptionEnum, String>  {
 
      /**

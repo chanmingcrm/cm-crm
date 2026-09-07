@@ -15,8 +15,11 @@
             LEFT JOIN bpm_data_form_rel fr ON p.id = fr.temp_process_id
         <where>
             p.temp_root_id = 0
-            <if test="pageDTO.groupId != null">
-                AND gr.group_id = #{pageDTO.groupId}
+            <if test="(pageDTO.groupIds != null and pageDTO.groupIds.size() > 0)">
+                AND gr.group_id IN
+                <foreach collection="pageDTO.groupIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
             </if>
             <if test="pageDTO.moduleId != null">
                 AND fr.module_id = #{pageDTO.moduleId}
@@ -31,5 +34,13 @@
                 AND p.process_name LIKE CONCAT('%',#{pageDTO.processName},'%')
             </if>
         </where>
+    </select>
+
+    <select id="selectTenantList"
+            resultType="com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess">
+            SELECT
+                *
+            FROM
+                bpm_temp_process
     </select>
 </mapper>

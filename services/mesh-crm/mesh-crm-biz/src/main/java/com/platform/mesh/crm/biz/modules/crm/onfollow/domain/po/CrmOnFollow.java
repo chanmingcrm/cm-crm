@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
  * @description 客户关系跟进拜访DTO
  * @author 蝉鸣
@@ -18,13 +20,9 @@ public class CrmOnFollow extends AppPO {
 
 
     /**
-     * 关联模块ID
+     * 下次提醒时间
      */
-    private Long relModuleId;
+    private LocalDateTime nextTime;
 
-    /**
-     * 关联数据ID
-     */
-    private Long relDataId;
 
 }

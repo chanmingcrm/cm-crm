@@ -109,4 +109,5 @@ public class DictValue extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }

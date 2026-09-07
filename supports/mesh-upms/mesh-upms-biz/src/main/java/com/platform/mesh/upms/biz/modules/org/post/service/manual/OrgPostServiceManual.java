@@ -3,8 +3,12 @@ package com.platform.mesh.upms.biz.modules.org.post.service.manual;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.core.enums.data.DataFlagEnum;
 import com.platform.mesh.core.enums.data.DataScopeEnum;
+import com.platform.mesh.redis.service.constants.CacheConstants;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.biz.modules.org.level.domain.po.OrgLevel;
 import com.platform.mesh.upms.biz.modules.org.level.service.IOrgLevelService;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.dto.OrgLevelPostRelAddDTO;
@@ -13,6 +17,7 @@ import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.vo.OrgLevelPos
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.service.IOrgLevelPostRelService;
 import com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.po.OrgMemberPostRel;
 import com.platform.mesh.upms.biz.modules.org.memberpostrel.service.IOrgMemberPostRelService;
+import com.platform.mesh.upms.biz.modules.org.memberuserrel.exception.MemberUserRelExceptionEnum;
 import com.platform.mesh.upms.biz.modules.org.post.domain.dto.OrgPostAddDTO;
 import com.platform.mesh.upms.biz.modules.org.post.domain.dto.OrgPostEditDTO;
 import com.platform.mesh.upms.biz.modules.org.post.exception.PostExceptionEnum;
@@ -46,6 +51,9 @@ public class OrgPostServiceManual {
     private IOrgLevelPostRelService orgLevelPostRelService;
 
     @Autowired
+    private IOrgMemberPostRelService orgMemberPostRelService;
+
+    @Autowired
     private IOrgPostDataScopeService orgPostDataScopeService;
 
     /**
@@ -64,11 +72,23 @@ public class OrgPostServiceManual {
         if(ObjectUtil.isEmpty(orgLevel)) {
             throw PostExceptionEnum.ADD_NO_ARGS.getBaseException();
         }
+        //如果决策岗位,同级下决策岗位限制1
+        if(YesOrNoEnum.YES.getValue().equals(postDTO.getLeadFlag())){
+            //查询是否已经存在决策人
+            boolean existed = orgLevelPostRelService.lambdaQuery()
+                    .eq(OrgLevelPostRel::getLevelId,orgLevel.getId())
+                    .eq(OrgLevelPostRel::getLeadFlag,YesOrNoEnum.YES.getValue())
+                    .exists();
+            if(existed){
+                throw MemberUserRelExceptionEnum.ADD_EXIST_LEAD.getBaseException();
+            }
+        }
         //保存岗位层级关系信息
         OrgLevelPostRelAddDTO levelPostRel = new OrgLevelPostRelAddDTO();
         levelPostRel.setRootId(orgLevel.getRootId());
         levelPostRel.setLevelId(postDTO.getLevelId());
         levelPostRel.setPostIds(CollUtil.newArrayList(postId));
+        levelPostRel.setLeadFlag(postDTO.getLeadFlag());
         orgLevelPostRelService.addLevelPost(levelPostRel);
         //保存岗位数据权限信息
         if(CollUtil.isEmpty(postDTO.getPostDataScopes())){
@@ -100,14 +120,24 @@ public class OrgPostServiceManual {
     public void editPost(Long postId, OrgPostEditDTO postDTO) {
 
         //保存岗位层级关系信息
-        OrgLevelPostRel levelPostRel = orgLevelPostRelService.lambdaQuery()
-                .eq(OrgLevelPostRel::getLevelId,postDTO.getLevelId())
+        List<OrgLevelPostRel> levelPostRelList = orgLevelPostRelService.lambdaQuery()
                 .eq(OrgLevelPostRel::getPostId,postDTO.getPostId())
-                .list().getFirst();
-        if(ObjectUtil.isEmpty(levelPostRel)) {
+                .list();
+        if(CollUtil.isEmpty(levelPostRelList)) {
             String fieldName = ObjFieldUtil.getFieldName(OrgPostEditDTO::getPostId);
             throw PostExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(fieldName));
         }
+        //其余岗位设置非决策人
+        if(YesOrNoEnum.YES.getValue().equals(postDTO.getLeadFlag())){
+            //校验目标模块下是否只有一个人：决策人岗位只能是1个人
+            Long count = orgMemberPostRelService.lambdaQuery().eq(OrgMemberPostRel::getPostId,postDTO.getPostId()).count();
+            if(count > NumberConst.NUM_1){
+                throw PostExceptionEnum.ADD_EXIST_LEAD_NUM.getBaseException();
+            }
+            orgLevelPostRelService.lambdaUpdate().set(OrgLevelPostRel::getLeadFlag,YesOrNoEnum.NO.getValue())
+                    .eq(OrgLevelPostRel::getLevelId,postDTO.getLevelId()).update();
+        }
+        OrgLevelPostRel levelPostRel = CollUtil.getFirst(levelPostRelList);
         //验证层级是否有效
         IOrgLevelService orgLevelService = SpringContextHolderUtil.getBean(IOrgLevelService.class);
         OrgLevel orgLevel = orgLevelService.getById(postDTO.getLevelId());
@@ -117,13 +147,19 @@ public class OrgPostServiceManual {
         levelPostRel.setLevelRootId(orgLevel.getRootId());
         levelPostRel.setLevelId(postDTO.getLevelId());
         levelPostRel.setPostId(postId);
+        levelPostRel.setLeadFlag(postDTO.getLeadFlag());
         orgLevelPostRelService.updateById(levelPostRel);
         //保存岗位数据权限信息
         List<OrgPostDataScopeDTO> postDataScopes = postDTO.getPostDataScopes();
-        postDataScopes.forEach(orgPostDataScope -> {
-            orgPostDataScope.setPostId(postId);
-        });
+        postDataScopes.forEach(orgPostDataScope -> orgPostDataScope.setPostId(postId));
+        //修改权限
         orgPostDataScopeService.editPostDataScope(postDataScopes);
+        //修改成员关联岗位信息
+        orgMemberPostRelService.editMemberPostRel(levelPostRel);
+        //清除缓存
+        UserCacheUtil.delPrefixCache(CacheConstants.SYS_ACCOUNT_SCOPE);
+        //清楚账户组织信息
+        UserCacheUtil.delAccountOrgCache(UserCacheUtil.getAccountId());
     }
 
     /**

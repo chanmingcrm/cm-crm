@@ -11,13 +11,13 @@ import lombok.experimental.Accessors;
 import java.time.LocalDateTime;
 
 /**
- * @description 授权客户端系统关系DTO
+ * @description 授权客户端租户关系DTO
  * @author 蝉鸣
  */
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@TableName(value = "tenant_client", autoResultMap = true)
+@TableName(value = "oauth2_third_client", autoResultMap = true)
 public class TenantClient extends BasePO {
 
 

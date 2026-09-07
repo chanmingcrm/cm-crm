@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.ai.mcp.server.mapper.AiMcpServerMapper">
+
+    <select id="selectCurrentTenantPage"
+            resultType="com.platform.mesh.ai.biz.modules.ai.mcp.server.domain.po.AiMcpServer">
+        SELECT id, server_type, mcp_name, mcp_type, mcp_des, request_headers, server_url,
+               connect_timeout_seconds, request_timeout_seconds, status_flag, del_flag,
+               create_user_id, create_time, update_user_id, update_time, scope_user_id,
+               scope_org_id
+        FROM ai_mcp_server
+        WHERE (tenant_id = 0 OR tenant_id = #{tenantId})
+          AND del_flag = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectPlatformServer"
+            resultType="com.platform.mesh.ai.biz.modules.ai.mcp.server.domain.po.AiMcpServer">
+        SELECT id, server_type, mcp_name, mcp_type, mcp_des, request_headers, server_url,
+               connect_timeout_seconds,
+               request_timeout_seconds, status_flag, del_flag, create_user_id, create_time,
+               update_user_id, update_time, scope_user_id, scope_org_id, tenant_id
+        FROM ai_mcp_server
+        WHERE server_type = 1
+          AND status_flag = 1
+          AND del_flag = 1
+        ORDER BY id
+        LIMIT 1
+    </select>
+
+    <select id="selectEnabledExternalServers"
+            resultType="com.platform.mesh.ai.biz.modules.ai.mcp.server.domain.po.AiMcpServer">
+        SELECT id, server_type, mcp_name, mcp_type, mcp_des, request_headers, server_url,
+               connect_timeout_seconds, request_timeout_seconds, status_flag, del_flag,
+               create_user_id, create_time, update_user_id, update_time, scope_user_id,
+               scope_org_id, tenant_id
+        FROM ai_mcp_server
+        WHERE server_type = 2
+          AND status_flag = 1
+          AND del_flag = 1
+        ORDER BY id
+    </select>
+
+</mapper>

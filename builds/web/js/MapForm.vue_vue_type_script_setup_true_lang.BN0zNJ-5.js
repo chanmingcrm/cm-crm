@@ -1,0 +1,1 @@
+import{c_ as s,eR as a,cP as c,cT as e,c8 as o}from"./index.BfsrU8ll.js";const r={class:"w-full"},m=s({name:"MapForm",__name:"MapForm",setup:s=>(s,m)=>{const n=o;return a(),c("div",r,[e(n)])}});export{m as _};

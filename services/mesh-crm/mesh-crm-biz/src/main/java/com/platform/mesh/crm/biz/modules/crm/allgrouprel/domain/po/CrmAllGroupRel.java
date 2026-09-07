@@ -57,4 +57,5 @@ public class CrmAllGroupRel extends BasePO {
     */
     private Long scopeOrgId;
 
+
 }

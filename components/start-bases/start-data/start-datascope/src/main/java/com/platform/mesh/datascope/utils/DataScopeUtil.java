@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.core.enums.base.BaseEnum;
@@ -23,10 +23,7 @@ import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +35,7 @@ public class DataScopeUtil {
     /**
      * 功能描述:
      * 〈数据范围过滤〉
-     * @return 正常返回:{@link Map<Integer,Map<String,List<Long>>> }
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public static Map<Integer, Map<String, List<Long>>> handleDataScopeWithScope() {
@@ -61,7 +58,7 @@ public class DataScopeUtil {
      * 功能描述:
      * 〈数据范围过滤〉
      * @param accountId accountId
-     * @return 正常返回:{@link Map<Integer,Map<String,List<Long>>>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public static Map<Integer, Map<String, List<Long>>> dataScopeWithScope(Long accountId) {
@@ -72,7 +69,15 @@ public class DataScopeUtil {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.convertValue(
                     scopeCache,
-                    new TypeReference< Map<Integer, Map<String, java.util.List<Long>>> >() {}
+                    mapper.getTypeFactory().constructMapType(
+                            Map.class,
+                            mapper.getTypeFactory().constructType(Integer.class),
+                            mapper.getTypeFactory().constructMapType(
+                                    Map.class,
+                                    mapper.getTypeFactory().constructType(String.class),
+                                    mapper.getTypeFactory().constructCollectionType(List.class, Long.class)
+                            )
+                    )
             );
         }
         SysAccountBO userAccountCache = UserCacheUtil.getAccountInfoCache(accountId);
@@ -97,7 +102,7 @@ public class DataScopeUtil {
             //域map
             Map<String, List<Long>> scopeMap = new HashMap<>();
             //组织Ids
-            List<Long> levelIdList = CollUtil.newArrayList();
+            List<Long> levelIdList;
             //查询所在部门
             //包含下属部门
             if (DataScopeEnum.ALL.getValue().equals(dataScope) || DataScopeEnum.SUB.getValue().equals(dataScope)) {
@@ -138,10 +143,13 @@ public class DataScopeUtil {
      * @author 蝉鸣
      */
     public static void scopeMap(Map<String, List<Long>> scopeMap,String scopeName,List<Long> scopeList){
+        //0代表所有人都可看到的初始化数据
+        List<Long> mutableScopeList = new ArrayList<>(scopeList);
+        mutableScopeList.add(NumberConst.NUM_0.longValue());
         if(scopeMap.containsKey(scopeName)){
-            scopeMap.get(scopeName).addAll(scopeList);
+            scopeMap.get(scopeName).addAll(mutableScopeList);
         }else{
-            scopeMap.put(scopeName,scopeList);
+            scopeMap.put(scopeName,mutableScopeList);
         }
     }
 
@@ -215,13 +223,6 @@ public class DataScopeUtil {
      * @return 正常返回:{@link List<Long>}
      * @author 蝉鸣
      */
-
-    /**
-     * 功能描述:
-     * 〈解析BI搜索参数〉
-     * @param dataScope dataScope
-     * @author 蝉鸣
-     */
     public static ScopeBO parseBiDTO(Integer dataScope,Integer dataFlag,List<Long> dataIds) {
         ScopeBO scopeBO = new ScopeBO();
         scopeBO.setDataScope(dataScope);
@@ -243,14 +244,18 @@ public class DataScopeUtil {
                         levelIds.addAll(item.getLevelIds());
                     }
                     return levelIds.stream();
-                }).toList();
+                }).collect(Collectors.toList());
                 if(CollUtil.isEmpty(dataIds)){
+                    dataIds = CollUtil.newArrayList(NumberConst.NUM_0.longValue(), loginUser.getUserId());
                     scopeBO.setDataFlag(DataFlagEnum.USER.getValue());
-                    scopeBO.setDataIds(CollUtil.newArrayList(loginUser.getUserId()));
+                    scopeBO.setDataIds(dataIds);
                     return scopeBO;
                 }
+                //O 代表无限制的数据
+                dataIds.add(NumberConst.NUM_0.longValue());
                 scopeBO.setDataFlag(DataFlagEnum.ORG.getValue());
                 scopeBO.setDataIds(dataIds);
+                return scopeBO;
             }
             case LEVEL:{
                 //获取当前人员的同级部门
@@ -259,12 +264,16 @@ public class DataScopeUtil {
                 List<SysOrgBO> accountOrgCache = UserCacheUtil.getAccountOrgCache(accountBO.getAccountId());
                 dataIds = accountOrgCache.stream().map(SysOrgBO::getLevelId).distinct().toList();
                 if(CollUtil.isEmpty(dataIds)){
+                    dataIds = CollUtil.newArrayList(NumberConst.NUM_0.longValue(), loginUser.getUserId());
                     scopeBO.setDataFlag(DataFlagEnum.USER.getValue());
-                    scopeBO.setDataIds(CollUtil.newArrayList(loginUser.getUserId()));
+                    scopeBO.setDataIds(dataIds);
                     return scopeBO;
                 }
+                //O 代表无限制的数据
+                dataIds.add(NumberConst.NUM_0.longValue());
                 scopeBO.setDataFlag(DataFlagEnum.ORG.getValue());
                 scopeBO.setDataIds(dataIds);
+                return scopeBO;
             }
             case CUSTOM:{
                 if(CollUtil.isEmpty(scopeBO.getDataIds())){
@@ -275,7 +284,7 @@ public class DataScopeUtil {
                 }
                 //去除非下属人员
                 LoginUserBO loginUser = Objects.requireNonNull(UserCacheUtil.getLoginUser());
-                SysAccountBO accountBO = UserCacheUtil.getAccountInfoCache(loginUser.getUserId());
+                SysAccountBO accountBO = UserCacheUtil.getAccountInfoCache(loginUser.getAccountId());
                 List<OrgMemberRelBO> accountChildCache = UserCacheUtil.getAccountChildCache(accountBO.getAccountId());
                 if(CollUtil.isEmpty(accountChildCache)){
                     //判断是否包含当前人员

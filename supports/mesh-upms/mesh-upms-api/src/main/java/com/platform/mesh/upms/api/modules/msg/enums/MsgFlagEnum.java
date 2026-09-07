@@ -31,6 +31,10 @@ public enum MsgFlagEnum implements BaseEnum<MsgFlagEnum, Integer> {
      * 日程类型
      */
     PLAN_TODO(4,401,  "日程计划"),
+    /**
+     * 加入团队
+     */
+    TEAM_JOIN(5,501,  "加入团队"),
     ;
 
 

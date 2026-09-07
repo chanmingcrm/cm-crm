@@ -1,13 +1,12 @@
 package com.platform.mesh.upms.biz.modules.sys.account.controller;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONObject;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
 import com.platform.mesh.upms.biz.modules.sys.account.domain.dto.*;
-import com.platform.mesh.upms.biz.modules.sys.account.domain.po.SysAccount;
 import com.platform.mesh.upms.biz.modules.sys.account.domain.vo.AccountVO;
 import com.platform.mesh.upms.biz.modules.sys.account.domain.vo.SysAccountVO;
 import com.platform.mesh.upms.biz.modules.sys.account.service.ISysAccountService;
@@ -47,6 +46,20 @@ public class SysAccountController extends BaseController {
 		return Result.success(sysUserAccountService.selectPage(accountPageDTO));
 	}
 
+    /**
+     * 功能描述:
+     * 〈获取账户详情〉
+     * @param openId openId
+     * @return 正常返回:{@link Result<SysAccountVO>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取账户信息")
+    @GetMapping("/account/get/{openId}")
+    public Result<SysAccountVO> getByOpenId(@PathVariable("openId") Long openId) {
+        SysAccountVO sysAccountVO = sysUserAccountService.getByOpenId(openId);
+        return Result.success(sysAccountVO);
+    }
+
 	/**
 	 * 功能描述:
 	 * 〈获取账户详情〉
@@ -55,12 +68,12 @@ public class SysAccountController extends BaseController {
 	 * @author 蝉鸣
 	 */
 	@Operation(summary = "获取账户信息")
-	@GetMapping("/account/get/{accountId}")
-//	@PreAuthorize("@rolePermission.hasPermi('upms:account:info')")
-	public Result<SysAccountVO> getByOpenId(@PathVariable("accountId") Long accountId) {
-		SysAccountVO sysAccountVO = sysUserAccountService.getByOpenId(accountId);
+	@GetMapping("/account/get/by/{accountId}")
+	public Result<SysAccountVO> getByAccountId(@PathVariable("accountId") Long accountId) {
+		SysAccountVO sysAccountVO = sysUserAccountService.getByAccountId(accountId);
 		return Result.success(sysAccountVO);
 	}
+
 
 	/**
 	 * 功能描述:
@@ -92,12 +105,12 @@ public class SysAccountController extends BaseController {
 
 	/**
 	 * 功能描述:
-	 * 〈切换账户/成本中心〉
+	 * 〈切换账户租户/成本中心〉
 	 * @param changeDTO changeDTO
 	 * @return 正常返回:{@link Result<Boolean>}
 	 * @author 蝉鸣
 	 */
-	@Operation(summary = "切换账户/成本中心")
+	@Operation(summary = "切换账户租户/成本中心")
 	@PostMapping("/account/change")
 //	@PreAuthorize("@rolePermission.hasPermi('upms:account:edit')")
 	public Result<Boolean> changeAccount(@RequestBody AccountChangeDTO changeDTO) {
@@ -157,6 +170,47 @@ public class SysAccountController extends BaseController {
 	@PostMapping("/account/source/list")
 	public Result<JSONObject> selectAccountSourceList() {
 		return Result.success(sysUserAccountService.selectAccountSourceList());
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈绑定租户授权账户〉
+	 * @param bindDTO bindDTO
+	 * @return 正常返回:{@link Result<Boolean>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "绑定租户授权账户")
+	@PostMapping("/account/bind/tenant/by/auth")
+	public Result<Boolean> bindByTenantAuth(@RequestBody AccountBindDTO bindDTO) {
+		return Result.success(sysUserAccountService.bindByTenantAuth(bindDTO));
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈查询已经绑定的账户类型〉
+	 * @return 正常返回:{@link Result<List<Integer>>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "查询已经绑定的账户类型")
+	@PostMapping("/account/bind/source/type")
+	public Result<List<Integer>> bindSourceType() {
+		Long userId = UserCacheUtil.getUserId();
+		return Result.success(sysUserAccountService.bindSourceType(userId));
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈查询已经绑定的账户类型〉
+	 * @param sourceFlag sourceFlag
+	 * @return 正常返回:{@link Result<Void>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "查询已经绑定的账户类型")
+	@PostMapping("/account/un/bind")
+	public Result<Void> unBindAccount(@RequestParam("sourceFlag") Integer sourceFlag) {
+		Long userId = UserCacheUtil.getUserId();
+		sysUserAccountService.unBindAccount(sourceFlag,userId);
+		return Result.success();
 	}
 
 }

@@ -62,6 +62,14 @@ public enum LogicRefEnum implements BaseEnum<LogicRefEnum, Integer> {
      * 不在条件之内
      */
     NOT_IN(12,  "非条件之内"),
+    /**
+     * 存在
+     */
+    EXIST(13,  "存在"),
+    /**
+     * 不存在
+     */
+    NOT_EXIST(14,  "不存在"),
     ;
 
     private final Integer value;

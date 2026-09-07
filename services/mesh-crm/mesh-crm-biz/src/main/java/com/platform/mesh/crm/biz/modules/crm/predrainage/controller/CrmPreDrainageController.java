@@ -1,14 +1,14 @@
 package com.platform.mesh.crm.biz.modules.crm.predrainage.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.dto.CheckDTO;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO;
+import com.platform.mesh.crm.biz.modules.crm.predrainage.domain.dto.CrmPreDrainageGetDTO;
 import com.platform.mesh.crm.biz.modules.crm.predrainage.domain.po.CrmPreDrainage;
 import com.platform.mesh.crm.biz.modules.crm.predrainage.domain.vo.CrmPreDrainageVO;
 import com.platform.mesh.crm.biz.modules.crm.predrainage.service.ICrmPreDrainageService;
@@ -17,6 +17,7 @@ import com.platform.mesh.es.domain.dto.EsDocEGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocSGetDTO;
 import com.platform.mesh.log.annotation.Log;
+import com.platform.mesh.upms.api.modules.conf.domian.bo.ConfSysSetBO;
 import com.platform.mesh.utils.excel.ExcelUtil;
 import com.platform.mesh.utils.excel.dto.HeadDTO;
 import com.platform.mesh.utils.result.Result;
@@ -113,7 +114,7 @@ public class CrmPreDrainageController extends BaseController{
     @Log(moduleName = "客户关系活动引流管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/drainage/edit")
     public Result<CrmPreDrainageVO> editPreDrainage(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreDrainage crmPreDrainage = crmPreDrainageService.editData(dataEditDTO, CrmPreDrainage.class);
+        CrmPreDrainage crmPreDrainage = crmPreDrainageService.editData(dataEditDTO, CrmPreDrainage.class, CrmPreDrainageData.class);
         return Result.success(BeanUtil.copyProperties(crmPreDrainage, CrmPreDrainageVO.class));
     }
     
@@ -183,8 +184,12 @@ public class CrmPreDrainageController extends BaseController{
     @Operation(summary = "导入客户关系活动引流")
     @Log(moduleName = "客户关系活动引流管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/drainage/import")
-    public Result<Boolean> importPreDrainage(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreDrainageService.importData(moduleId,formId,file, CrmPreDrainage.class, CrmPreDrainageData.class));
+    public Result<ImportVO> importPreDrainage(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreDrainageService.importData(importDTO, CrmPreDrainage.class, CrmPreDrainageData.class));
     }
     
     /**
@@ -203,4 +208,53 @@ public class CrmPreDrainageController extends BaseController{
             } ,exportDTO.getHeadDTOS(),exportDTO.getModuleName(),response
         );
     }
+
+    /**
+     * 功能描述:
+     * 〈查重客户关系活动引流〉
+     * @param checkDTO checkDTO
+     * @author 蝉鸣
+     */
+    @Operation(summary = "查重客户关系活动引流")
+    @PostMapping("/crm/pre/drainage/check")
+    public Result<List<CheckVO>> checkPreDrainage(@RequestBody CheckDTO checkDTO) {
+        List<CheckVO> page = crmPreDrainageService.checkPreDrainage(checkDTO);
+        return Result.success(page);
+    }
+
+    /**
+     * 功能描述:
+     * 〈同步抖音线索〉
+     * @author 蝉鸣
+     */
+    @Operation(summary = "同步抖音线索")
+    @PostMapping("/crm/pre/drainage/sync/douyin")
+    public Result<Void> syncDouYinClue(@RequestBody ConfSysSetBO sysSetBO) {
+        crmPreDrainageService.syncDouYinClue(sysSetBO);
+        return Result.success();
+    }
+
+    /**
+     * 功能描述:
+     * 〈同步企微线索〉
+     * @author 蝉鸣
+     */
+    @Operation(summary = "同步企微线索")
+    @PostMapping("/crm/pre/drainage/sync/wxwork")
+    public Result<Void> syncWxWorkContact(@RequestBody ConfSysSetBO sysSetBO) {
+        crmPreDrainageService.syncWxWorkContact(sysSetBO);
+        return Result.success();
+    }
+
+    /**
+     * 功能描述:
+     * 〈根据第三方ID查询线索/客户信息〉
+     * @author 蝉鸣
+     */
+    @Operation(summary = "根据第三方ID查询线索/客户信息")
+    @PostMapping("/crm/pre/drainage/get/by/third")
+    public Result<Object> getByThirdId(@RequestBody CrmPreDrainageGetDTO getDTO) {
+        return Result.success(crmPreDrainageService.getByThirdId(getDTO));
+    }
+
 }

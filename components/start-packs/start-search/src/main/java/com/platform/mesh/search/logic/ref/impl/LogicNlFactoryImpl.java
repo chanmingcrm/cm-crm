@@ -87,15 +87,17 @@ public class LogicNlFactoryImpl implements LogicRefService {
         if (ObjectUtil.isEmpty(condDTO.getColumnMac())) {
             return null;
         }
-        Query query = QueryBuilders.bool().mustNot(mn -> {
-            mn.wildcard(wc -> {
+        if(isJson(condDTO.getCompMac())){
+            return QueryBuilders.bool(bool->bool.mustNot(not->not.matchPhrase(wc->{
                 wc.field(condDTO.getColumnMac());
-                wc.value(CollUtil.getFirst(condDTO.getSearchValues()));
+                wc.query(CollUtil.getFirst(condDTO.getSearchValues()));
                 return wc;
-            });
-            return mn;
-        }).build()._toQuery();
-        log.debug("query: {}", query);
-        return query;
+            })));
+        }
+        return QueryBuilders.bool(bool->bool.mustNot(not->not.wildcard(wc->{
+            wc.field(condDTO.getColumnMac());
+            wc.value(CollUtil.getFirst(condDTO.getSearchValues()));
+            return wc;
+        })));
     }
 }

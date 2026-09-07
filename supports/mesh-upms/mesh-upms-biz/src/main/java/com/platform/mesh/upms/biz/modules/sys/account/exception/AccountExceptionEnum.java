@@ -17,11 +17,12 @@ public enum AccountExceptionEnum implements BaseExceptionEnum<AccountExceptionEn
     ADD_NO_INVALID("upms-account",501, null,  "层级参数异常"),
     RESULT_NO_DATA("upms-account",502, null,  "账户结果异常"),
     ACCOUNT_CHECK_CODE("upms-account",503, null,  "账户密码不符合安全规则"),
-    ACCOUNT_CHANGE_SCOPE("upms-account",504, null,  "当前组织权限不符"),
+    ACCOUNT_CHANGE_SCOPE("upms-account",504, null,  "当前组织与租户不符"),
     ACCOUNT_NUM_LIMIT("upms-account",505, null,  "当前账号可创建数量已达上限"),
     ACCOUNT_CHECK_CODE_INVALID("upms-account",506, null,  "原账户密码验证失败"),
     ACCOUNT_SMS_CODE_INVALID("upms-account",506, null,  "验证码已失效"),
     ACCOUNT_SMS_CODE_ERROR("upms-account",506, null,  "验证码错误"),
+    ACCOUNT_CODE_EXISTS("upms-account",506, null,  "账号已存在"),
     ;
 
     /**

@@ -34,16 +34,16 @@ public class AppDataPO extends BasePO {
      * 模块ID
      */
     private Long moduleId;
-
-    /**
-     * 新增表单ID
-     */
-    private Long addFormId;
-
-    /**
-     * 编辑表单ID
-     */
-    private Long editFormId;
+//
+//    /**
+//     * 新增表单ID
+//     */
+//    private Long addFormId;
+//
+//    /**
+//     * 编辑表单ID
+//     */
+//    private Long editFormId;
 
     /**
      * 数据ID
@@ -99,17 +99,17 @@ public class AppDataPO extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 用户ID
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
+//
+//    /**
+//     * 用户ID
+//     */
+//    @TableField(fill = FieldFill.INSERT)
+//    private Long scopeUserId;
+//
+//    /**
+//     * 组织ID
+//     */
+//    @TableField(fill = FieldFill.INSERT)
+//    private Long scopeOrgId;
 
 }

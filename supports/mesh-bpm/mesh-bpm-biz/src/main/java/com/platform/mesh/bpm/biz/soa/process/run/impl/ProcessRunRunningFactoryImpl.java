@@ -2,7 +2,7 @@ package com.platform.mesh.bpm.biz.soa.process.run.impl;
 
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.soa.process.run.ProcessRunService;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

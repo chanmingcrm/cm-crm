@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.preproduct.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.preproduct.domain.po.CrmPreProduct;
 import com.platform.mesh.crm.biz.modules.crm.preproduct.domain.vo.CrmPreProductVO;
 import com.platform.mesh.crm.biz.modules.crm.preproduct.service.ICrmPreProductService;
@@ -113,7 +110,7 @@ public class CrmPreProductController extends BaseController{
     @Log(moduleName = "客户关系展示产品管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/product/edit")
     public Result<CrmPreProductVO> editPreProduct(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreProduct crmPreProduct = crmPreProductService.editData(dataEditDTO, CrmPreProduct.class);
+        CrmPreProduct crmPreProduct = crmPreProductService.editData(dataEditDTO, CrmPreProduct.class, CrmPreProductData.class);
         return Result.success(BeanUtil.copyProperties(crmPreProduct,CrmPreProductVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmPreProductController extends BaseController{
     @Operation(summary = "导入客户关系展示产品")
     @Log(moduleName = "客户关系展示产品管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/product/import")
-    public Result<Boolean> importPreProduct(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreProductService.importData(moduleId,formId,file, CrmPreProduct.class, CrmPreProductData.class));
+    public Result<ImportVO> importPreProduct(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreProductService.importData(importDTO, CrmPreProduct.class, CrmPreProductData.class));
     }
     
     /**

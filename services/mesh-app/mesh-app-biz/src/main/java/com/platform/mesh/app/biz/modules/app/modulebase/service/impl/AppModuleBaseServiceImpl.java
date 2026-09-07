@@ -6,8 +6,11 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.platform.mesh.app.api.modules.app.constant.AppConst;
 import com.platform.mesh.app.api.modules.app.enums.comp.ModuleTypeEnum;
+import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.vo.AppFormColumnVO;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
 import com.platform.mesh.app.biz.modules.app.modulebase.constant.ModuleConst;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.dto.AppModuleBaseCopyDTO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.dto.AppModuleBaseDTO;
@@ -17,6 +20,7 @@ import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleBaseVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleFastPageVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelDictVO;
+import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.enums.CopyTypeEnum;
 import com.platform.mesh.app.biz.modules.app.modulebase.exception.AppModuleBaseExceptionEnum;
 import com.platform.mesh.app.biz.modules.app.modulebase.mapper.AppModuleBaseMapper;
@@ -27,12 +31,15 @@ import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.mybatis.plus.constant.MybatisPlusConst;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.handler.DataScopeHandler;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.mybatis.plus.utils.SqlUtil;
+import com.platform.mesh.redis.service.RedissonUtil;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.dict.base.domian.bo.DictBaseBO;
 import com.platform.mesh.utils.excel.enums.CompTypeEnum;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,8 +85,8 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
      */
     @Override
     public AppModuleBaseVO getModuleBaseInfoById(Long moduleBaseId) {
-        AppModuleBase appModuleBase = this.getById(moduleBaseId);
-        return appModuleBaseServiceManual.getModuleBaseInfoById(appModuleBase);
+        AppModuleBase appModuleBase = this.getBaseMapper().getModuleBaseInfoById(moduleBaseId);
+        return BeanUtil.copyProperties(appModuleBase, AppModuleBaseVO.class);
     }
 
     /**
@@ -110,7 +117,9 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
         //开启取消数据隔离设定
         DataScopeHandler.setEnableDataScope(Boolean.FALSE);
         //根据表名获取模块信息
-        List<AppModuleBase> appModuleBases = this.lambdaQuery().in(AppModuleBase::getModuleSchema,appTables).list();
+        List<AppModuleBase> appModuleBases = this.lambdaQuery()
+                .eq(AppModuleBase::getModuleType,ModuleTypeEnum.CATEGORY.getValue())
+                .in(AppModuleBase::getModuleSchema,appTables).list();
         //关闭据隔离设定
         DataScopeHandler.unEnableDataScope();
         return appModuleBases;
@@ -146,7 +155,17 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
         appModuleBase.setDelFlag(YesOrNoEnum.YES.getValue());
         this.save(appModuleBase);
         appModuleBaseServiceManual.addOrEditMenu(appModuleBase, OperateTypeEnum.INSERT);
-        appModuleBaseServiceManual.addInitColumn(appModuleBase);
+        //初始化表单模板
+        Map<Long, Long> formMap = appModuleBaseServiceManual.addInitForm(appModuleBase);
+        //初始化对接模板
+        Map<Long, AppFormColumnSetRequire> copyRequire = appModuleBaseServiceManual.addInitColumnSetRequire(appModuleBase);
+        //初始化字段模板
+        Map<AppFormColumn, AppFormColumn> columnMap = appModuleBaseServiceManual.addInitColumn(appModuleBase, formMap,copyRequire);
+        Map<Long, AppFormColumn> columnLongMap = appModuleBaseServiceManual.getColumnLongMap(columnMap);
+        //初始化动作
+        appModuleBaseServiceManual.addInitColumnSetAction(appModuleBase, columnLongMap);
+        //初始化事件
+        appModuleBaseServiceManual.addInitColumnSetEvent(appModuleBase, columnMap, copyRequire);
         return BeanUtil.copyProperties(appModuleBase, AppModuleBaseVO.class);
     }
 
@@ -160,12 +179,12 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
      */
     @Override
     public AppModuleBaseVO editModuleBase(AppModuleBaseDTO moduleBaseDTO) {
-        if(ObjectUtil.isEmpty(moduleBaseDTO.getId())){
-            //获取字段名称
-            String fieldName = ObjFieldUtil.getFieldName(AppModuleBaseDTO::getId);
-            throw AppModuleBaseExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(fieldName));
+        AppModuleBase appModuleBase = getById(moduleBaseDTO.getId());
+        if(ObjectUtil.isEmpty(appModuleBase)){
+            throw AppModuleBaseExceptionEnum.ADD_NO_ARGS.getBaseException();
         }
-        AppModuleBase appModuleBase = BeanUtil.copyProperties(moduleBaseDTO, AppModuleBase.class);
+        BeanUtil.copyProperties(moduleBaseDTO, appModuleBase);
+        // 其他情况都执行更新操作
         this.updateById(appModuleBase);
         appModuleBaseServiceManual.addOrEditMenu(appModuleBase, OperateTypeEnum.UPDATE);
         return BeanUtil.copyProperties(appModuleBase, AppModuleBaseVO.class);
@@ -198,7 +217,7 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
         //删除其他模块信息
         appModuleBaseServiceManual.deleteModuleBase(allModuleIds);
         //删除模块信息
-        this.lambdaUpdate().set(AppModuleBase::getDelFlag,YesOrNoEnum.NO.getValue()).eq(AppModuleBase::getId,allModuleIds).update();
+        this.lambdaUpdate().set(AppModuleBase::getDelFlag,YesOrNoEnum.NO.getValue()).in(AppModuleBase::getId,allModuleIds).update();
         return Boolean.TRUE;
     }
 
@@ -245,42 +264,29 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
         if(ObjectUtil.isEmpty(moduleBase)){
             return false;
         }
+        //校验存储是否存在
         //设置模块版本号
         moduleBase.setModuleVersion("1");
         updateById(moduleBase);
-        return appModuleBaseServiceManual.initModuleBaseToES(moduleBase);
+        return appModuleBaseServiceManual.initModuleBaseToES(moduleBase.getModuleIndex(),CollUtil.newArrayList(moduleBase.getParentId()));
     }
 
     /**
      * 功能描述:
      * 〈初始化模块ES〉
-     * @param moduleBaseId moduleBaseId
+     * @param tableSchema tableSchema
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
     @Override
-    public List<AppModuleBase> initModuleBaseEs(Long moduleBaseId) {
+    public List<AppModuleBase> initModuleBaseEs(String tableSchema) {
         DataScopeHandler.setEnableDataScope(Boolean.FALSE);
-        List<AppModuleBase> esModuleBases;
-        AppModuleBase moduleBase = this.getById(moduleBaseId);
-        if(ObjectUtil.isEmpty(moduleBase)){
-            return CollUtil.newArrayList();
-        }
-        if(ModuleTypeEnum.CATEGORY.getValue().equals(moduleBase.getModuleType())){
-            esModuleBases = CollUtil.newArrayList(moduleBase);
-        }else{
-            //获取所有的子模块
-            List<AppModuleBase> childModuleBases = getModuleBaseChildById(moduleBaseId);
-            if(CollUtil.isEmpty(childModuleBases)){
-                return CollUtil.newArrayList();
-            }
-            //需要初始化的
-            esModuleBases = childModuleBases.stream().filter(item ->
-                    StrUtil.isNotBlank(item.getModuleIndex())
-                            && ModuleTypeEnum.CATEGORY.getValue().equals(item.getModuleType())
-                            && YesOrNoEnum.YES.getValue().equals(item.getInitEsFlag())
-            ).toList();
-        }
+        List<AppModuleBase> esModuleBases = this.lambdaQuery()
+                .isNotNull(AppModuleBase::getModuleIndex)
+                .eq(AppModuleBase::getModuleSchema,tableSchema)
+                .eq(AppModuleBase::getModuleType,ModuleTypeEnum.CATEGORY.getValue())
+                .eq(AppModuleBase::getInitEsFlag,YesOrNoEnum.YES.getValue())
+                .list();
         //取消数据权限隔离
         DataScopeHandler.unEnableDataScope();
         if(CollUtil.isEmpty(esModuleBases)){
@@ -300,6 +306,10 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean copyModuleBase(AppModuleBaseCopyDTO copyDTO) {
+        RLock rLock = RedissonUtil.getLock(AppConst.COPY_APP_MODULE_LOCK.concat(copyDTO.getSourceId().toString()));
+        try {
+        //加锁
+        rLock.lock();
         //获取当前模块信息
         AppModuleBase source = getById(copyDTO.getSourceId());
         if(ObjectUtil.isEmpty(source)){
@@ -332,7 +342,7 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
         }
         this.saveOrUpdate(target);
         //复制其他逻辑
-        appModuleBaseServiceManual.copyModuleBase(source, target);
+        appModuleBaseServiceManual.copyModuleBase(source.getId(), target);
         //查询子项
         List<AppModuleBase> sourceChildList = this.lambdaQuery().eq(AppModuleBase::getParentId,copyDTO.getSourceId()).list();
         if(CollUtil.isEmpty(sourceChildList)){
@@ -352,6 +362,13 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
             copyDTO.setTargetId(targetChild.getId());
             //递归执行
             this.copyModuleBase(copyDTO);
+        }
+
+        }catch (Exception ignored){
+
+        }finally {
+            //释放锁
+            rLock.unlock();
         }
         return Boolean.TRUE;
     }
@@ -423,5 +440,17 @@ public class AppModuleBaseServiceImpl extends ServiceImpl<AppModuleBaseMapper, A
         MPage<AppModuleRelDictVO> mPage = MPageUtil.convertToPage(dictPage);
         mPage.setRecords(list);
         return mPage;
+    }
+
+    /**
+     * 功能描述:
+     * 〈查询当前模块关联的模块信息〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link List<AppModuleBaseVO>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<AppModuleRelVO> selectRelModuleList(AppModuleRelPageDTO pageDTO) {
+        return this.getBaseMapper().selectRelModuleList(pageDTO);
     }
 }

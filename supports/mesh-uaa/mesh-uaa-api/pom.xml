@@ -5,12 +5,12 @@
     <parent>
         <artifactId>mesh-uaa</artifactId>
         <groupId>com.platform</groupId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mesh-uaa-api</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>认证服务</description>
 
 

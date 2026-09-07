@@ -1,13 +1,18 @@
 package com.platform.mesh.bpm.biz.modules.inst.event.service.manual;
 
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.bpm.biz.soa.event.rel.EventRelService;
+import com.platform.mesh.bpm.biz.soa.event.rel.domain.bo.EventRelBO;
+import com.platform.mesh.bpm.biz.soa.event.rel.enums.EventRelEnum;
+import com.platform.mesh.bpm.biz.soa.event.rel.factory.EventRelFactory;
 import com.platform.mesh.core.enums.base.BaseEnum;
 import com.platform.mesh.bpm.biz.modules.inst.event.domain.po.BpmInstEvent;
 import com.platform.mesh.bpm.biz.modules.inst.event.enums.InstEventHandleEnum;
-import com.platform.mesh.bpm.biz.soa.event.EventService;
-import com.platform.mesh.bpm.biz.soa.event.enums.EventTypeEnum;
-import com.platform.mesh.bpm.biz.soa.event.factory.EventFactory;
+import com.platform.mesh.bpm.biz.soa.event.type.EventTypeService;
+import com.platform.mesh.bpm.biz.soa.event.type.enums.EventTypeEnum;
+import com.platform.mesh.bpm.biz.soa.event.type.factory.EventTypeFactory;
 import com.platform.mesh.utils.function.FutureHandleUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +30,10 @@ import java.util.stream.Collectors;
 public class BpmInstEventServiceManual {
 
     @Autowired
-    EventFactory<BpmInstEvent> eventFactory;
+    EventTypeFactory<BpmInstEvent> eventTypeFactory;
+
+    @Autowired
+    EventRelFactory eventRelFactory;
 
     /**
      * 功能描述:
@@ -46,10 +54,29 @@ public class BpmInstEventServiceManual {
 
             //按照不同的分类调用不同的工厂服务
             EventTypeEnum enumByValue = BaseEnum.getEnumByValue(EventTypeEnum.class, key);
-            EventService<BpmInstEvent> eventService = eventFactory.getEventService(enumByValue);
-            FutureHandleUtil.runWithResult(value,eventService::handle);
+            EventTypeService<BpmInstEvent> eventTypeService = eventTypeFactory.getEventService(enumByValue);
+            FutureHandleUtil.runWithResult(value, eventTypeService::handle);
         });
 
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取处理对象〉
+     * @param relDataType relDataType
+     * @param relBOS relBOS
+     * @author 蝉鸣
+     */
+    public List<EventRelBO> getRelData(Integer relDataType, List<EventRelBO> relBOS) {
+        EventRelEnum enumByValue = BaseEnum.getEnumByValue(EventRelEnum.class, relDataType);
+        if(ObjectUtil.isEmpty(enumByValue)){
+            return CollUtil.newArrayList();
+        }
+        EventRelService eventRelService = eventRelFactory.getEventRelService(enumByValue);
+        if(ObjectUtil.isEmpty(eventRelService)){
+            return CollUtil.newArrayList();
+        }
+        return eventRelService.handle(relBOS);
     }
 }
 

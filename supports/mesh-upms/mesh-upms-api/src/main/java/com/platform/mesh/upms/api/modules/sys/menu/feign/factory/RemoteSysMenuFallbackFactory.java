@@ -37,6 +37,10 @@ public class RemoteSysMenuFallbackFactory  implements FallbackFactory<RemoteSysM
             public Result<Boolean> appModuleMenuClear(List<Long> moduleIds) {
                 return Result.error();
             }
+
+            @Override
+            public void copyTenantMenu(Long sourceTenantId, Long targetTenantId) {
+            }
         };
     }
 }

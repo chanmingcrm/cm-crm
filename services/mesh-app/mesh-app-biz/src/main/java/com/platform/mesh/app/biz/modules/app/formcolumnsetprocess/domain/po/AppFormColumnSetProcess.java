@@ -1,10 +1,7 @@
 package com.platform.mesh.app.biz.modules.app.formcolumnsetprocess.domain.po;
 
-import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.annotation.*;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.platform.mesh.core.application.domain.po.BasePO;
-import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -142,19 +139,5 @@ public class AppFormColumnSetProcess extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 用户ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
 
 }

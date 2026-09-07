@@ -13,7 +13,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段排序DTO")
+@Schema(description ="表单字段排序DTO")
 public class AppFormColumnSortingDTO extends BaseDTO {
 
 
@@ -40,6 +40,12 @@ public class AppFormColumnSortingDTO extends BaseDTO {
      */
     @Schema(description = "字段ID")
     private Long columnId;
+
+    /**
+     * 批次ID
+     */
+    @Schema(description = "批次ID")
+    private Long batchId;
 
     /**
      * 横坐标

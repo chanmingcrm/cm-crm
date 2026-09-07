@@ -2,6 +2,7 @@ package com.platform.mesh.es.domain.bo;
 
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import com.platform.mesh.core.application.domain.dto.PageDTO;
@@ -44,6 +45,12 @@ public class EsDocGetBO extends PageDTO {
 	 */
 	@Schema(description = "扩展查询条件")
 	private Map<EsBoolEnum, List<Query>> queryMap = new HashMap<>();
+
+	/**
+	 * 分析条件
+	 */
+	@Schema(description = "分析条件")
+	private Map<String, Aggregation> aggrMap = new HashMap<>();
 
 	/**
 	 * 排序列

@@ -30,7 +30,7 @@ import java.util.List;
  * @description 单字段请求信息
  * @author 蝉鸣
  */
-@Tag(description = "AppFormColumnSetRequireController", name = "单字段请求")
+@Tag(description = "AppFormColumnSetRequireController", name = "表单字段请求")
 @RestController
 @RequestMapping
 public class AppFormColumnSetRequireController extends BaseController{
@@ -89,7 +89,7 @@ public class AppFormColumnSetRequireController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "新增单字段请求")
-    @Log(moduleName = "单字段请求管理", operateType = OperateTypeEnum.INSERT)
+    @Log(moduleName = "表单字段请求管理", operateType = OperateTypeEnum.INSERT)
     @PostMapping("/app/form/column/set/require/add")
     public Result<AppFormColumnSetRequireVO> addFormColumnSetRequire(@Validated @RequestBody AppFormColumnSetRequireDTO formColumnSetRequireDTO) {
         return Result.success(appFormColumnSetRequireService.addFormColumnSetRequire(formColumnSetRequireDTO));
@@ -103,7 +103,7 @@ public class AppFormColumnSetRequireController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "修改单字段请求")
-    @Log(moduleName = "单字段请求管理", operateType = OperateTypeEnum.UPDATE)
+    @Log(moduleName = "表单字段请求管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/app/form/column/set/require/edit")
     public Result<AppFormColumnSetRequireVO> editFormColumnSetRequire(@Validated @RequestBody AppFormColumnSetRequireDTO formColumnSetRequireDTO) {
         return Result.success(appFormColumnSetRequireService.editFormColumnSetRequire(formColumnSetRequireDTO));
@@ -117,10 +117,22 @@ public class AppFormColumnSetRequireController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "删除单字段请求")
-    @Log(moduleName = "单字段请求管理", operateType = OperateTypeEnum.DELETE)
+    @Log(moduleName = "表单字段请求管理", operateType = OperateTypeEnum.DELETE)
     @PostMapping("/app/form/column/set/require/delete/{formColumnSetRequireId}")
     public Result<Boolean> deleteFormColumnSetRequire(@PathVariable(value = "formColumnSetRequireId",required = false)Long formColumnSetRequireId) {
         return Result.success(appFormColumnSetRequireService.deleteFormColumnSetRequire(formColumnSetRequireId));
+    }
+
+    /**
+     * 功能描述:
+     * 〈查询用于Ai创建的添加接口〉
+     * @return 正常返回:{@link Result<List<AppFormColumnSetEventVO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取单字段事件分页")
+    @PostMapping("/app/form/column/set/require/add/list")
+    public Result<List<AppFormColumnSetRequireVO>> selectAddList() {
+        return Result.success(appFormColumnSetRequireService.selectAddRequire());
     }
 
 }

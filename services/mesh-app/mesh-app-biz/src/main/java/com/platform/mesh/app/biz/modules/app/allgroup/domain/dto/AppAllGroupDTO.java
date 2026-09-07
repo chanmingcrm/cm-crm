@@ -96,4 +96,5 @@ public class AppAllGroupDTO extends BaseDTO {
     @Schema(description = "组织ID")
     private Long scopeOrgId;
 
+
 }

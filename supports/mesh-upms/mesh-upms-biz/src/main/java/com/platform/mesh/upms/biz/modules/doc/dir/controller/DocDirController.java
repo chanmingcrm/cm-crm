@@ -3,6 +3,7 @@ package com.platform.mesh.upms.biz.modules.doc.dir.controller;
 import com.platform.mesh.core.application.domain.dto.PageDTO;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.dto.DocDirDTO;
+import com.platform.mesh.upms.biz.modules.doc.dir.domain.dto.DocDirPageDTO;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.po.DocDir;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.vo.DocDirVO;
 import com.platform.mesh.upms.biz.modules.doc.dir.service.IDocDirService;
@@ -31,6 +32,21 @@ import org.springframework.web.bind.annotation.*;
 public class DocDirController extends BaseController{
     @Autowired
     private IDocDirService docDirService;
+
+    /**
+     * 功能描述:
+     * 〈获取文件官网目录列表〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link Result<MPage<DocDirVO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取文件官网目录分页")
+    @PostMapping("/doc/dir/home/page")
+    public Result<PageVO<DocDirVO>> selectHomePage(@RequestBody DocDirPageDTO pageDTO) {
+        MPage<DocDir> page = docDirService.selectHomePage(pageDTO);
+        PageVO<DocDirVO> voPage = MPageUtil.convertToVO(page, DocDirVO.class);
+        return Result.success(voPage);
+    }
 
     /**
 	 * 功能描述:

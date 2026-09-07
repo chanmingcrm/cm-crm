@@ -1,8 +1,6 @@
 package com.platform.mesh.app.api.modules.app.domain.bo;
 
-import com.platform.mesh.app.api.modules.app.enums.comp.CompMacEnum;
 import com.platform.mesh.core.application.domain.vo.TreeVO;
-import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +15,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段关联BO")
+@Schema(description ="表单字段关联BO")
 public class AppFormColumnBO extends TreeVO<AppFormColumnBO> {
 
     /**

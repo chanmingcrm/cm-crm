@@ -15,8 +15,9 @@ public enum DictBaseExceptionEnum implements BaseExceptionEnum<DictBaseException
      /**
      * 异常信息
      */
-    ADD_NO_ARGS("upms-dict-base",500, null,  "base参数为空"),
-    ADD_NO_INVALID("upms-dict-base",501, null,  "base参数异常"),
+    ADD_NO_ARGS("upms-dict-base",500, null,  "字典为空"),
+    ADD_NO_INVALID("upms-dict-base",501, null,  "字典异常"),
+    ADD_NO_AUTH("upms-dict-base",501, null,  "系统配置请勿删除"),
     ;
 
     /**

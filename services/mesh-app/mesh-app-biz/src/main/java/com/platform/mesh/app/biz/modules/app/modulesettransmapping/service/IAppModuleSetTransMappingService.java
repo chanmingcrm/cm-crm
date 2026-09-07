@@ -19,6 +19,15 @@ public interface IAppModuleSetTransMappingService extends IService<AppModuleSetT
     /**
      * 功能描述:
      * 〈获取当前模块转化字段映射设置信息〉
+     * @param transId transId
+     * @return 正常返回:{@link List<AppModuleSetTransMapping>}
+     * @author 蝉鸣
+     */
+    List<AppModuleSetTransMapping> getModuleSetTransMappingByTransId(Long transId);
+
+    /**
+     * 功能描述:
+     * 〈获取当前模块转化字段映射设置信息〉
      * @param fromModuleId fromModuleId
      * @param toModuleId toModuleId
      * @return 正常返回:{@link List<AppModuleSetTransMapping>}
@@ -34,4 +43,5 @@ public interface IAppModuleSetTransMappingService extends IService<AppModuleSetT
      * @author 蝉鸣
      */
     Boolean addModuleSetTransMapping(List<AppModuleSetTransMappingDTO> moduleSetTransMappingDTOS);
+
 }

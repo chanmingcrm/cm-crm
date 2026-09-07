@@ -3,14 +3,14 @@ package com.platform.mesh.es.properties;
 import com.platform.mesh.es.constant.EsConst;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+
+import java.time.Duration;
 
 /**
  * @description 数据库常量
  * @author 蝉鸣
  */
 @Data
-@Component
 @ConfigurationProperties(EsConst.CONFIG_PREFIX)
 public class EsProperties {
 
@@ -34,22 +34,27 @@ public class EsProperties {
     /**
      * 连接超时时间
      */
-    private Integer connectTimeout = 9000;
+    private Duration connectTimeout = Duration.ofSeconds(9);
 
     /**
      * socket超时时间
      */
-    private Integer socketTimeout = 9000;
+    private Duration socketTimeout = Duration.ofSeconds(9);
 
     /**
-     * 响应时间配置
+     * i/o 线程数
      */
-    private Integer keepAliveStrategy = 180000;
+    private Integer ioThreadCount = 4;
 
     /**
-     * 响应限制大小
+     * 最大路由数
      */
-    private Integer bufferLimitBytes = 200*1024*1024;
+    private Integer maxConnPerRoute = 10;
+
+    /**
+     * 最大连接数
+     */
+    private Integer maxConnTotal = 20;
 
 }
 

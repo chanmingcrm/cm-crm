@@ -13,10 +13,12 @@ import com.platform.mesh.app.biz.modules.app.formbase.exception.AppFormBaseExcep
 import com.platform.mesh.app.biz.modules.app.formbase.mapper.AppFormBaseMapper;
 import com.platform.mesh.app.biz.modules.app.formbase.service.IAppFormBaseService;
 import com.platform.mesh.app.biz.modules.app.formbase.service.manual.AppFormBaseServiceManual;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.mybatis.plus.constant.MybatisPlusConst;
 import com.platform.mesh.mybatis.plus.extention.MPage;
-import com.platform.mesh.mybatis.plus.query.LambdaQueryWrapperX;
+import com.platform.mesh.mybatis.plus.handler.DataScopeHandler;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
@@ -152,8 +154,9 @@ public class AppFormBaseServiceImpl extends ServiceImpl<AppFormBaseMapper, AppFo
      */
     @Override
     public Boolean deleteFormBase(Long formBaseId) {
-        
-        return this.removeById(formBaseId);
+        AppFormBase appFormBase = getById(formBaseId);
+        this.removeById(appFormBase);
+        return Boolean.TRUE;
     }
 
     /**
@@ -218,5 +221,30 @@ public class AppFormBaseServiceImpl extends ServiceImpl<AppFormBaseMapper, AppFo
             appFormBaseVO = BeanUtil.copyProperties(formBase, AppFormBaseVO.class);
         }
         return appFormBaseVO;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取当前默认类型表单信息〉
+     * @param moduleId moduleId
+     * @param formType formType
+     * @return 正常返回:{@link AppFormBase}
+     * @author 蝉鸣
+     */
+    @Override
+    public AppFormBase getAppFormBaseByFormType(Long moduleId, Integer formType) {
+        
+        DataScopeHandler.setEnableDataScope(Boolean.FALSE);
+        List<AppFormBase> appFormBases = this.lambdaQuery()
+                .eq(AppFormBase::getModuleId, moduleId)
+                .eq(AppFormBase::getFormType, formType)
+                .orderByAsc(AppFormBase::getDefaultFlag)
+                .list();
+        
+        DataScopeHandler.unEnableDataScope();
+        if(CollUtil.isEmpty(appFormBases)){
+            return null;
+        }
+        return CollUtil.getFirst(appFormBases);
     }
 }

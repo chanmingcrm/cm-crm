@@ -3,7 +3,10 @@ package com.platform.mesh.upms.biz.modules.log.login.api;
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.constants.HttpConst;
+import com.platform.mesh.log.enums.LoginFlagEnum;
 import com.platform.mesh.security.annotation.AuthIgnore;
+import com.platform.mesh.security.utils.UserCacheUtil;
+import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.upms.api.modules.sys.log.domain.bo.LogLoginBO;
 import com.platform.mesh.upms.biz.modules.log.login.domain.po.LogLogin;
 import com.platform.mesh.upms.biz.modules.log.login.service.ILogLoginService;
@@ -36,16 +39,16 @@ public class LogLoginApi extends BaseController{
      * 功能描述:
      * 〈新增登录日志〉
      * @param logLoginBO sysLoginInfo
-     * @return 正常返回:{@link Result<Void>}
+     * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
     @AuthIgnore
     @Operation(summary = "新增登录日志")
     @PostMapping(value ="/api/log/login/add", headers = HttpConst.HEADER_FROM_IN)
-    public Result<Void> addLoginLog(@Validated @RequestBody LogLoginBO logLoginBO) {
+    public Result<Boolean> addLoginLog(@Validated @RequestBody LogLoginBO logLoginBO) {
         LogLogin logLogin = BeanUtil.copyProperties(logLoginBO, LogLogin.class);
         this.logLoginService.save(logLogin);
-        return Result.success();
+        return Result.success(Boolean.TRUE);
     }
 
 

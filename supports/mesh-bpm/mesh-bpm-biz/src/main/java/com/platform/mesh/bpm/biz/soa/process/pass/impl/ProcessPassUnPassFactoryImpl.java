@@ -5,7 +5,7 @@ import com.platform.mesh.bpm.biz.modules.inst.event.domain.po.BpmInstEvent;
 import com.platform.mesh.bpm.biz.modules.inst.line.domain.po.BpmInstLine;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.modules.inst.variable.domain.po.BpmInstVariable;
-import com.platform.mesh.bpm.biz.soa.process.pass.enums.ProcessPassEnum;
+import com.platform.mesh.core.enums.bpm.ProcessPassEnum;
 import com.platform.mesh.bpm.biz.soa.action.factory.ActionFactory;
 import com.platform.mesh.bpm.biz.soa.process.pass.ProcessPassService;
 import org.slf4j.Logger;

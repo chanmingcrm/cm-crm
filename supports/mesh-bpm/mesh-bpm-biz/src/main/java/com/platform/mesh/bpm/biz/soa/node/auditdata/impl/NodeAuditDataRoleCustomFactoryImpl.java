@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @description 定时节点工厂实现
@@ -41,7 +42,19 @@ public class NodeAuditDataRoleCustomFactoryImpl implements NodeAuditDataService 
      */
     @Override
     public NodeAuditDataTypeEnum nodeAuditData() {
-        return NodeAuditDataTypeEnum.USER_CUSTOM;
+        return NodeAuditDataTypeEnum.ROLE_CUSTOM;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取节点审批人员Ids〉
+     * @param auditDataIds auditDataIds
+     * @return 正常返回:{@link List<Long>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<Long> getAuditDataIds(List<Long> auditDataIds) {
+        return auditDataIds;
     }
 
     /**
@@ -66,7 +79,7 @@ public class NodeAuditDataRoleCustomFactoryImpl implements NodeAuditDataService 
         List<Integer> roleTypes = processTodoBO.getRoleTypes();
         //增加当前支持类型
         roleTypes.add(this.nodeAuditData().getValue());
-        List<Long> roleIds = processTodoBO.getRoleIds();
+        Set<Long> roleIds = processTodoBO.getRoleIds();
         //增加当前人员角色ID
         List<SysRoleBO> sysRoleBOS = UserCacheUtil.getAccountRoleCache(processTodoBO.getAccountId());
         List<Long> ids = sysRoleBOS.stream().map(SysRoleBO::getId).distinct().toList();
@@ -112,7 +125,6 @@ public class NodeAuditDataRoleCustomFactoryImpl implements NodeAuditDataService 
     @Override
     public Boolean getCanAudit(List<Long> auditDataIds, Long accountId){
         //增加当前人员角色ID
-        SysAccountBO sysAccountBO = UserCacheUtil.getAccountInfoCache(accountId);
         List<SysRoleBO> sysRoleBOS = UserCacheUtil.getAccountRoleCache(accountId);
         List<Long> ids = sysRoleBOS.stream().map(SysRoleBO::getId).distinct().toList();
         return CollUtil.containsAny(ids, auditDataIds);
@@ -130,7 +142,6 @@ public class NodeAuditDataRoleCustomFactoryImpl implements NodeAuditDataService 
     @Override
     public List<BpmInstNodeAudit> getCanAuditNode(List<BpmInstNodeAudit> nodeAudits, Long accountId){
         //增加当前人员角色ID
-        SysAccountBO sysAccountBO = UserCacheUtil.getAccountInfoCache(accountId);
         List<SysRoleBO> sysRoleBOS = UserCacheUtil.getAccountRoleCache(accountId);
         List<Long> ids = sysRoleBOS.stream().map(SysRoleBO::getId).distinct().toList();
         //如果以人维度审批，则通过levelId 代表auditDataId

@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.core.constants.DateConst;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.SymbolConst;
+import com.platform.mesh.core.enums.base.BaseEnum;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,7 +149,7 @@ public class DateTimeUtil{
 	}
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈格式化日期〉
 	 * strDate 将String字符串转换为java.sql.Timestamp格式日期,用于数据库保存
 	 * dateFormat 传入字符串的日期表示格式（如："yyyy-MM-dd HH:mm:ss"）
@@ -167,7 +168,7 @@ public class DateTimeUtil{
 	}
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈格式化日期〉
 	 * strDate 将String字符串转换为java.sql.Timestamp格式日期,用于数据库保存
 	 * dateFormat 传入字符串的日期表示格式（如："yyyy-MM-dd HH:mm:ss"）
@@ -187,7 +188,7 @@ public class DateTimeUtil{
 
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈将java.util.Date对象转化为java.sql.Timestamp对象〉
 	 * date 要转化的java.util.Date对象
 	 * @return 转化后的java.sql.Timestamp对象
@@ -198,7 +199,7 @@ public class DateTimeUtil{
 	}
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈将java.util.Date对象转化为java.sql.Timestamp对象〉
 	 * date 要转化的java.util.Date对象
 	 * @return 转化后的java.sql.Timestamp对象
@@ -210,7 +211,7 @@ public class DateTimeUtil{
 	}
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈将java.sql.Timestamp对象转化为String字符串〉
 	 * time 要格式的java.sql.Timestamp对象
 	 * @return strFormat 输出的String字符串格式的限定（如："yyyy-MM-dd HH:mm:ss"）
@@ -241,7 +242,7 @@ public class DateTimeUtil{
 	}
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈将java.util.Date对象转化为String字符串〉
 	 * date 要格式的java.util.Date对象
 	 * @return strFormat 输出的String字符串格式的限定（如："yyyy-MM-dd HH:mm:ss"）
@@ -355,7 +356,7 @@ public class DateTimeUtil{
 	}
 
 	/**
-	 * 功能描述: <br>
+	 * 功能描述:
 	 * 〈格式化日期〉
 	 * strDate 将String字符串转换为java.sql.Timestamp格式日期,用于数据库保存
 	 * dateFormat 传入字符串的日期表示格式（如："yyyy-MM-dd HH:mm:ss"）
@@ -724,7 +725,7 @@ public class DateTimeUtil{
 	/**
 	 * 功能描述:
 	 * 〈获取月份集合〉
-	 * @return 正常返回:{@link Map<Integer,String>}
+	 * @return 正常返回:{@link Map}
 	 * @author 蝉鸣
 	 */
 	public static Map<Integer, String> getAllMonthStr() {
@@ -794,5 +795,51 @@ public class DateTimeUtil{
 		return yearMonth.lengthOfMonth();
 	}
 
+	/**
+	 * 功能描述:
+	 * 〈判断是否是日期〉
+	 * @param string string
+	 * @return 正常返回:{@link boolean}
+	 * @author 蝉鸣
+	 */
+    public static boolean isDate(String string) {
+		try {
+			DateUtil.parse(string, DateConst.PARSE_PATTERNS);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+    }
 
+
+
+	/**
+	 * 功能描述:
+	 * 〈获取下次提醒时间〉
+	 * @param localDateTime localDateTime
+	 * @param value value
+	 * @param unit unit
+	 * @return 正常返回:{@link LocalDateTime}
+	 * @author 蝉鸣
+	 */
+	public static LocalDateTime getNextTime(LocalDateTime localDateTime,Integer value,Integer unit) {
+		LocalDateTime now = LocalDateTime.now();
+		if(ObjectUtil.isEmpty(localDateTime) || localDateTime.isBefore(now)){
+			localDateTime = now;
+		}
+		if(ObjectUtil.isEmpty(unit)){
+			return localDateTime;
+		}
+		TimeUnitEnum enumByValue = BaseEnum.getEnumByValue(TimeUnitEnum.class, unit);
+		return switch (enumByValue){
+			case YEAR -> localDateTime.plusYears(value);
+			case MONTH -> localDateTime.plusMonths(value);
+			case WEEK -> localDateTime.plusWeeks(value);
+			case DAY -> localDateTime.plusDays(value);
+			case HOUR -> localDateTime.plusHours(value);
+			case MINUTE -> localDateTime.plusMinutes(value);
+			case SECOND -> localDateTime.plusSeconds(value);
+			default -> localDateTime;
+		};
+	}
 }

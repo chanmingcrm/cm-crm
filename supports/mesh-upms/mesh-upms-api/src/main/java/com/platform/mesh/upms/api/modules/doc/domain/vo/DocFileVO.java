@@ -2,6 +2,8 @@ package com.platform.mesh.upms.api.modules.doc.domain.vo;
 
 import java.time.LocalDateTime;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -113,6 +115,13 @@ public class DocFileVO extends BaseVO {
      */
     @Schema(description = "新增标识")
     private Integer addFlag;
+
+
+    /**
+     * 开放标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "开放标识")
+    private Integer openFlag;
 
 
     /**

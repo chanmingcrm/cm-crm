@@ -41,9 +41,9 @@ public class OrgMemberAddDTO extends BaseDTO {
 
 
     /**
-     * 用户ID
+     * 用户DTO
      */
-    @Schema(description = "用户ID")
-    private List<Long> userIds;
+    @Schema(description = "用户DTO")
+    private List<OrgMemberUserDTO> userDTOS;
 
 }

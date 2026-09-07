@@ -26,6 +26,10 @@ public class UploadExtendConst {
      */
     public static final Map<String, UploadProcess> UPLOAD_PROCESS_STORAGE = new ConcurrentHashMap<>();
 
+    /**
+     * 上传进度缓存上限
+     */
+    public static final Integer MAX_UPLOAD_PROCESS = 10000;
 
 
 //-- --------------------------------------------------------

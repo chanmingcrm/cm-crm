@@ -80,6 +80,8 @@ public interface SymbolConst {
 
     String NEW_LINE = "\n";
 
+    String NEW_LINE_1 = "\n\n";
+
     String NOT_EQUAL = "!=";
 
     String DB_NOT_EQUAL = "<>";
@@ -97,6 +99,8 @@ public interface SymbolConst {
     String PERIOD = ".";
 
     String PIPE = "|";
+
+    String OR = "||";
 
     String PLUS = "+";
 

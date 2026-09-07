@@ -77,7 +77,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 分页构造函数
-     *
      * @param current 当前页
      * @param size    每页显示条数
      */
@@ -104,7 +103,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 是否存在上一页
-     *
      * @return true / false
      */
     public boolean hasPrevious() {
@@ -113,7 +111,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 是否存在下一页
-     *
      * @return true / false
      */
     public boolean hasNext() {
@@ -176,7 +173,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 查找 order 中正序排序的字段数组
-     *
      * @param filter 过滤器
      * @return 返回正序排列的字段数组
      */
@@ -192,7 +188,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 移除符合条件的条件
-     *
      * @param filter 条件判断
      */
     private void removeOrder(Predicate<OrderItem> filter) {
@@ -205,7 +200,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 添加新的排序条件，构造条件可以使用工厂：
-     *
      * @param items 条件
      * @return 返回分页参数本身
      */
@@ -216,7 +210,6 @@ public class MPage<T> implements IPage<T> {
 
     /**
      * 添加新的排序条件，构造条件可以使用工厂：
-     *
      * @param items 条件
      * @return 返回分页参数本身
      */

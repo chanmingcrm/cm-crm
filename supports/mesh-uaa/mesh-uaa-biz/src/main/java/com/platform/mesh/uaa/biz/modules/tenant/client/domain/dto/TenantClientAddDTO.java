@@ -1,6 +1,5 @@
 package com.platform.mesh.uaa.biz.modules.tenant.client.domain.dto;
 
-import java.time.LocalDateTime;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
@@ -10,13 +9,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * @description 授权客户端系统关系DTO
+ * @description 授权客户端租户关系DTO
  * @author 蝉鸣
  */
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="授权客户端系统关系DTO")
+@Schema(description ="授权客户端租户关系DTO")
 public class TenantClientAddDTO extends BaseDTO {
 
 

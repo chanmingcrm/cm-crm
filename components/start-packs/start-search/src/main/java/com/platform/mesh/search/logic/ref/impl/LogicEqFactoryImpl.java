@@ -2,12 +2,14 @@ package com.platform.mesh.search.logic.ref.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.platform.mesh.core.enums.logic.ref.LogicRefEnum;
-import com.platform.mesh.core.constants.SearchColumnConst;
 import com.platform.mesh.core.application.domain.dto.CondDTO;
+import com.platform.mesh.core.constants.SearchColumnConst;
+import com.platform.mesh.core.constants.StrConst;
+import com.platform.mesh.core.enums.logic.ref.LogicRefEnum;
 import com.platform.mesh.search.logic.ref.LogicRefService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,9 +89,16 @@ public class LogicEqFactoryImpl implements LogicRefService {
         if (ObjectUtil.isEmpty(condDTO.getColumnMac())) {
             return null;
         }
-        return QueryBuilders.term(eq->{
+        if(isJson(condDTO.getCompMac()) && !condDTO.getColumnMac().endsWith(StrConst.ID)){
+            return QueryBuilders.matchPhrase(eq->{
+                eq.field(condDTO.getColumnMac());
+                eq.query(CollUtil.getFirst(condDTO.getSearchValues()));
+                return eq;
+            });
+        }
+        return QueryBuilders.terms(eq->{
             eq.field(condDTO.getColumnMac());
-            eq.value(CollUtil.getFirst(condDTO.getSearchValues()));
+            eq.terms(item -> item.value(condDTO.getSearchValues().stream().map(FieldValue::of).toList()));
             return eq;
         });
     }

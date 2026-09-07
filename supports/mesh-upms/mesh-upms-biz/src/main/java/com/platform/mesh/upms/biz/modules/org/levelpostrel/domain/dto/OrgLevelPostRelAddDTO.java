@@ -1,6 +1,8 @@
 package com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.dto;
 
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,6 +37,12 @@ public class OrgLevelPostRelAddDTO extends BaseDTO {
     */
     @Schema(description="名称")
     private List<Long> postIds;
+
+    /**
+     * 决策岗位
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "决策岗位")
+    private Integer leadFlag = YesOrNoEnum.NO.getValue();
 
 }
 

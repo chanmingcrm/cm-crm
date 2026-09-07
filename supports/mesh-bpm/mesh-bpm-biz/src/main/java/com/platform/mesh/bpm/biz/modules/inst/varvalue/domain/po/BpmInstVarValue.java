@@ -78,5 +78,6 @@ public class BpmInstVarValue extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }
 

@@ -111,9 +111,14 @@ public class SysMenu extends BasePO {
 	private String icon;
 
 	/**
-	 * 使用本地svg作为的菜单和面包屑对应的图标(assets/svg-icon文件夹的的svg文件名)
+	 * 菜单和面包屑对应的中图标
 	 */
-	private String localIcon;
+	private String iconM;
+
+	/**
+	 * 菜单和面包屑对应的大图标
+	 */
+	private String iconL;
 
 	/**
 	 * 作为单级路由的父级路由布局组件
@@ -208,17 +213,5 @@ public class SysMenu extends BasePO {
 	 */
 	@TableField(fill = FieldFill.INSERT_UPDATE)
 	private LocalDateTime updateTime;
-
-	/**
-	 * 用户ID
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Long scopeUserId;
-
-	/**
-	 * 组织ID
-	 */
-	@TableField(fill = FieldFill.INSERT)
-	private Long scopeOrgId;
 
 }

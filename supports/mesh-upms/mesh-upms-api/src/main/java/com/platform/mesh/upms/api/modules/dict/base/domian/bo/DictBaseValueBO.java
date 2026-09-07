@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
-
 /**
  * @description 字典基础BO
  * @author 蝉鸣
@@ -41,10 +39,24 @@ public class DictBaseValueBO extends BaseBO {
 
 
     /**
+     * 字典标识
+     */
+    @Schema(description = "字典标识")
+    private String dictMac;
+
+
+    /**
      * 字典值
      */
     @Schema(description = "字典值")
     private String dictValue;
+
+
+    /**
+     * 字典颜色
+     */
+    @Schema(description = "字典颜色")
+    private String dictColor;
 
 
 }

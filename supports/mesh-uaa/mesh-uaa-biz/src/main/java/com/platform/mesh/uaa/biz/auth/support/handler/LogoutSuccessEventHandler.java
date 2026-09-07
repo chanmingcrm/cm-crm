@@ -47,6 +47,7 @@ public class LogoutSuccessEventHandler implements ApplicationListener<LogoutSucc
 		String username = authentication.getName();
 		LogLoginBO logLoginBO = SysLogUtils.getSysLoginLog();
 		logLoginBO.setLoginFlag(LoginFlagEnum.LOGOUT.getValue());
+		logLoginBO.setRemark(LoginFlagEnum.LOGOUT.getDesc());
 		logLoginBO.setLoginUserName(username);
 		// 发送异步日志事件
 		SpringContextHolderUtil.publishEvent(new SysLoginLogEvent(logLoginBO));

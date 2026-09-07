@@ -1,8 +1,11 @@
 package com.platform.mesh.bpm.biz.soa.process.run.impl;
 
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
+import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.bpm.biz.soa.process.run.ProcessRunService;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
+import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,13 @@ public class ProcessRunEndFactoryImpl implements ProcessRunService<BpmInstProces
      */
     @Override
     public BpmInstProcess handle(BpmInstProcess instProcess) {
+        IBpmInstProcessService instProcessService = SpringContextHolderUtil.getBean(IBpmInstProcessService.class);
+        BpmInstProcess bpmInstProcess = instProcessService.runProcessInst(instProcess.getId());
+        //如果是顶层流程则发送消息
+        if(bpmInstProcess.getInstRootId().equals(NumberConst.NUM_0.longValue())){
+            //发送审批回调消息
+            instProcessService.handleInstProcessMsg(instProcess.getId());
+        }
         return instProcess;
     }
 

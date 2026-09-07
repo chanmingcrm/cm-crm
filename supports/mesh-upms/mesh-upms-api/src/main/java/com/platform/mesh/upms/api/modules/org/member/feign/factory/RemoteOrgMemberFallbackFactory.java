@@ -3,7 +3,6 @@ package com.platform.mesh.upms.api.modules.org.member.feign.factory;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgLevelBO;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberRelBO;
-import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberUserRelBO;
 import com.platform.mesh.upms.api.modules.org.member.feign.RemoteOrgMemberService;
 import com.platform.mesh.upms.api.modules.sys.user.feign.RemoteUserService;
 import com.platform.mesh.utils.result.Result;
@@ -50,17 +49,17 @@ public class RemoteOrgMemberFallbackFactory implements FallbackFactory<RemoteOrg
 			}
 
 			@Override
+			public Result<OrgMemberBO> getOrgMemberByUserId(Long userId) {
+				return Result.error();
+			}
+
+			@Override
 			public Result<List<OrgLevelBO>> getOrgLevelByIds(List<Long> levelIds) {
 				return Result.error();
 			}
 
 			@Override
 			public Result<OrgLevelBO> getOrgLevelByName(String levelName) {
-				return Result.error();
-			}
-
-			@Override
-			public Result<List<OrgMemberUserRelBO>> getOrgMemberUserRelByIds(List<Long> memberIds) {
 				return Result.error();
 			}
 
@@ -81,6 +80,16 @@ public class RemoteOrgMemberFallbackFactory implements FallbackFactory<RemoteOrg
 
 			@Override
 			public Result<List<OrgMemberRelBO>> getOrgChildUserRelByAccountId(Long accountId) {
+				return Result.error();
+			}
+
+			@Override
+			public Result<OrgMemberBO> getLeaderDirect(Long accountId) {
+				return Result.error();
+			}
+
+			@Override
+			public Result<List<OrgMemberBO>> getLeaderLoop(Long accountId) {
 				return Result.error();
 			}
 		};

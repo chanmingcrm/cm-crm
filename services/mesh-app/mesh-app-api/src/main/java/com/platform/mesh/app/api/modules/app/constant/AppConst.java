@@ -12,4 +12,15 @@ public interface AppConst {
 
     String MENU_ROUTE_PREFIX = "app/index";
 
+
+    String COPY_APP_MODULE_LOCK = "COPY_APP_MODULE_LOCK:";
+
+
+    String PICK_APP_DATA_LOCK = "PICK_APP_DATA_LOCK:";
+
+
+    String PICK_APP_DATA_TRANS = "PICK_APP_DATA_TRANS:";
+
+
+    String PICK_APP_DATA_COUNT = "PICK_APP_DATA_COUNT:";
 }

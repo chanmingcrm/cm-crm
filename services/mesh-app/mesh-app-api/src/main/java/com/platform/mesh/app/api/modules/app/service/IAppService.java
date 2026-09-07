@@ -5,12 +5,23 @@ import com.platform.mesh.app.api.modules.app.domain.dto.*;
 import com.platform.mesh.app.api.modules.app.domain.po.AppDataPO;
 import com.platform.mesh.app.api.modules.app.domain.po.AppPO;
 import com.platform.mesh.app.api.modules.app.domain.vo.AppVO;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
+import com.platform.mesh.app.api.modules.app.service.manual.AppServiceManual;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocSGetDTO;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface IAppService<T extends AppPO> extends IService<T> {
+
+    /**
+     * 功能描述:
+     * 〈获取封装对象〉
+     * @return 正常返回:{@link AppServiceManual}
+     * @author 蝉鸣
+     */
+    AppServiceManual getAppServiceManual();
 
     /**
      * 功能描述:
@@ -20,6 +31,15 @@ public interface IAppService<T extends AppPO> extends IService<T> {
      * @author 蝉鸣
      */
     PageVO<Object> selectEsPage(EsDocPGetDTO pageDTO);
+
+    /**
+     * 功能描述:
+     * 〈获取当前数据对象信息〉
+     * @param ids ids
+     * @return 正常返回:{@link AppVO}
+     * @author 蝉鸣
+     */
+    List<Object> getEsByIds(String moduleIndex, List<Long> ids);
 
     /**
      * 功能描述:
@@ -55,16 +75,16 @@ public interface IAppService<T extends AppPO> extends IService<T> {
      * @return 正常返回:{@link AppVO}
      * @author 蝉鸣
      */
-    T editData(DataEditSimpDTO dataEditDTO, Class<T> poClass);
+    <D extends AppDataPO> T editData(DataEditSimpDTO dataEditDTO, Class<T> poClass, Class<D> dataPoClass);
 
     /**
      * 功能描述:
      * 〈删除数据对象〉
-     * @param preCustomerId preCustomerId
+     * @param dataId dataId
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
-    Boolean deleteData(Long preCustomerId);
+    Boolean deleteData(Long dataId);
 
     /**
      * 功能描述:
@@ -87,10 +107,9 @@ public interface IAppService<T extends AppPO> extends IService<T> {
     /**
      * 功能描述:
      * 〈导入数据对象〉
-     * @param moduleId moduleId
-     * @param file file
+     * @param importDTO importDTO
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
-    <D extends AppDataPO>Boolean importData(Long moduleId, Long formId, MultipartFile file, Class<T> poClass ,Class<D> dataPoClass);
+    <D extends AppDataPO> ImportVO importData(DataImportDTO importDTO, Class<T> poClass , Class<D> dataPoClass);
 }

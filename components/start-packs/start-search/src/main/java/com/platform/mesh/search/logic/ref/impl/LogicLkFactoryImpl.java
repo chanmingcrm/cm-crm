@@ -88,6 +88,13 @@ public class LogicLkFactoryImpl implements LogicRefService {
         if (ObjectUtil.isEmpty(condDTO.getColumnMac())) {
             return null;
         }
+        if(isJson(condDTO.getCompMac())){
+            return QueryBuilders.matchPhrase(wc->{
+                wc.field(condDTO.getColumnMac());
+                wc.query(CollUtil.getFirst(condDTO.getSearchValues()));
+                return wc;
+            });
+        }
         return QueryBuilders.wildcard(wc->{
             wc.field(condDTO.getColumnMac());
             wc.value(SymbolConst.STAR.concat(CollUtil.getFirst(condDTO.getSearchValues())).concat(SymbolConst.STAR));

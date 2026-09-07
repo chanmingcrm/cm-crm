@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
+import co.elastic.clients.json.JsonData;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.mesh.core.application.domain.dto.CondDTO;
 import com.platform.mesh.core.constants.SearchColumnConst;
@@ -91,7 +92,7 @@ public class LogicLeFactoryImpl implements LogicRefService {
 //            le.date(builder->builder.field(condDTO.getColumnMac()).gte(CollUtil.getFirst(condDTO.getSearchValues())));
 //            le.term(builder->builder.field(condDTO.getColumnMac()).gte(CollUtil.getFirst(condDTO.getSearchValues())));
 //            le.number(builder->builder.field(condDTO.getColumnMac()).gte(NumberUtil.parseDouble(CollUtil.getFirst(condDTO.getSearchValues()))));
-//            le.untyped(builder->builder.field(condDTO.getColumnMac()).gte(JsonData.of(CollUtil.getFirst(condDTO.getSearchValues()))));
+            le.untyped(builder->builder.field(condDTO.getColumnMac()).lte(JsonData.of(CollUtil.getFirst(condDTO.getSearchValues()))));
             return le;
         });
     }

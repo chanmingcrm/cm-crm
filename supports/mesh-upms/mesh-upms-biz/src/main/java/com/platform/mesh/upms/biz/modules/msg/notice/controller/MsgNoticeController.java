@@ -85,4 +85,14 @@ public class MsgNoticeController extends BaseController{
         return Result.success(msgNoticeService.deleteNotice(dataId));
     }
 
+    /**
+     * 功能描述:
+     * 〈定时执行消息提醒〉
+     * @author 蝉鸣
+     */
+    @Operation(summary = "执行消息提醒")
+    @PostMapping(value = "/sys/msg/notice/handle")
+    public void handleNotice(){
+        msgNoticeService.handleNotice();
+    }
 }

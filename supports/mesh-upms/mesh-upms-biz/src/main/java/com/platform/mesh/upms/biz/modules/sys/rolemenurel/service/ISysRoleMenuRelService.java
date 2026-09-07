@@ -44,5 +44,11 @@ public interface ISysRoleMenuRelService extends IService<SysRoleMenuRel> {
      */
     Boolean deleteRoleMenu(Long relId);
 
+    /**
+     * 功能描述:
+     * 〈清楚不存在的菜单关系〉
+     * @author 蝉鸣
+     */
+    void clearNullRoleMenuRel();
 }
 

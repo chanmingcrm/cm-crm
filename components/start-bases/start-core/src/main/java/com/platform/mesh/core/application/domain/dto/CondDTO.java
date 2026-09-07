@@ -1,6 +1,6 @@
 package com.platform.mesh.core.application.domain.dto;
 
-import com.platform.mesh.core.constants.SearchColumnConst;
+import com.platform.mesh.core.enums.logic.ref.LogicBusEnum;
 import com.platform.mesh.core.enums.logic.ref.LogicRefEnum;
 import com.platform.mesh.core.enums.logic.type.LogicTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,6 +34,12 @@ public class CondDTO extends BaseDTO {
 	private String compMac;
 
 	/**
+	 * 业务类型
+	 */
+	@Schema(description = "业务类型")
+	private LogicBusEnum condBus = LogicBusEnum.INIT;
+
+	/**
 	 * 逻辑类型
 	 */
 	@Schema(description = "逻辑类型")
@@ -50,18 +56,6 @@ public class CondDTO extends BaseDTO {
 	 */
 	@Schema(description = "是否忽略无效值")
 	private Boolean ignoreCase = true;
-
-	/**
-	 * data表字段标识
-	 */
-	@Schema(description = "data表字段标识")
-	private String dataColumnMac = SearchColumnConst.DATA_COLUMN_MAC;
-
-	/**
-	 * data表字段名称
-	 */
-	@Schema(description = "data表字段名称")
-	private String dataColumnValue = SearchColumnConst.DATA_COLUMN_VALUE;
 
 	/**
 	 * 搜索值

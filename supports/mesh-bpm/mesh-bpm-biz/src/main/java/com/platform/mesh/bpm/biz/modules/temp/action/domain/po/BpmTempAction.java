@@ -88,5 +88,6 @@ public class BpmTempAction extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }
 

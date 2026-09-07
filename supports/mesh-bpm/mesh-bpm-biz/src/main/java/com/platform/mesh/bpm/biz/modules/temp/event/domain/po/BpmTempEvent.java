@@ -58,6 +58,16 @@ public class BpmTempEvent extends BasePO {
     private Integer eventType;
 
     /**
+     * 关联类型
+     */
+    private Integer relDataType;
+
+    /**
+     * 数据ID
+     */
+    private String relData;
+
+    /**
      * 创建人ID
      */
     @TableField(fill = FieldFill.INSERT)

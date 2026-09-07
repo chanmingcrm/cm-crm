@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.bi.crm.mapper.CrmTodoMapper">
+
+    <select id="todoNum" resultType="java.util.Map">
+        SELECT
+            (
+                SELECT
+                    COUNT(DISTINCT c.id)
+                FROM crm_pre_customer c
+                LEFT JOIN LATERAL (
+                    SELECT f.next_time,
+                           f.create_time
+                    FROM crm_on_follow_rel fr
+                             JOIN crm_on_follow f ON fr.module_id = f.module_id AND fr.data_id = f.id
+                    WHERE fr.rel_module_id = c.module_id
+                      AND fr.rel_data_id = c.id
+                    ORDER BY f.create_time DESC
+                        LIMIT 1
+            ) lf ON TRUE
+            <where>
+                (lf.next_time &gt; #{pageDTO.startTime} AND lf.next_time &lt; #{pageDTO.endTime})
+                <if test="(pageDTO.dataIds != null and pageDTO.dataIds.size() > 0)">
+                    <choose>
+                        <when test="pageDTO.dataFlag !=null and pageDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                            AND c.scope_org_id IN
+                        </when>
+                        <otherwise>
+                            AND c.scope_user_id IN
+                        </otherwise>
+                    </choose>
+                    <foreach collection="pageDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                        #{dataId}
+                    </foreach>
+                </if>
+            </where>
+            ) AS customer_todo,
+        (
+            SELECT
+                COUNT(DISTINCT c.id)
+            FROM crm_pre_customer c
+            LEFT JOIN LATERAL (
+                SELECT f.next_time,
+                       f.create_time
+                FROM crm_on_follow_rel fr
+                    JOIN crm_on_follow f ON fr.module_id = f.module_id AND fr.data_id = f.id
+                WHERE fr.rel_module_id = c.module_id
+                  AND fr.rel_data_id = c.id
+                ORDER BY f.create_time DESC
+                LIMIT 1
+            ) lf ON TRUE
+            <where>
+                (lf.next_time &lt; NOW())
+                <if test="(pageDTO.dataIds != null and pageDTO.dataIds.size() > 0)">
+                    <choose>
+                        <when test="pageDTO.dataFlag !=null and pageDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                            AND c.scope_org_id IN
+                        </when>
+                        <otherwise>
+                            AND c.scope_user_id IN
+                        </otherwise>
+                    </choose>
+                    <foreach collection="pageDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                        #{dataId}
+                    </foreach>
+                </if>
+            </where>
+        ) AS customer_over,
+        (
+            SELECT
+                COUNT(DISTINCT b.id)
+            FROM crm_on_business b
+            LEFT JOIN LATERAL (
+                SELECT f.next_time,
+                f.create_time
+                FROM crm_on_follow_rel fr
+                JOIN crm_on_follow f ON fr.module_id = f.module_id AND fr.data_id = f.id
+                WHERE fr.rel_module_id = b.module_id
+                AND fr.rel_data_id = b.id
+                ORDER BY f.create_time DESC
+                LIMIT 1
+            ) lf ON TRUE
+            <where>
+                (lf.next_time &gt; #{pageDTO.startTime} AND lf.next_time &lt; #{pageDTO.endTime})
+                <if test="(pageDTO.dataIds != null and pageDTO.dataIds.size() > 0)">
+                    <choose>
+                        <when test="pageDTO.dataFlag !=null and pageDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                            AND b.scope_org_id IN
+                        </when>
+                        <otherwise>
+                            AND b.scope_user_id IN
+                        </otherwise>
+                    </choose>
+                    <foreach collection="pageDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                        #{dataId}
+                    </foreach>
+                </if>
+            </where>
+        ) AS business_todo,
+        (
+            SELECT
+                COUNT(DISTINCT b.id)
+            FROM crm_on_business b
+            LEFT JOIN LATERAL (
+                SELECT f.next_time,
+                f.create_time
+                FROM crm_on_follow_rel fr
+                JOIN crm_on_follow f ON fr.module_id = f.module_id AND fr.data_id = f.id
+                WHERE fr.rel_module_id = b.module_id
+                AND fr.rel_data_id = b.id
+                ORDER BY f.create_time DESC
+                LIMIT 1
+            ) lf ON TRUE
+            <where>
+                (lf.next_time &lt; NOW())
+                <if test="(pageDTO.dataIds != null and pageDTO.dataIds.size() > 0)">
+                    <choose>
+                        <when test="pageDTO.dataFlag !=null and pageDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                            AND b.scope_org_id IN
+                        </when>
+                        <otherwise>
+                            AND b.scope_user_id IN
+                        </otherwise>
+                    </choose>
+                    <foreach collection="pageDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                        #{dataId}
+                    </foreach>
+                </if>
+            </where>
+        ) AS business_over
+    </select>
+
+
+    <select id="todoRelCustomerToday" resultType="com.platform.mesh.crm.biz.modules.crm.precustomer.domain.po.CrmPreCustomer">
+        /* 跟进客户*/
+        SELECT
+            c.*,
+            lf.next_time,
+            lf.create_time
+        FROM crm_pre_customer c
+        LEFT JOIN LATERAL (
+            SELECT f.next_time,
+                   f.create_time
+            FROM crm_on_follow_rel fr
+            JOIN crm_on_follow f ON fr.module_id = f.module_id AND fr.data_id = f.id
+            WHERE fr.rel_module_id = c.module_id
+              AND fr.rel_data_id = c.id
+            ORDER BY f.create_time DESC
+            LIMIT 1
+        ) lf ON TRUE
+        <where>
+            <if test="pageDTO.todoType !=null and pageDTO.todoType == @com.platform.mesh.crm.biz.bi.crm.enums.TodoTypeEnum@TODO.getValue()">
+                AND (lf.next_time &gt; #{pageDTO.startTime} AND lf.next_time &lt; #{pageDTO.endTime})
+            </if>
+            <if test="pageDTO.todoType !=null and pageDTO.todoType == @com.platform.mesh.crm.biz.bi.crm.enums.TodoTypeEnum@OVER.getValue()">
+                AND (lf.next_time &lt; NOW())
+            </if>
+            <if test="pageDTO.todoType !=null and pageDTO.todoType == @com.platform.mesh.crm.biz.bi.crm.enums.TodoTypeEnum@DONE.getValue()">
+                AND (lf.create_time &lt; NOW() AND (lf.next_time &gt; DATE_ADD(CURDATE(), INTERVAL 1 DAY) OR lf.next_time IS NULL))
+            </if>
+            <if test="(pageDTO.dataIds != null and pageDTO.dataIds.size() > 0)">
+                <choose>
+                    <when test="pageDTO.dataFlag !=null and pageDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                        AND c.scope_org_id IN
+                    </when>
+                    <otherwise>
+                        AND c.scope_user_id IN
+                    </otherwise>
+                </choose>
+                <foreach collection="pageDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                    #{dataId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="todoRelBusinessToday"
+            resultType="com.platform.mesh.crm.biz.modules.crm.onbusiness.domain.po.CrmOnBusiness">
+        /* 跟进商机*/
+        SELECT
+        b.*,
+        lf.next_time,
+        lf.create_time
+        FROM crm_on_business b
+        LEFT JOIN LATERAL (
+        SELECT f.next_time,
+               f.create_time
+        FROM crm_on_follow_rel fr
+        JOIN crm_on_follow f ON fr.module_id = f.module_id AND fr.data_id = f.id
+        WHERE fr.rel_module_id = b.module_id
+        AND fr.rel_data_id = b.id
+        ORDER BY f.create_time DESC
+        LIMIT 1
+        ) lf ON TRUE
+        <where>
+            <if test="pageDTO.todoType !=null and pageDTO.todoType == @com.platform.mesh.crm.biz.bi.crm.enums.TodoTypeEnum@TODO.getValue()">
+                AND (lf.next_time &gt; #{pageDTO.startTime} AND lf.next_time &lt; #{pageDTO.endTime})
+            </if>
+            <if test="pageDTO.todoType !=null and pageDTO.todoType == @com.platform.mesh.crm.biz.bi.crm.enums.TodoTypeEnum@OVER.getValue()">
+                AND (lf.next_time &lt; NOW())
+            </if>
+            <if test="pageDTO.todoType !=null and pageDTO.todoType == @com.platform.mesh.crm.biz.bi.crm.enums.TodoTypeEnum@DONE.getValue()">
+                AND (lf.create_time &lt; NOW() AND (lf.next_time &gt; DATE_ADD(CURDATE(), INTERVAL 1 DAY) OR lf.next_time IS NULL))
+            </if>
+            <if test="(pageDTO.dataIds != null and pageDTO.dataIds.size() > 0)">
+                <choose>
+                    <when test="pageDTO.dataFlag !=null and pageDTO.dataFlag == @com.platform.mesh.core.enums.data.DataFlagEnum@ORG.getValue()">
+                        AND b.scope_org_id IN
+                    </when>
+                    <otherwise>
+                        AND b.scope_user_id IN
+                    </otherwise>
+                </choose>
+                <foreach collection="pageDTO.dataIds" item="dataId" open="(" close=")" separator=",">
+                    #{dataId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <select id="todoAuditCustomer"
+            resultType="com.platform.mesh.crm.biz.modules.crm.precustomer.domain.po.CrmPreCustomer">
+        SELECT
+        *
+        FROM crm_pre_customer
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND del_flag = 1
+    </select>
+
+    <select id="todoAuditBusiness"
+            resultType="com.platform.mesh.crm.biz.modules.crm.onbusiness.domain.po.CrmOnBusiness">
+        SELECT
+        *
+        FROM crm_on_business
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND del_flag = 1
+    </select>
+
+    <select id="todoAuditContract"
+            resultType="com.platform.mesh.crm.biz.modules.crm.oncontract.domain.po.CrmOnContract">
+        SELECT
+        *
+        FROM crm_on_contract
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND del_flag = 1
+    </select>
+
+    <select id="todoAuditProposal"
+            resultType="com.platform.mesh.crm.biz.modules.crm.preproposal.domain.po.CrmPreProposal">
+        SELECT
+        *
+        FROM crm_pre_proposal
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        AND del_flag = 1
+    </select>
+
+</mapper>

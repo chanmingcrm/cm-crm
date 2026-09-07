@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段关联BO")
+@Schema(description ="表单字段关联BO")
 public class AppFormColumnAddDTO extends BaseVO {
 
     /**

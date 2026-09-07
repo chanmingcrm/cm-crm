@@ -13,7 +13,7 @@ import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessSer
 import com.platform.mesh.utils.function.FutureHandleUtil;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.process.run.ProcessRunService;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.bpm.biz.soa.process.run.factory.ProcessRunFactory;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.springframework.beans.factory.annotation.Autowired;

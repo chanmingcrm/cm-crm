@@ -19,11 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
  * 约定当前serviceImpl 只实现当前service 相关方法，所有封装转换方法在Manual中进行
- * @description 授权客户端系统关系
+ * @description 授权客户端租户关系
  * @author 蝉鸣
  */
 @Service
@@ -35,7 +36,7 @@ public class TenantClientServiceImpl extends ServiceImpl<TenantClientMapper, Ten
     
     /**
      * 功能描述: 
-     * 〈获取当前授权客户端系统关系信息〉
+     * 〈获取当前授权客户端租户关系信息〉
      * @param clientId clientId  
      * @return 正常返回:{@link TenantClientVO}
      * @author 蝉鸣
@@ -50,7 +51,7 @@ public class TenantClientServiceImpl extends ServiceImpl<TenantClientMapper, Ten
 
     /**
      * 功能描述:
-     * 〈获取当前授权客户端系统关系信息〉
+     * 〈获取当前授权客户端租户关系信息〉
      * @param queryDTO queryDTO
      * @return 正常返回:{@link TenantClientVO}
      * @author 蝉鸣
@@ -65,7 +66,7 @@ public class TenantClientServiceImpl extends ServiceImpl<TenantClientMapper, Ten
 
     /**
      * 功能描述:
-     * 〈新增授权客户端系统关系〉
+     * 〈新增授权客户端租户关系〉
      * @param clientDTO clientDTO
      * @return 正常返回:{@link TenantClientVO}
      * @author 蝉鸣
@@ -81,7 +82,7 @@ public class TenantClientServiceImpl extends ServiceImpl<TenantClientMapper, Ten
 
     /**
      * 功能描述:
-     * 〈修改授权客户端系统关系〉
+     * 〈修改授权客户端租户关系〉
      * @param clientDTO clientDTO
      * @return 正常返回:{@link TenantClientVO}
      * @author 蝉鸣
@@ -100,7 +101,7 @@ public class TenantClientServiceImpl extends ServiceImpl<TenantClientMapper, Ten
 
     /**
      * 功能描述:
-     * 〈删除授权客户端系统关系〉
+     * 〈删除授权客户端租户关系〉
      * @param clientId clientId
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
@@ -108,5 +109,24 @@ public class TenantClientServiceImpl extends ServiceImpl<TenantClientMapper, Ten
     @Override
     public Boolean deleteClient(Long clientId) {
         return this.removeById(clientId);
+    }
+
+    /**
+     * 功能描述:
+     * 〈根据来源获取租户客户端配置〉
+     * @param clientSource clientSource
+     * @return 正常返回:{@link TenantClient}
+     * @author 蝉鸣
+     */
+    @Override
+    public TenantClient getClientInfoByClientSource(Integer clientSource) {
+        List<TenantClient> list = this.lambdaQuery()
+                .eq(TenantClient::getClientSource, clientSource)
+                .orderByDesc(TenantClient::getCreateTime)
+                .list();
+        if(CollUtil.isEmpty(list)){
+            return null;
+        }
+        return CollUtil.getFirst(list);
     }
 }

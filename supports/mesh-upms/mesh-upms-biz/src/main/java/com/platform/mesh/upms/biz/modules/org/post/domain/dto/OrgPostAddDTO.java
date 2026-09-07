@@ -2,6 +2,8 @@ package com.platform.mesh.upms.biz.modules.org.post.domain.dto;
 
 
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.upms.biz.modules.org.postdatascope.domain.dto.OrgPostDataScopeDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -33,6 +35,13 @@ public class OrgPostAddDTO extends BaseDTO {
     */
     @Schema(description = "职位名称")
     private String postName;
+
+
+    /**
+     * 决策岗位
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "决策岗位")
+    private Integer leadFlag = YesOrNoEnum.NO.getValue();
 
 
     /**

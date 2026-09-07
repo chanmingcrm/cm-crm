@@ -1,18 +1,21 @@
 package com.platform.mesh.mybatis.plus.handler;
 
+import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.extension.plugins.handler.MultiDataPermissionHandler;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.datascope.utils.DataScopeUtil;
 import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
 import com.platform.mesh.mybatis.plus.constant.MybatisPlusConst;
+import com.platform.mesh.mybatis.plus.enums.MateFillEnum;
 import com.platform.mesh.mybatis.plus.extention.MInExpression;
 import com.platform.mesh.mybatis.plus.properties.MybatisPlusDataProperties;
-import com.platform.mesh.mybatis.plus.utils.SqlUtil;
 import lombok.AllArgsConstructor;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
@@ -29,9 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -88,9 +88,8 @@ public class DataScopeHandler implements MultiDataPermissionHandler {
         // 获取当前的用户
         //从数据权限上下文获取数据权限参数列表
         Map<Integer, Map<String, List<Long>>> dataScopeMap = DataScopeUtil.handleDataScopeWithScope();
-        //获取实体对象上有忽略权限注解的字段
-        List<String> ignoreFields = entityIgnoreDataScope(table.getName(), mappedStatementId);
-        return dataScopeExpression(table,dataScopeMap,ignoreFields);
+        // 组装条件
+        return dataScopeExpression(table,dataScopeMap);
     }
 
     /**
@@ -100,7 +99,7 @@ public class DataScopeHandler implements MultiDataPermissionHandler {
      * @return 正常返回:{@link Expression}
      * @author 蝉鸣
      */
-    private Expression dataScopeExpression(Table table,Map<Integer, Map<String, List<Long>>> conditions,List<String> ignoreFields) {
+    private Expression dataScopeExpression(Table table,Map<Integer, Map<String, List<Long>>> conditions) {
         if(CollUtil.isEmpty(conditions)){
             return null;
         }
@@ -109,35 +108,31 @@ public class DataScopeHandler implements MultiDataPermissionHandler {
         conditions.forEach((scope,data)->{
             //所有权限直接使用或条件
             data.forEach((key,value)->{
-                if(CollUtil.isNotEmpty(ignoreFields) && ignoreFields.contains(key)){
-                    //如果没有指定忽略字段或者忽略字段包含则跳过
+                String column;
+                Alias alias = table.getAlias();
+                if(ObjectUtil.isEmpty(alias)){
+                    column = key;
                 }else{
-                    String column;
-                    Alias alias = table.getAlias();
-                    if(ObjectUtil.isEmpty(alias)){
-                        column = key;
+                    column = alias.getName().concat(SymbolConst.PERIOD).concat(key);
+                }
+                if(value.size() == NumberConst.NUM_1){
+                    multiOrList.add(new EqualsTo(new Column(column), new StringValue(String.valueOf(CollUtil.getFirst(value)))));
+                }else{
+                    //集合数量少于约定
+                    if(value.size() <= MybatisPlusConst.SPLIT_NUM){
+                        //拼接条件
+                        Expression inExpression = this.packInExpression(column, value);
+                        if(ObjectUtil.isNotEmpty(inExpression)){
+                            multiOrList.add(inExpression);
+                        }
                     }else{
-                        column = alias.getName().concat(SymbolConst.PERIOD).concat(key);
-                    }
-                    if(value.size() == NumberConst.NUM_1){
-                        multiOrList.add(new EqualsTo(new Column(column), new StringValue(String.valueOf(CollUtil.getFirst(value)))));
-                    }else{
-                        //集合数量少于约定
-                        if(value.size() <= MybatisPlusConst.SPLIT_NUM){
-                            //拼接条件
-                            Expression inExpression = this.packInExpression(column, value);
+                        List<List<Long>> splitList = CollUtil.split(value, MybatisPlusConst.SPLIT_NUM);
+                        splitList.forEach(item->{
+                            Expression inExpression = this.packInExpression(column, item);
                             if(ObjectUtil.isNotEmpty(inExpression)){
                                 multiOrList.add(inExpression);
                             }
-                        }else{
-                            List<List<Long>> splitList = CollUtil.split(value, MybatisPlusConst.SPLIT_NUM);
-                            splitList.forEach(item->{
-                                Expression inExpression = this.packInExpression(column, item);
-                                if(ObjectUtil.isNotEmpty(inExpression)){
-                                    multiOrList.add(inExpression);
-                                }
-                            });
-                        }
+                        });
                     }
                 }
             });
@@ -195,16 +190,28 @@ public class DataScopeHandler implements MultiDataPermissionHandler {
      * @author 蝉鸣
      */
     private boolean ignoreSegment(String tableName,String mappedStatementId) {
+        //判断是否包含权限字段
+        TableInfo tableInfo = TableInfoHelper.getTableInfo(tableName);
+        if(ObjectUtil.isEmpty(tableInfo)){
+            return true;
+        }
+        List<TableFieldInfo> fieldList = tableInfo.getFieldList();
+        Long count = fieldList.stream().filter(field ->
+                field.getColumn().equals(MateFillEnum.SCOPE_USER_ID.getDesc())
+                        || field.getColumn().equals(MateFillEnum.SCOPE_ORG_ID.getDesc())).count();
+        if(count.equals(NumberConst.NUM_0.longValue())){
+            return true;
+        }
         //未开启数据权限
         if(ObjectUtil.isNotEmpty(ENABLE_DATA_SCOPE.get()) && !ENABLE_DATA_SCOPE.get()){
             return true;
         }
         //是否开启数据权限
-        if(!mybatisPlusDataProperties.getScope().getEnable()){
+        if(Boolean.FALSE.equals(mybatisPlusDataProperties.getScope().getEnable())){
             return true;
         }
         //校验参数是否正常
-        if(StrUtil.isBlank(tableName) || StrUtil.isBlank(mappedStatementId)){
+        if(CharSequenceUtil.isBlank(tableName) || CharSequenceUtil.isBlank(mappedStatementId)){
             return true;
         }
         //过滤内置静态表
@@ -215,8 +222,8 @@ public class DataScopeHandler implements MultiDataPermissionHandler {
         if(mybatisPlusDataProperties.getScope().getIgnoreTables().contains(tableName)){
             return true;
         }
-        //过滤注解配置表
-        if(hasIgnoreDataScope(tableName,mappedStatementId)){
+        //过滤注解配置
+        if(hasIgnoreDataScope(tableInfo.getEntityType())){
             return true;
         }
         //过滤动态配置方法
@@ -226,75 +233,18 @@ public class DataScopeHandler implements MultiDataPermissionHandler {
     /**
      * 功能描述:
      * 〈是否有忽略数据权限注解〉
-     * @param tableName tableName
-     * @param mappedStatementId mappedStatementId
+     * @param entityClass entityClass
      * @return 正常返回:{@link boolean}
      * @author 蝉鸣
      */
-    private boolean hasIgnoreDataScope(String tableName,String mappedStatementId) {
+    private boolean hasIgnoreDataScope(Class<?> entityClass) {
         //是否有忽略数据权限注解
         boolean ignoreFlag = false;
         try {
-            String className = mappedStatementId.substring(NumberConst.NUM_0, mappedStatementId.lastIndexOf(SymbolConst.PERIOD));
-            String methodName = mappedStatementId.substring(mappedStatementId.lastIndexOf(SymbolConst.PERIOD)+NumberConst.NUM_1);
-            Class<?> mapperClass = Class.forName(className);
-            Method[] methods = mapperClass.getMethods();
-            for (Method method : methods) {
-                if(method.getName().equals(methodName)){
-                    IgnoreDataScope ignoreDataScope = method.getAnnotation(IgnoreDataScope.class);
-                    if(ObjectUtil.isNotEmpty(ignoreDataScope)){
-                        ignoreFlag = true;
-                        break;
-                    }
-                }
-            }
+            return AnnotationUtil.hasAnnotation(entityClass, IgnoreDataScope.class);
         } catch (Exception ignored){
         }
         return ignoreFlag;
-    }
-
-    /**
-     * 功能描述:
-     * 〈是否有忽略数据权限注解〉
-     * @param tableName tableName
-     * @param mappedStatementId mappedStatementId
-     * @return 正常返回:{@link boolean}
-     * @author 蝉鸣
-     */
-    private List<String> entityIgnoreDataScope(String tableName,String mappedStatementId) {
-        if(!mybatisPlusDataProperties.getScope().getEnableAnno()){
-            return CollUtil.newArrayList();
-        }
-        //是否有忽略数据权限注解
-        try {
-            String className = mappedStatementId.substring(NumberConst.NUM_0, mappedStatementId.lastIndexOf(SymbolConst.PERIOD));
-            Class<?> mapperClass = Class.forName(className);
-            Class<?> entityClass = extractEntityTypes(mapperClass);
-            return SqlUtil.getAnnoField(entityClass,IgnoreDataScope.class);
-        } catch (Exception ignored){
-        }
-        return CollUtil.newArrayList();
-    }
-
-
-    /**
-     * 提取 Mapper 接口的泛型实体类型
-     * @param mapperInterface 继承 BaseMapper<T> 的接口集合
-     * @return Mapper 接口及其泛型实体类型的映射
-     */
-    private static Class<?> extractEntityTypes(Class<?> mapperInterface) {
-        Type[] genericInterfaces = mapperInterface.getGenericInterfaces();
-        for (Type genericInterface : genericInterfaces) {
-            if (genericInterface instanceof ParameterizedType parameterizedType) {
-                if (parameterizedType.getRawType().equals(BaseMapper.class)) {
-                    Type[] typeArguments = parameterizedType.getActualTypeArguments();
-                    if (typeArguments.length > NumberConst.NUM_0 && typeArguments[NumberConst.NUM_0] instanceof Class) {
-                        return (Class<?>) typeArguments[NumberConst.NUM_0];
-                    }
-                }
-            }
-        }
-        return null;
     }
 
 }

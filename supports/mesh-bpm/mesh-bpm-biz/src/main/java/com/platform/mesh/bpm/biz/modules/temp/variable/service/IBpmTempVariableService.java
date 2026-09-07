@@ -22,31 +22,5 @@ public interface IBpmTempVariableService extends IService<BpmTempVariable> {
      */
     List<BpmTempVariable> selectVariablesByTempProcessIdId(Long tempProcessId);
 
-    /**
-     * 功能描述:
-     * 〈获取当前节点下事件信息〉
-     * @param tempLineId tempLineId
-     * @return 正常返回:{@link List<BpmTempVariable>}
-     * @author 蝉鸣
-     */
-    List<BpmTempVariable> selectVariableByTempLineId(Long tempLineId);
-
-    /**
-     * 功能描述:
-     * 〈添加事件信息〉
-     * @param tempVariable tempVariable
-     * @return 正常返回:{@link BpmTempVariable}
-     * @author 蝉鸣
-     */
-    BpmTempVariable addVariableTemp(BpmTempVariable tempVariable);
-
-    /**
-     * 功能描述:
-     * 〈删除事件信息〉
-     * @param tempVariableId tempVariableId
-     * @author 蝉鸣
-     */
-    void deleteVariableByTempVariableId(Long tempVariableId);
-
 }
 

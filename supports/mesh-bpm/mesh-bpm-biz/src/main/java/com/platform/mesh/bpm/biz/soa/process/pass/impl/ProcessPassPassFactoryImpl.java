@@ -1,7 +1,7 @@
 package com.platform.mesh.bpm.biz.soa.process.pass.impl;
 
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
-import com.platform.mesh.bpm.biz.soa.process.pass.enums.ProcessPassEnum;
+import com.platform.mesh.core.enums.bpm.ProcessPassEnum;
 import com.platform.mesh.bpm.biz.soa.process.pass.ProcessPassService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

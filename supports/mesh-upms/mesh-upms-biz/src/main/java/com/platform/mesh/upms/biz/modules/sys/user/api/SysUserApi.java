@@ -5,6 +5,7 @@ import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysAccountInfoBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysUserBO;
+import com.platform.mesh.upms.api.modules.sys.user.domain.bo.UserMenuBO;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.po.SysUser;
 import com.platform.mesh.upms.biz.modules.sys.user.service.ISysUserService;
 import com.platform.mesh.utils.result.Result;
@@ -14,7 +15,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 约定当前controller 只引入当前service
@@ -34,7 +39,7 @@ public class SysUserApi extends BaseController {
 	 * 〈通过用户名查询用户(此接口会隐藏部分信息,请对号入座使用)〉
 	 * @param accountCode accountCode
 	 * @param sourceFlag sourceFlag
-	 * @return 正常返回:{@link Result< SysAccountInfoBO >}
+	 * @return 正常返回:{@link Result<SysAccountInfoBO>}
 	 * @author 蝉鸣
 	 */
 	@AuthIgnore
@@ -56,6 +61,12 @@ public class SysUserApi extends BaseController {
 	public Result<SysUserBO> getUserInfoByUserId(@PathVariable("userId") Long userId) {
 		SysUser sysUser = sysUserService.getById(userId);
 		return Result.success(BeanUtil.copyProperties(sysUser, SysUserBO.class));
+	}
+
+	@AuthIgnore
+	@PostMapping("/api/user/by/modules")
+	public Result<List<Long>> getUserIdsByModules(@RequestBody UserMenuBO userMenuBO) {
+		return Result.success(sysUserService.getUserIdsByModules(userMenuBO.getModuleIds()));
 	}
 
 }

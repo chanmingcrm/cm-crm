@@ -10,6 +10,8 @@ import com.platform.mesh.upms.biz.modules.sys.user.domain.po.SysUser;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.vo.SysUserInfoVO;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.vo.SysUserVO;
 
+import java.util.List;
+
 /**
  * 约定当前service 只提供当前controller.api 相关接口
  * @description 用户信息
@@ -42,7 +44,7 @@ public interface ISysUserService extends IService<SysUser> {
 	 * @author 蝉鸣
 	 * @since 2024/9/3 13:46
 	 */
-	SysUser getUserById(Long userId);
+    SysUserVO getUserById(Long userId);
 
 	/**
 	 * 通过用户名查询用户(此接口会隐藏部分信息,请对号入座使用)
@@ -81,5 +83,7 @@ public interface ISysUserService extends IService<SysUser> {
 	 * @since 2024/9/3 10:27
 	 */
 	Boolean deleteSysUser(Long userId);
+
+	List<Long> getUserIdsByModules(List<Long> moduleIds);
 
 }

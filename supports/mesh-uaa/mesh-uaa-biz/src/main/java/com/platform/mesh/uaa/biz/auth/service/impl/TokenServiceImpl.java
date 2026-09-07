@@ -3,6 +3,7 @@ package com.platform.mesh.uaa.biz.auth.service.impl;
 import cn.hutool.json.JSONObject;
 import com.platform.mesh.uaa.api.constants.UaaParamsConstant;
 import com.platform.mesh.uaa.biz.auth.domain.dto.AuthCallbackDTO;
+import com.platform.mesh.uaa.biz.auth.domain.dto.AuthClientDTO;
 import com.platform.mesh.uaa.biz.auth.domain.dto.AuthRenderDTO;
 import com.platform.mesh.uaa.biz.auth.service.ITokenService;
 import com.platform.mesh.uaa.biz.auth.service.manual.TokenServiceManual;
@@ -76,13 +77,13 @@ public class TokenServiceImpl implements ITokenService {
 	 * 功能描述:
 	 * 〈获取登录token〉
 	 * @param map map
-	 * @param authorization authorization
+	 * @param headMap headMap
 	 * @return 正常返回:{@link JSONObject}
 	 * @author 蝉鸣
 	 */
 	@Override
-	public JSONObject getToken(Map<String, Object> map, String authorization) {
-		return tokenServiceManual.getSysPasswordTypeToken(map,authorization);
+	public JSONObject getToken(Map<String, Object> map, Map<String,String> headMap) {
+		return tokenServiceManual.getSysPasswordTypeToken(map,headMap);
 	}
 
 	/**
@@ -119,5 +120,29 @@ public class TokenServiceImpl implements ITokenService {
 	@Override
 	public SysAccountBO bindAccount(AuthCallbackDTO callbackDTO) {
 		return tokenServiceManual.bindAccount(callbackDTO);
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈获取企业微信凭证〉
+	 * @param clientDTO clientDTO
+	 * @return 正常返回:{@link SysAccountBO}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public Object getWxWorkTicket(AuthClientDTO clientDTO) {
+		return tokenServiceManual.getWxWorkTicket(clientDTO);
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈获取企业微信签名〉
+	 * @param clientDTO clientDTO
+	 * @return 正常返回:{@link SysAccountBO}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public Object getWxWorkSign(AuthClientDTO clientDTO) {
+		return tokenServiceManual.getWxWorkSign(clientDTO);
 	}
 }

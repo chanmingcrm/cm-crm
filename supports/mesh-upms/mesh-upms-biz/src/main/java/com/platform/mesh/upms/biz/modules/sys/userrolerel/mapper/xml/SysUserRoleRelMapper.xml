@@ -14,11 +14,12 @@
                 LEFT JOIN sys_role sr ON sr.id = surr.role_id
         <where >
             <if test=" pageDTO.userId != null ">
-                surr.user_id  = #{pageDTO.userId}
+                AND surr.user_id  = #{pageDTO.userId}
             </if>
             <if test=" pageDTO.roleId != null ">
                 AND surr.role_id  =  #{pageDTO.roleId}
             </if>
         </where>
     </select>
+
 </mapper>

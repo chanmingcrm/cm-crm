@@ -2,25 +2,59 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.platform.mesh.upms.biz.modules.sys.user.mapper.SysUserMapper">
 
-    <select id="selectMPage" resultType="com.platform.mesh.upms.biz.modules.sys.user.domain.po.SysUser">
+    <select id="selectMPage" resultType="com.platform.mesh.upms.biz.modules.sys.user.domain.vo.SysUserVO">
         SELECT DISTINCT
-            u.*
+            u.user_id,
+            u.nick_name AS user_name,
+            u.nick_name,
+            u.avatar,
+            u.phone,
+            u.id_card,
+            u.gender,
+            u.admin_flag,
+            u.user_flag,
+            u.del_flag,
+            u.login_ip,
+            u.login_date,
+            u.create_user_id,
+            u.create_user_name,
+            u.create_time,
+            u.update_user_id,
+            u.update_user_name,
+            u.update_time,
+            u.remark
         FROM
             sys_user u
         <where>
-            <if test="pageDTO.nickName != null and pageDTO.nickName != ''">
-                AND u.nick_name LIKE CONCAT( '%', ${pageDTO.nickName}, '%' )
-            </if>
-            <if test="pageDTO.idCard != null and pageDTO.idCard != ''">
-                AND u.id_card LIKE CONCAT( '%', ${pageDTO.idCard}, '%' )
-            </if>
-            <if test="pageDTO.gender != null">
-                AND u.gender = ${pageDTO.gender}
-            </if>
-            <if test="pageDTO.userFlag != null">
-                AND u.user_flag = ${pageDTO.userFlag}
+            <if test="pageDTO.searchValue != null and pageDTO.searchValue != ''">
+                AND (
+                u.nick_name LIKE CONCAT( '%', #{pageDTO.searchValue}, '%' )
+                OR u.phone LIKE CONCAT( '%', #{pageDTO.searchValue}, '%' )
+                OR atr.nick_name LIKE CONCAT( '%', #{pageDTO.searchValue}, '%' )
+                )
+
             </if>
         </where>
 
+    </select>
+
+    <select id="getUserIdsByModules" resultType="java.lang.Long">
+        SELECT DISTINCT
+            ur.user_id
+        FROM
+            sys_user_role_rel ur
+        WHERE EXISTS (
+            SELECT
+                1
+            FROM
+                sys_role_menu_rel mr
+                    INNER JOIN sys_menu m ON m.id = mr.menu_id
+            WHERE
+                mr.role_id = ur.role_id
+              AND m.module_id IN
+                <foreach collection="moduleIds" item="moduleId" open="(" close=")" separator=",">
+                    #{moduleId}
+                </foreach>
+        )
     </select>
 </mapper>

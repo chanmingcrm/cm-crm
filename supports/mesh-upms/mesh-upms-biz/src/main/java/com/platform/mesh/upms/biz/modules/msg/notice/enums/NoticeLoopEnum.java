@@ -22,6 +22,10 @@ public enum NoticeLoopEnum implements BaseEnum<NoticeLoopEnum, Integer> {
      * 多次
      */
     MORE(2,  "多次"),
+    /**
+     * 循环
+     */
+    LOOP(3,  "循环"),
     ;
 
 

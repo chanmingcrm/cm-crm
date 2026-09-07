@@ -21,7 +21,7 @@ public enum AppTypeEnum implements BaseEnum<AppTypeEnum, Integer> {
     /**
      * 私有应用：模块信息保存在独立数据库中,数据统一保存在业务独立数据库中
      */
-    STAND(2,  "STAND"),
+    STAND(3,  "STAND"),
     ;
 
 

@@ -7,10 +7,20 @@
         SELECT
             l.*
         FROM
-            org_member_user_rel mur
-                LEFT JOIN org_level_member_rel lmr ON mur.member_id = lmr.member_id
-                LEFT JOIN org_level l ON lmr.level_id = l.id
+        org_member_user_rel mur
+        LEFT JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
+        LEFT JOIN org_level l ON mpr.level_id = l.id
         WHERE
             mur.user_id = #{userId}
+        AND l.tenant_id = #{tenantId}
+    </select>
+
+    <select id="getLevelById" resultType="com.platform.mesh.upms.biz.modules.org.level.domain.po.OrgLevel">
+        SELECT
+            *
+        FROM
+            org_level
+        WHERE
+            id = #{levelId}
     </select>
 </mapper>

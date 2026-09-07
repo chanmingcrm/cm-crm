@@ -88,4 +88,5 @@ public class DictBase extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }

@@ -6,30 +6,30 @@ networks:
       driver: default
       config:
         - subnet: "172.22.0.0/24"
+volumes:
+  mesh-es-data:
+  mesh-es-logs:
 services:
   # ----------------------------------------------------------------------------------------------------------------------------
   mysql:
     networks:
       mesh-network:
         ipv4_address: 172.22.0.10
-    image: mysql/mysql-server:8.0.32
+    image: mysql:8.0.32
     container_name: mesh-mysql
     restart: unless-stopped
     ports:
       - "3306:3306"
     hostname: mesh-mysql
     volumes:
-      - ./volumes/mysql/mysql/my.cnf:/etc/mysql/my.cnf
-      - ./volumes/mysql/conf.d:/etc/mysql/conf.d
       - ./volumes/mysql/data:/var/lib/mysql
       - ./volumes/mysql/logs:/logs
       - ./volumes/mysql/db:/docker-entrypoint-initdb.d
     environment:
-      TZ: Asia/Shanghairedis 连接数153
+      TZ: Asia/Shanghai
       LANG: en_US.UTF-8
       MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: demo
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-root}
     command: [
         'mysqld',
         '--innodb-buffer-pool-size=80M',
@@ -38,6 +38,12 @@ services:
         '--default-time-zone=+8:00',
         '--lower-case-table-names=1'
       ]
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysql -h127.0.0.1 -uroot -e \"SELECT 1\" >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
   # ----------------------------------------------------------------------------------------------------------------------------
   redis:
     networks:
@@ -50,37 +56,40 @@ services:
       - "6379:6379"
     hostname: mesh-redis
     environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
       - TZ=Asia/Shanghai
     volumes:
       - ./volumes/redis/data:/data
-      - ./volumes/redis/config/redis.conf:/usr/local/etc/redis/redis.conf
-    command:
-      - redis-server
-      - --bind 0.0.0.0  # 允许所有IP连接
-      - --protected-mode no  # 关闭保护模式
-      - --appendonly yes # 开启redis持久化配置
-      - --requirepass 123456  # 设置密码（强烈建议）
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
   # ----------------------------------------------------------------------------------------------------------------------------
   elasticsearch:
     networks:
       mesh-network:
         ipv4_address: 172.22.0.20
-    image: elasticsearch:8.16.6
+    build:
+      context: ./elasticsearch
+    image: mesh-elasticsearch:9.5.1-icu
     container_name: mesh-elasticsearch
     restart: unless-stopped
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
-      - ./volumes/elasticsearch/data:/usr/share/elasticsearch/data
-      - ./volumes/elasticsearch/logs:/usr/share/elasticsearch/logs
-      - ./volumes/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
-      - ./volumes/elasticsearch/config/jvm.options:/usr/share/elasticsearch/config/jvm.options
+      - mesh-es-data:/usr/share/elasticsearch/data
+      - mesh-es-logs:/usr/share/elasticsearch/logs
     environment:
+      - cluster.name=mesh-elasticsearch
+      - node.name=mesh-elasticsearch
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - bootstrap.memory_lock=true
       - network.host=0.0.0.0         # 关键设置：绑定到所有网络接口
       - http.host=0.0.0.0            # HTTP服务绑定
@@ -94,7 +103,7 @@ services:
         soft: -1
         hard: -1
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:9200 >/dev/null || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -113,32 +122,28 @@ services:
       - "9555:9555"
     hostname: mesh-nacos
     volumes:
-      - ./volumes/nacos/logs:/opt/nacos/logs
-      - ./volumes/nacos/conf/application.properties:/opt/nacos/conf/application.properties
-      - ./volumes/nacos/conf/cluster.conf:/opt/nacos/conf/cluster.conf
-      - ./volumes/nacos/plugins/mysql:/opt/nacos/plugins/mysql
+      - ./volumes/nacos/data:/home/nacos/data
+      - ./volumes/nacos/logs:/home/nacos/logs
     environment:
-      - PREFER_HOST_MODE=hostname
       - MODE=standalone
+      - NACOS_AUTH_ENABLE=false
       - TZ=Asia/Shanghai
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=mysql
-      - MYSQL_SERVICE_DB_NAME=nacos
-      - MYSQL_SERVICE_DB_PARAM=characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai
-      - MYSQL_SERVICE_PORT=3306
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=root
-      - JVM_XMS=256m   #-Xms default :2g
-      - JVM_XMX=256m   #-Xmx default :2g
-      - JVM_XMN=64m    #-Xmn default :1g
-      - JVM_MS=32m     #-XX:MetaspaceSize default :128m
-      - JVM_MMS=32m    #-XX:MaxMetaspaceSize default :320m
-      - NACOS_DEBUG=n  #是否开启远程debug，y/n，默认n
-      - TOMCAT_ACCESSLOG_ENABLED=false #是否开始tomcat访问日志的记录，默认false
+      - JVM_XMS=256m
+      - JVM_XMX=384m
+      - JVM_XMN=128m
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8848/nacos/v1/console/health/readiness >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
   # ----------------------------------------------------------------------------------------------------------------------------
   xxl-job:
+    # 未提供 xxl_job 初始化 SQL，默认不启动；准备好数据库后可单独启用。
+    profiles: [jobs]
     networks:
       mesh-network:
         ipv4_address: 172.22.0.29
@@ -155,7 +160,8 @@ services:
     ports:
       - "9003:8080"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
   # ----------------------------------------------------------------------------------------------------------------------------
   nginx-ui:
     networks:
@@ -163,23 +169,18 @@ services:
         ipv4_address: 172.22.0.30
     container_name: mesh-ui
     restart: always
-    image: mesh-ui
+    image: nginx:1.27-alpine
     environment:
       - TZ=Asia/Shanghai
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
     ports:
       - "80:80"
     volumes:
-      - ./volumes/nginx/html:/home/mesh-platform/mesh-ui
-      - ./volumes/nginx/conf/crm_nginx.conf:/etc/nginx/crm_nginx.conf
+      - ../../web:/usr/share/nginx/html:ro
+      - ./volumes/nginx/conf.d:/etc/nginx/conf.d:ro
       - ./volumes/nginx/logs:/var/log/nginx
-      - ./volumes/nginx/conf.d:/etc/nginx/conf.d
     depends_on:
-      - mesh-gateway
-    links:
-      - mesh-gateway
+      mesh-gateway:
+        condition: service_healthy
   # ----------------------------------------------------------------------------------------------------------------------------
   mesh-gateway:
     networks:
@@ -189,21 +190,35 @@ services:
     image: mesh-gateway
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
         APP_NAME: "mesh-gateway"
         APP_PORT: "8080"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
       - "8080:8080"
     depends_on:
-      - nacos
-      - redis
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
   mesh-uaa:
     networks:
       mesh-network:
@@ -212,21 +227,35 @@ services:
     image: mesh-uaa
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
         APP_NAME: "mesh-uaa"
         APP_PORT: "8081"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
       - "8081:8081"
     depends_on:
-      - nacos
-      - redis
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
   mesh-upms:
     networks:
       mesh-network:
@@ -235,21 +264,35 @@ services:
     image: mesh-upms
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
         APP_NAME: "mesh-upms"
         APP_PORT: "8082"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
       - "8082:8082"
     depends_on:
-      - nacos
-      - redis
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
   mesh-bpm:
     networks:
       mesh-network:
@@ -258,21 +301,35 @@ services:
     image: mesh-bpm
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
         APP_NAME: "mesh-bpm"
-        APP_PORT: "8083"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        APP_PORT: "8084"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
-      - "8083:8083"
+      - "8084:8084"
     depends_on:
-      - nacos
-      - redis
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
   mesh-app:
     networks:
       mesh-network:
@@ -281,21 +338,35 @@ services:
     image: mesh-app
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
         APP_NAME: "mesh-app"
-        APP_PORT: "8084"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        APP_PORT: "8085"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
-      - "8084:8084"
+      - "8085:8085"
     depends_on:
-      - nacos
-      - redis
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
   mesh-crm:
     networks:
       mesh-network:
@@ -304,41 +375,73 @@ services:
     image: mesh-crm
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
         APP_NAME: "mesh-crm"
-        APP_PORT: "8085"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        APP_PORT: "8090"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
-      - "8085:8085"
+      - "8090:8090"
     depends_on:
-      - nacos
-      - redis
-  mesh-tmp:
+      mesh-app:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  mesh-ai:
     networks:
       mesh-network:
         ipv4_address: 172.22.0.41
-    container_name: mesh-tmp
-    image: mesh-tmp
+    container_name: mesh-ai
+    image: mesh-ai
     restart: unless-stopped
     environment:
-      - MODE=standalone
       - TZ=Asia/Shanghai
+      - SPRING_CLOUD_NACOS_CONFIG_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_DISCOVERY_SERVERADDR=nacos:8848
+      - SPRING_CLOUD_NACOS_CONFIG_NAMESPACE=pro
+      - SPRING_CLOUD_NACOS_DISCOVERY_NAMESPACE=pro
+      - MESH_DATABASE_URL=mysql:3306
+      - MESH_DATABASE_PASSWORD=${MYSQL_PASSWORD:-root}
+      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD:-123456}
+      - MESH_ENVIRONMENT_ADDR_MESHSERVERADDR=mesh-gateway
+      - MESH_ENVIRONMENT_ADDR_DBSERVERADDR=mysql:3306
+      - MESH_ENVIRONMENT_ADDR_RDSERVERADDR=redis
+      - MESH_ENVIRONMENT_ADDR_ESSERVERADDR=elasticsearch:9200
+      - MESH_DATA_TENANT_ENABLE=false
+      - MESH_JOB_XXL_ENABLED=false
+      - MANAGEMENT_ENDPOINT_HEALTH_ACCESS=unrestricted
     build:
       context: ../..
       dockerfile: script/docker/server/Dockerfile
-      cache_from: []
       args:
-        APP_NAME: "mesh-tmp"
-        APP_PORT: "8086"
-        JAVA_OPTS: "-XX:+UseG1GC -Xms512m -Xmx2G -Xmn768m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -XX:MaxGCPauseMillis=200"
+        APP_NAME: "mesh-ai"
+        APP_PORT: "8092"
+        JAVA_OPTS: "-XX:+UseG1GC -Xms128m -Xmx640m"
     ports:
-      - "8086:8086"
+      - "8092:8092"
     depends_on:
-      - nacos
-      - redis
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

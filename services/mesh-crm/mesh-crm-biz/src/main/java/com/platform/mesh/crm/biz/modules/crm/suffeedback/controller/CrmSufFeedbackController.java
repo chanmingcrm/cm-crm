@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.suffeedback.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.suffeedback.domain.po.CrmSufFeedback;
 import com.platform.mesh.crm.biz.modules.crm.suffeedback.domain.vo.CrmSufFeedbackVO;
 import com.platform.mesh.crm.biz.modules.crm.suffeedback.service.ICrmSufFeedbackService;
@@ -113,7 +110,7 @@ public class CrmSufFeedbackController extends BaseController{
     @Log(moduleName = "客户关系市场反馈管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/suf/feedback/edit")
     public Result<CrmSufFeedbackVO> editSufFeedback(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmSufFeedback crmSufFeedback = crmSufFeedbackService.editData(dataEditDTO, CrmSufFeedback.class);
+        CrmSufFeedback crmSufFeedback = crmSufFeedbackService.editData(dataEditDTO, CrmSufFeedback.class, CrmSufFeedbackData.class);
         return Result.success(BeanUtil.copyProperties(crmSufFeedback,CrmSufFeedbackVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmSufFeedbackController extends BaseController{
     @Operation(summary = "导入客户关系市场反馈")
     @Log(moduleName = "客户关系市场反馈管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/suf/feedback/import")
-    public Result<Boolean> importSufFeedback(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmSufFeedbackService.importData(moduleId,formId,file, CrmSufFeedback.class, CrmSufFeedbackData.class));
+    public Result<ImportVO> importSufFeedback(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmSufFeedbackService.importData(importDTO, CrmSufFeedback.class, CrmSufFeedbackData.class));
     }
     
     /**

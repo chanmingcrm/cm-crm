@@ -15,6 +15,20 @@
             bin.inst_process_id = #{instProcessId}
     </select>
 
+
+    <select id="selectNodeVOByInstProcessIdAndRunFlag"
+            resultType="com.platform.mesh.bpm.biz.modules.inst.node.domain.vo.BpmInstNodeVO">
+        SELECT
+            bin.*,
+            btn.node_name
+        FROM
+            bpm_inst_node bin
+                LEFT JOIN bpm_temp_node btn ON bin.temp_node_id = btn.id
+        WHERE
+            bin.inst_process_id = #{instProcessId}
+            AND bin.run_flag = #{runFlag}
+    </select>
+
     <select id="getInstNodeData"
             resultType="com.platform.mesh.bpm.biz.modules.inst.node.domain.bo.BpmInstNodeBO">
         SELECT
@@ -29,4 +43,5 @@
         WHERE
             bin.id = #{instNodeId}
     </select>
+
 </mapper>

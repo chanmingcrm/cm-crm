@@ -1,11 +1,19 @@
 package com.platform.mesh.upms.biz.modules.msg.userrel.service.manual;
 
-import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.MsgUserRelVO;
-import com.platform.mesh.upms.biz.modules.msg.userrel.domain.po.MsgUserRel;
+import cn.hutool.core.util.StrUtil;
+import com.platform.mesh.message.jpush.domain.bo.JPushBO;
+import com.platform.mesh.message.jpush.service.JPushService;
+import com.platform.mesh.upms.biz.modules.msg.base.domain.po.MsgBase;
+import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadUserVO;
+import com.platform.mesh.utils.reflect.ObjFieldUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -16,22 +24,46 @@ import org.springframework.stereotype.Service;
 @Service
 public class MsgUserRelServiceManual{
 
-    
+    @Autowired(required = false)
+    private JPushService jPushService;
+
     /**
-     * 功能描述: 
-     * 〈获取当前消息接收信息〉
-     * @param msgUserRel msgUserRel 
-     * @return 正常返回:{@link MsgUserRelVO}
+     * 功能描述:
+     * 〈极光推送〉
      * @author 蝉鸣
      */
-    public MsgUserRelVO getUserRelInfoById(MsgUserRel msgUserRel) {
-        MsgUserRelVO msgUserRelVO = new MsgUserRelVO();
-        if(ObjectUtil.isEmpty(msgUserRelVO)){
-            return msgUserRelVO;
+    public void jPush(MsgBase msgBase, List<UnReadUserVO> unReadUserVOS) {
+        if(ObjectUtil.isEmpty(msgBase) || CollUtil.isEmpty(unReadUserVOS)){
+            return;
         }
-        //转换VO
-        BeanUtil.copyProperties(msgUserRel, msgUserRelVO);
-        return msgUserRelVO;
+        if(ObjectUtil.isEmpty(jPushService)){
+            return;
+        }
+        for (UnReadUserVO readUserVO : unReadUserVOS) {
+            JPushBO jPushBO = getJPushBO(msgBase,readUserVO);
+            jPushService.send(jPushBO);
+        }
     }
 
+    /**
+     * 功能描述:
+     * 〈极光推送〉
+     * @author 蝉鸣
+     */
+    public JPushBO getJPushBO(MsgBase msgBase,UnReadUserVO readUserVO) {
+        JPushBO jPushBO = new JPushBO();
+        //标题
+        jPushBO.setTitle(msgBase.getMsgTitle());
+        //内容
+        jPushBO.setContent(msgBase.getMsgBody());
+        //目标人群
+        jPushBO.setAliasList(CollUtil.newArrayList(readUserVO.getUserId().toString()));
+        //设置角标数量
+        jPushBO.setBadge(StrUtil.toString(readUserVO.getUnReadCount()));
+        //扩展信息
+        Map<String, Object> extendMap = new HashMap<>();
+        extendMap.put(ObjFieldUtil.getFieldName(MsgBase::getMsgFlag),msgBase.getMsgFlag());
+        jPushBO.setExtendMap(extendMap);
+        return jPushBO;
+    }
 }

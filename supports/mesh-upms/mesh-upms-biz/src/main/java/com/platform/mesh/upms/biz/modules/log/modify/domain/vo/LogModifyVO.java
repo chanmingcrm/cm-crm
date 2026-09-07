@@ -1,6 +1,8 @@
 package com.platform.mesh.upms.biz.modules.log.modify.domain.vo;
 
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.core.enums.custom.OperateTypeEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,14 +22,51 @@ import java.time.LocalDateTime;
 public class LogModifyVO extends BaseVO {
 
     /**
-     * 创建人
+     * ID
      */
-    @Schema(description = "创建人")
-    private Long createUserId;
+    @Schema(description = "ID")
+    private Long id;
+
+    /**
+     * 模块ID
+     */
+    @Schema(description = "模块ID")
+    private Long moduleId;
+
+    /**
+     * 数据ID
+     */
+    @Schema(description = "数据ID")
+    private Long dataId;
+
+    /**
+     * 批次ID
+     */
+    @Schema(description = "批次ID")
+    private Long batchId;
+
+    /**
+     * 字段名称
+     */
+    @Schema(description = "字段名称")
+    private String keyName;
+
+    /**
+     * 原始值
+     */
+    @Schema(description = "原始值")
+    private Object valueJson;
+
+    /**
+     * 操作类型
+     */
+    @SchemaEnum(value = OperateTypeEnum.class, description = "操作类型")
+    private Integer operateType;
 
     /**
      * 创建时间
      */
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
+
 }

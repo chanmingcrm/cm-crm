@@ -66,4 +66,9 @@ public class PageVO<T> implements Serializable {
     @Schema(description = "ES 专用，搜索结果最后值")
     private List<Map<String,String>> searchAfter;
 
+    /**
+     * ES 分析值
+     */
+    @Schema(description = "ES 分析值")
+    private Map<String,Object> aggregations;
 }

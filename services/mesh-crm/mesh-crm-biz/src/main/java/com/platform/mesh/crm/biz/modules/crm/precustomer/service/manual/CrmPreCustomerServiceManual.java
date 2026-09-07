@@ -2,16 +2,21 @@ package com.platform.mesh.crm.biz.modules.crm.precustomer.service.manual;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
-import com.platform.mesh.app.api.modules.app.util.AppUtil;
+import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.core.enums.base.BaseEnum;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.po.CrmPreCustomer;
 import com.platform.mesh.crm.biz.modules.crm.precustomerdata.domain.po.CrmPreCustomerData;
 import com.platform.mesh.crm.biz.modules.crm.precustomerdata.service.ICrmPreCustomerDataService;
+import com.platform.mesh.utils.excel.enums.DataTypeEnum;
+import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -28,6 +33,32 @@ public class CrmPreCustomerServiceManual{
     @Autowired
     private ICrmPreCustomerDataService crmPreCustomerDataService;
 
+    /**
+     * 功能描述:
+     * 〈解析返回数据〉
+     * @param pageVO pageVO
+     * @author 蝉鸣
+     */
+    public PageVO<Object> parseVO(PageVO<Object> pageVO) {
+        //处理统计金额,为保证客户金额 = 已回款 + 未回款,进行计算处理
+        Map<String, Object> voAggregations = pageVO.getAggregations();
+        BigDecimal totalMoney = BigDecimal.ZERO;
+        BigDecimal receivedMoney = BigDecimal.ZERO;
+        //合同金额
+        if(voAggregations.containsKey(ObjFieldUtil.getColumnName(CrmPreCustomer::getTotalMoney))){
+            Object object = voAggregations.get(ObjFieldUtil.getColumnName(CrmPreCustomer::getTotalMoney));
+            totalMoney = new BigDecimal(object.toString());
+        }
+        //回款金额
+        if(voAggregations.containsKey(ObjFieldUtil.getColumnName(CrmPreCustomer::getReceivedMoney))){
+            Object object = voAggregations.get(ObjFieldUtil.getColumnName(CrmPreCustomer::getReceivedMoney));
+            receivedMoney = new BigDecimal(object.toString());
+        }
+        //未回款金额
+        BigDecimal unreceivedMoney = totalMoney.subtract(receivedMoney);
+        pageVO.getAggregations().put(ObjFieldUtil.getColumnName(CrmPreCustomer::getUnreceivedMoney),unreceivedMoney);
+        return pageVO;
+    }
 
     /**
      * 功能描述:
@@ -39,47 +70,36 @@ public class CrmPreCustomerServiceManual{
         if(CollUtil.isEmpty(preCustomerDataList)){
             return;
         }
+        CrmPreCustomerData data = CollUtil.getFirst(preCustomerDataList);
+        //删除旧数据
+        crmPreCustomerDataService.lambdaUpdate().eq(CrmPreCustomerData::getDataId,data.getDataId()).remove();
         //批量新增信息
         crmPreCustomerDataService.saveBatch(preCustomerDataList);
     }
 
     /**
      * 功能描述:
-     * 〈DB Data 数据批量修改〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
+     * 〈修改Data数据〉
+     * @param id id
+     * @param columnMac columnMac
+     * @param value value
      * @author 蝉鸣
      */
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //查询已经存在的新增数据
-        List<CrmPreCustomerData> preCustomerDataList = crmPreCustomerDataService.lambdaQuery().eq(CrmPreCustomerData::getModuleId, dataEditSimpDTO.getModuleId())
-                .eq(CrmPreCustomerData::getDataId, dataId).list();
-        if(CollUtil.isEmpty(preCustomerDataList)) {
+    public void updateData(Long id, String columnMac, Object value) {
+        CrmPreCustomerData one = crmPreCustomerDataService.lambdaQuery()
+                .eq(CrmPreCustomerData::getDataId, id)
+                .eq(CrmPreCustomerData::getColumnMac, columnMac)
+                .one();
+        if(ObjectUtil.isEmpty(one)){
+            //新增数据
+
             return;
         }
-        AppUtil.editDbData(preCustomerDataList, dataEditSimpDTO);
-        if(CollUtil.isEmpty(preCustomerDataList)){
-            return;
-        }
-        crmPreCustomerDataService.updateBatchById(preCustomerDataList);
+        DataTypeEnum enumByValue = BaseEnum.getEnumByValue(DataTypeEnum.class, one.getDataType());
+        Object defaultValue = enumByValue.getDefaultValue(value);
+        one.setDataValue(defaultValue);
+        crmPreCustomerDataService.updateById(one);
     }
 
-    /**
-     * 功能描述:
-     * 〈转移Data数据权限必须重写〉
-     * @param dataIds dataIds
-     * @param scopeUserId scopeUserId
-     * @param scopeOrgId scopeOrgId
-     * @author 蝉鸣
-     */
-    public void transDbDataBatch(List<Long> dataIds, Long scopeUserId, Long scopeOrgId) {
-        if(CollUtil.isEmpty(dataIds) || ObjectUtil.isEmpty(scopeUserId) || ObjectUtil.isEmpty(scopeOrgId)) {
-            return;
-        }
-        crmPreCustomerDataService.lambdaUpdate()
-                .set(CrmPreCustomerData::getScopeUserId, scopeUserId)
-                .set(CrmPreCustomerData::getScopeOrgId, scopeOrgId)
-                .in(CrmPreCustomerData::getDataId, dataIds)
-                .update();
-    }
+
 }

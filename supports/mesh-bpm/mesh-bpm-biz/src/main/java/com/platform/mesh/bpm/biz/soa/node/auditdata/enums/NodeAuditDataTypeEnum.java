@@ -21,6 +21,7 @@ public enum NodeAuditDataTypeEnum implements BaseEnum<NodeAuditDataTypeEnum, Int
     USER_CUSTOM(1,100,  "自定义人员"),
     USER_LEADER(1,101,  "发起人直接领导"),
     USER_LOOP(1,102,  "发起人多级领导"),
+    USER_PEEK(1,103,  "发起人自选"),
     /**
      * 组织
      */

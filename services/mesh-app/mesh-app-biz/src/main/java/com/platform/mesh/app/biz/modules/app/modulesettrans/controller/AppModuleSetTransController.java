@@ -92,7 +92,7 @@ public class AppModuleSetTransController extends BaseController{
     @Operation(summary = "删除模块转化字段映射设置")
     @PostMapping("/app/module/set/trans/delete/{id}")
     public Result<Boolean> addModuleSetTrans(@PathVariable("id") Long id) {
-        return Result.success(appModuleSetTransService.removeById(id));
+        return Result.success(appModuleSetTransService.delModuleSetTrans(id));
     }
 
 

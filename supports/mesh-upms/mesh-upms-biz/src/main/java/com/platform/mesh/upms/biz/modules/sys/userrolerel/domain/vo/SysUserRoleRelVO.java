@@ -17,6 +17,12 @@ import lombok.experimental.Accessors;
 public class SysUserRoleRelVO extends BaseVO {
 
 	/**
+	 * ID
+	 */
+	@Schema(description = "ID")
+	private Long id;
+
+	/**
 	 * 用户ID
 	 */
 	@Schema(description = "用户ID")

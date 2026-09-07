@@ -115,4 +115,5 @@ public class LogOperateDTO extends BaseDTO {
     @Schema(description = "所属部门ID")
     private Long scopeOrgId;
 
+
 }

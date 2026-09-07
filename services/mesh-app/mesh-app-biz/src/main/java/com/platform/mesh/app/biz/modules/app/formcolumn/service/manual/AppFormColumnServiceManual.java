@@ -3,8 +3,8 @@ package com.platform.mesh.app.biz.modules.app.formcolumn.service.manual;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch._types.mapping.Property;
 import com.platform.mesh.app.api.modules.app.constant.AppConst;
 import com.platform.mesh.app.api.modules.app.enums.comp.CompMacEnum;
@@ -34,18 +34,15 @@ import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.app.biz.modules.app.modulebase.service.IAppModuleBaseService;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.StrConst;
-import com.platform.mesh.core.enums.base.BaseEnum;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
-import com.platform.mesh.es.constant.EsConst;
 import com.platform.mesh.es.util.EsUtil;
+import com.platform.mesh.mybatis.plus.constant.MybatisPlusConst;
 import com.platform.mesh.mybatis.plus.enums.MateFillEnum;
 import com.platform.mesh.upms.api.modules.sys.account.enums.MenuTypeEnum;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.AppMenuBO;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.RouteParamsBO;
 import com.platform.mesh.upms.api.modules.sys.menu.feign.RemoteSysMenuService;
-import com.platform.mesh.utils.excel.enums.CompTypeEnum;
-import com.platform.mesh.utils.excel.enums.DataTypeEnum;
 import com.platform.mesh.utils.format.TreeUtil;
 import com.platform.mesh.utils.function.FutureHandleUtil;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
@@ -55,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +111,7 @@ public class AppFormColumnServiceManual{
      * 功能描述:
      * 〈新增单字段关联〉
      * @param formColumns formColumns
-     * @return 正常返回:{@link Map<String,Property>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, Property> getFormColumnEsMapping(List<AppFormColumn> formColumns) {
@@ -123,17 +121,21 @@ public class AppFormColumnServiceManual{
         //转化Es类型
         Map<String, Property> propertyMap = formColumns.stream()
                 .filter(column -> YesOrNoEnum.YES.getValue().equals(column.getEsInit()))
+                .peek(column -> {
+                    if (StrUtil.isBlank(column.getEsKind())) {
+                        column.setEsKind(EsUtil.getDefaultEsKind(column.getColumnMac()).name());
+                    }
+                })
                 .collect(Collectors.toMap(AppFormColumn::getColumnMac, column -> EsUtil.getPropertyByKind(column.getEsKind()), (v1, v2) -> v2));
         //添加固定字段映射
         propertyMap.putAll(getFixColumnEsMapping());
         return propertyMap;
     }
 
-
     /**
      * 功能描述:
      * 〈固定字段映射〉
-     * @return 正常返回:{@link Map<String,Property>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, Property> getFixColumnEsMapping() {
@@ -152,76 +154,6 @@ public class AppFormColumnServiceManual{
         propertyMap.put(MateFillEnum.SCOPE_ORG_ID.getDesc(), EsUtil.getPropertyByKind(Property.Kind.Long.name()));
         return propertyMap;
     }
-
-    /**
-     * 功能描述:
-     * 〈DTO 转 PO〉
-     * @return 正常返回:{@link List<AppFormColumn>}
-     * @author 蝉鸣
-     */
-    public List<AppFormColumn> getDtoToPo(List<AppFormColumnDTO> formColumnDTOs,CopyOptions options) {
-        //转换PO保存
-        return formColumnDTOs.stream().map(item -> {
-            AppFormColumn formColumn = new AppFormColumn();
-            options.setIgnoreProperties(ObjFieldUtil.getFieldName(AppFormColumn::getDefaultDataValue));
-            BeanUtil.copyProperties(item, formColumn, options);
-            Object defaultValue = BaseEnum.getEnumByValue(DataTypeEnum.class, formColumn.getDefaultDataType(),DataTypeEnum.INIT).getDefaultValue(item.getDefaultDataValue());
-            formColumn.setDefaultDataValue(defaultValue);
-            Object setValue = BaseEnum.getEnumByValue(DataTypeEnum.class, formColumn.getSetDataType(),DataTypeEnum.INIT).getDefaultValue(item.getSetDataValue());
-            formColumn.setSetDataValue(setValue);
-            Object relValue = BaseEnum.getEnumByValue(DataTypeEnum.class, formColumn.getRelDataType(),DataTypeEnum.INIT).getDefaultValue(item.getRelDataValue());
-            formColumn.setRelDataValue(relValue);
-            Object relTransValue = BaseEnum.getEnumByValue(DataTypeEnum.class, formColumn.getRelTransDataType(),DataTypeEnum.INIT).getDefaultValue(item.getRelTransDataValue());
-            formColumn.setRelTransDataValue(relTransValue);
-            String resetMac = resetMac(formColumn);
-            formColumn.setColumnMac(resetMac);
-            if(ObjectUtil.isEmpty(formColumn.getId())){
-                formColumn.setId(IdUtil.getSnowflake().nextId());
-            }
-            return formColumn;
-        }).toList();
-    }
-
-    /**
-     * 功能描述:
-     * 〈重置名称〉
-     * @param formColumn formColumn
-     * @return 正常返回:{@link String}
-     * @author 蝉鸣
-     */
-    public String resetMac(AppFormColumn formColumn) {
-        List<String> jsonList =  CollUtil.newArrayList();
-        jsonList.add(CompTypeEnum.CHECKBOX.getDesc());
-        jsonList.add(CompTypeEnum.RADIO.getDesc());
-        jsonList.add(CompTypeEnum.SELECT.getDesc());
-        jsonList.add(CompTypeEnum.MAP.getDesc());
-        jsonList.add(CompTypeEnum.USER.getDesc());
-        jsonList.add(CompTypeEnum.DEP.getDesc());
-        jsonList.add(CompTypeEnum.RELEVANCE.getDesc());
-        if(jsonList.contains(formColumn.getCompMac())){
-            if(formColumn.getColumnMac().endsWith(EsConst.MAPPING_SUFFIX_JSON)){
-                return formColumn.getColumnMac();
-            }else{
-                return formColumn.getColumnMac().concat(EsConst.MAPPING_SUFFIX_JSON);
-            }
-        }
-        if(CompMacEnum.DATE.getDesc().equals(formColumn.getCompMac())){
-            if(formColumn.getColumnMac().endsWith(EsConst.MAPPING_SUFFIX_TIME)){
-                return formColumn.getColumnMac();
-            }else{
-                return formColumn.getColumnMac().concat(EsConst.MAPPING_SUFFIX_TIME);
-            }
-        }
-        if(CompMacEnum.NUMBER.getDesc().equals(formColumn.getCompMac())){
-            if(formColumn.getColumnMac().endsWith(EsConst.MAPPING_SUFFIX_NUM)){
-                return formColumn.getColumnMac();
-            }else{
-                return formColumn.getColumnMac().concat(EsConst.MAPPING_SUFFIX_NUM);
-            }
-        }
-        return formColumn.getColumnMac();
-    }
-
 
 
     /**
@@ -242,14 +174,24 @@ public class AppFormColumnServiceManual{
         //增加动作
         List<AppFormColumnSetAction> actions = appFormColumnDTO.getActionList().stream()
                 .map(actionDTO -> {
-            AppFormColumnSetAction columnSetAction = BeanUtil.copyProperties(appFormColumnDTO
-                    , AppFormColumnSetAction.class
-                    , ObjFieldUtil.getFieldName(AppFormColumnSetAction::getId));
-            BeanUtil.copyProperties(actionDTO, columnSetAction);
-            columnSetAction.setColumnId(appFormColumnDTO.getId());
-            return columnSetAction;
-        }).toList();
-        appFormColumnSetActionService.saveBatch(actions);
+                    AppFormColumnSetAction columnSetAction = BeanUtil.copyProperties(appFormColumnDTO
+                            , AppFormColumnSetAction.class
+                            , ObjFieldUtil.getFieldName(AppFormColumnSetAction::getId));
+                    BeanUtil.copyProperties(actionDTO, columnSetAction);
+                    columnSetAction.setColumnId(appFormColumnDTO.getId());
+                    return columnSetAction;
+                }).toList();
+        //只保存非系统动作
+        List<AppFormColumnSetAction> sysActions = appFormColumnSetActionService.lambdaQuery()
+                .eq(AppFormColumnSetAction::getModuleId, appFormColumnDTO.getModuleId())
+                .eq(AppFormColumnSetAction::getFormId, appFormColumnDTO.getFormId())
+                .eq(AppFormColumnSetAction::getColumnId, appFormColumnDTO.getId())
+                .list();
+        List<Long> actionIds = sysActions.stream().map(AppFormColumnSetAction::getId).toList();
+        List<AppFormColumnSetAction> customActions = actions.stream().filter(action ->!actionIds.contains(action.getId())).toList();
+        if(CollUtil.isNotEmpty(customActions)){
+            appFormColumnSetActionService.saveBatch(customActions);
+        }
         //赋值ID
         Map<String, AppFormColumnSetAction> actionMap = actions.stream().collect(Collectors.toMap(AppFormColumnSetAction::getActionHash, Function.identity()));
         for (AppFormColumnSetActionDTO actionDTO : appFormColumnDTO.getActionList()) {
@@ -297,7 +239,17 @@ public class AppFormColumnServiceManual{
             }
             return columnSetEvent;
         }).toList();
-        appFormColumnSetEventService.saveBatch(events);
+        //只保存非系统事件
+        List<AppFormColumnSetEvent> sysEvents = appFormColumnSetEventService.lambdaQuery()
+                .eq(AppFormColumnSetEvent::getModuleId, appFormColumnDTO.getModuleId())
+                .eq(AppFormColumnSetEvent::getFormId, appFormColumnDTO.getFormId())
+                .eq(AppFormColumnSetEvent::getColumnId, appFormColumnDTO.getId())
+                .list();
+        List<Long> eventIds = sysEvents.stream().map(AppFormColumnSetEvent::getId).toList();
+        List<AppFormColumnSetEvent> customEvents = events.stream().filter(event ->!eventIds.contains(event.getId())).toList();
+        if(CollUtil.isNotEmpty(customEvents)){
+            appFormColumnSetEventService.saveBatch(customEvents);
+        }
         //赋值ID
         Map<String, AppFormColumnSetEvent> eventMap = events.stream().collect(Collectors.toMap(AppFormColumnSetEvent::getEventHash, Function.identity()));
         for (AppFormColumnSetEventDTO eventDTO : appFormColumnDTO.getEventList()) {
@@ -332,7 +284,7 @@ public class AppFormColumnServiceManual{
             AppFormColumnSetProcess columnSetProcess = BeanUtil.copyProperties(appFormColumnDTO
                     , AppFormColumnSetProcess.class
                     , ObjFieldUtil.getFieldName(AppFormColumnSetProcess::getId));
-            BeanUtil.copyProperties(processDTO, columnSetProcess);
+            BeanUtil.copyProperties(processDTO, columnSetProcess, ObjFieldUtil.ignoreDefault());
             columnSetProcess.setColumnId(appFormColumnDTO.getId());
             //补充事件信息
             if(eventDTOMap.containsKey(processDTO.getEventHash())){
@@ -376,7 +328,17 @@ public class AppFormColumnServiceManual{
             columnSetRequire.setColumnId(appFormColumnDTO.getId());
             return columnSetRequire;
         }).toList();
-        appFormColumnSetRequireService.saveBatch(requires);
+        //只保存非系统请求
+        List<AppFormColumnSetRequire> sysRequire = appFormColumnSetRequireService.lambdaQuery()
+                .eq(AppFormColumnSetRequire::getModuleId, appFormColumnDTO.getModuleId())
+                .eq(AppFormColumnSetRequire::getFormId, appFormColumnDTO.getFormId())
+                .eq(AppFormColumnSetRequire::getColumnId, appFormColumnDTO.getId())
+                .list();
+        List<Long> requireIds = sysRequire.stream().map(AppFormColumnSetRequire::getId).toList();
+        List<AppFormColumnSetRequire> customRequires = requires.stream().filter(require ->!requireIds.contains(require.getId())).toList();
+        if(CollUtil.isNotEmpty(customRequires)){
+            appFormColumnSetRequireService.saveBatch(customRequires);
+        }
         return Boolean.TRUE;
     }
 
@@ -386,17 +348,30 @@ public class AppFormColumnServiceManual{
      * @param appFormColumns appFormColumns
      * @author 蝉鸣
      */
-    public void saveOrUpdateSetSorting(List<AppFormColumn> appFormColumns) {
+    public List<AppFormColumnSortingDTO> getSetSorting(Long batchId, List<AppFormColumn> appFormColumns) {
         if(CollUtil.isEmpty(appFormColumns)){
-            return;
+            return CollUtil.newArrayList();
         }
-        List<AppFormColumnSortingDTO> columnSortingDTOS = appFormColumns.stream().map(column -> {
+        return appFormColumns.stream().map(column -> {
             AppFormColumnSortingDTO sortingDTO = new AppFormColumnSortingDTO();
             BeanUtil.copyProperties(column, sortingDTO, ObjFieldUtil.ignoreDefault());
+            sortingDTO.setBatchId(batchId);
             sortingDTO.setParentColumnId(column.getParentId());
             sortingDTO.setColumnId(column.getId());
             return sortingDTO;
         }).toList();
+    }
+
+    /**
+     * 功能描述:
+     * 〈批量新增字段请求〉
+     * @param columnSortingDTOS columnSortingDTOS
+     * @author 蝉鸣
+     */
+    public void saveOrUpdateSetSorting(List<AppFormColumnSortingDTO> columnSortingDTOS) {
+        if(CollUtil.isEmpty(columnSortingDTOS)){
+            return;
+        }
         appFormColumnSortingService.addFormColumnSorting(columnSortingDTOS);
     }
 
@@ -412,10 +387,12 @@ public class AppFormColumnServiceManual{
         }
         //去重表单ID
         List<Long> formIds = appFormColumns.stream().map(AppFormColumn::getFormId).distinct().toList();
+        //获取所有的页面类型
+        List<Integer> pageList = FormTypeEnum.getValueByCode(FormTypeEnum.PAGE_LIST.getCode());
         //获取列表页面
         List<AppFormBase> pageForms = appFormBaseService.lambdaQuery()
                 .in(AppFormBase::getId, formIds)
-                .eq(AppFormBase::getFormType, FormTypeEnum.PAGE_LIST.getValue())
+                .in(AppFormBase::getFormType, pageList)
                 .list();
         if(CollUtil.isEmpty(pageForms)){
             return;
@@ -502,6 +479,7 @@ public class AppFormColumnServiceManual{
         return appFormColumns.stream().map(column->{
             AppFormColumnVO appFormColumnVO = BeanUtil.copyProperties(column, AppFormColumnVO.class);
             appFormColumnVO.setCanEditFlag(YesOrNoEnum.YES.getValue());
+            appFormColumnVO.setSysFlag(YesOrNoEnum.NO.getValue());
             return appFormColumnVO;
         }).toList();
     }
@@ -591,6 +569,7 @@ public class AppFormColumnServiceManual{
         }
         Map<Long, List<AppFormColumnSetProcess>> processMap = setProcesses.stream()
                 .filter(item->ObjectUtil.isNotEmpty(item.getColumnId()))
+                .sorted(Comparator.comparing(AppFormColumnSetProcess::getCreateTime).reversed())
                 .collect(Collectors.groupingBy(AppFormColumnSetProcess::getColumnId));
         CopyOptions options = CopyOptions.create();
         for (AppFormColumnVO formColumnVO : appFormColumnVOs) {
@@ -646,15 +625,9 @@ public class AppFormColumnServiceManual{
      * @author 蝉鸣
      */
     public AppFormBase getAppFormBaseByFormType(Long moduleId, Integer formType) {
-        List<AppFormBase> appFormBases = appFormBaseService.lambdaQuery()
-                .eq(AppFormBase::getModuleId, moduleId)
-                .eq(AppFormBase::getFormType, formType)
-                .orderByAsc(AppFormBase::getDefaultFlag)
-                .list();
-        if(CollUtil.isEmpty(appFormBases)){
-            return null;
-        }
-        return CollUtil.getFirst(appFormBases);
+        return appFormBaseService.getAppFormBaseByFormType(moduleId, formType);
     }
+
+
 
 }

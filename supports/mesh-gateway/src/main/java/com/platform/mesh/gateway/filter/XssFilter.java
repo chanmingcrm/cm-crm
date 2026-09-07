@@ -81,8 +81,7 @@ public class XssFilter implements GlobalFilter, Ordered {
 		return new ServerHttpRequestDecorator(exchange.getRequest()) {
 			@Override
 			public Flux<DataBuffer> getBody() {
-				Flux<DataBuffer> body = super.getBody();
-				return body.map(dataBuffer -> {
+				return DataBufferUtils.join(super.getBody()).flatMapMany(dataBuffer -> {
 					byte[] content = new byte[dataBuffer.readableByteCount()];
 					dataBuffer.read(content);
 					DataBufferUtils.release(dataBuffer);
@@ -90,12 +89,12 @@ public class XssFilter implements GlobalFilter, Ordered {
 					// 防xss攻击过滤
 					bodyStr = EscapeUtil.clean(bodyStr);
 					// 转成字节
-					byte[] bytes = bodyStr.getBytes();
+					byte[] bytes = bodyStr.getBytes(StandardCharsets.UTF_8);
 					NettyDataBufferFactory nettyDataBufferFactory = new NettyDataBufferFactory(
 							ByteBufAllocator.DEFAULT);
 					DataBuffer buffer = nettyDataBufferFactory.allocateBuffer(bytes.length);
 					buffer.write(bytes);
-					return buffer;
+					return Flux.just(buffer);
 				});
 			}
 

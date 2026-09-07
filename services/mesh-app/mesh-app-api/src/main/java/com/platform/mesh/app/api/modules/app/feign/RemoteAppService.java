@@ -1,8 +1,6 @@
 package com.platform.mesh.app.api.modules.app.feign;
 
-import com.platform.mesh.app.api.modules.app.domain.bo.AppFormColumnBO;
-import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleBaseBO;
-import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleSetTransBO;
+import com.platform.mesh.app.api.modules.app.domain.bo.*;
 import com.platform.mesh.app.api.modules.app.domain.dto.ModulePageDTO;
 import com.platform.mesh.app.api.modules.app.feign.factory.RemoteAppFallbackFactory;
 import com.platform.mesh.core.application.domain.vo.PageVO;
@@ -11,10 +9,7 @@ import com.platform.mesh.core.constants.ServiceNameConst;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -69,12 +64,12 @@ public interface RemoteAppService {
 	/**
 	 * 功能描述:
 	 * 〈获取初始化Es的模块〉
-	 * @param moduleBaseId moduleBaseId
+	 * @param tableSchema tableSchema
 	 * @return 正常返回:{@link Result<List<AppModuleBaseBO>>}
 	 * @author 蝉鸣
 	 */
-	@GetMapping(value="/api/app/module/base/init/es/{moduleBaseId}", headers = HttpConst.HEADER_FROM_IN)
-	Result<List<AppModuleBaseBO>> initModuleBaseEs(@PathVariable("moduleBaseId")Long moduleBaseId);
+	@GetMapping(value="/api/app/module/base/init/es", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<AppModuleBaseBO>> initModuleBaseEs(@RequestParam("tableSchema")String tableSchema);
 
 	/**
 	 * 功能描述:
@@ -84,9 +79,22 @@ public interface RemoteAppService {
 	 * @return 正常返回:{@link Result<List<AppFormColumnBO>>}
 	 * @author 蝉鸣
 	 */
-	@GetMapping(value="/api/app/form/column/list/{moduleId}/{formId}", headers = HttpConst.HEADER_FROM_IN)
-	Result<List<AppFormColumnBO>> getFormColumnList(@PathVariable("moduleId")Long moduleId
-			, @PathVariable("formId")Long formId);
+	@GetMapping(value="/api/app/form/column/list", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<AppFormColumnBO>> getFormColumnList(@RequestParam("moduleId")Long moduleId
+			, @RequestParam("formId")Long formId);
+
+	/**
+	 * 功能描述:
+	 * 〈根据moduleId 业务字段类型快速获取默认表单信息〉
+	 * @param moduleId moduleId
+	 * @param formType formType
+	 * @return 正常返回:{@link Result<AppFormBO>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "根据moduleId 业务字段类型快速获取默认表单信息")
+	@PostMapping(value="/api/app/form/fast/form/type", headers = HttpConst.HEADER_FROM_IN)
+	Result<AppFormBO> fastFormByModuleAndFormType(@RequestParam("moduleId")Long moduleId
+            , @RequestParam("formType")Integer formType);
 
 	/**
 	 * 功能描述:
@@ -97,8 +105,9 @@ public interface RemoteAppService {
 	 * @author 蝉鸣
 	 */
 	@Operation(summary = "根据moduleId 业务字段类型快速获取默认字段信息")
-	@PostMapping("/api/app/form/column/fast/form/type/{moduleId}/{formType}")
-	Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@PathVariable("moduleId")Long moduleId, @PathVariable("formType")Integer formType);
+	@PostMapping(value="/api/app/form/column/fast/form/type", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@RequestParam("moduleId")Long moduleId
+            , @RequestParam("formType")Integer formType);
 
 	/**
 	 * 功能描述:
@@ -119,8 +128,8 @@ public interface RemoteAppService {
 	 * @return 正常返回:{@link Result<PageVO<AppModuleSetTransBO>>}
 	 * @author 蝉鸣
 	 */
-	@PostMapping(value="/api/app/module/set/trans/page", headers = HttpConst.HEADER_FROM_IN)
-	Result<PageVO<AppModuleSetTransBO>> getModuleSetTransPage(@RequestBody ModulePageDTO pageDTO);
+	@PostMapping(value="/api/app/module/set/trans/auto/page", headers = HttpConst.HEADER_FROM_IN)
+	Result<PageVO<AppModuleSetTransBO>> getModuleSetTransAutoPage(@RequestBody ModulePageDTO pageDTO);
 
 	/**
 	 * 功能描述:
@@ -131,4 +140,32 @@ public interface RemoteAppService {
 	 */
 	@GetMapping(value="/api/app/module/set/trans/by/{transId}", headers = HttpConst.HEADER_FROM_IN)
 	Result<AppModuleSetTransBO> getModuleSetTransById(@PathVariable("transId") Long transId);
+
+	/**
+	 * 功能描述:
+	 * 〈保存导入错误信息〉
+	 * @param errorBO errorBO
+	 * @author 蝉鸣
+	 */
+	@PostMapping(value="/api/data/import/error/add", headers = HttpConst.HEADER_FROM_IN)
+    void saveImportError(@RequestBody ImportErrorBO errorBO);
+
+	/**
+	 * 功能描述:
+	 * 〈获取同步信息使用关联模块以及字段信息〉
+	 * @param moduleId moduleId
+	 * @author 蝉鸣
+	 */
+	@GetMapping(value="/api/app/form/column/rel/module", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<SyncDataBO>> getRelModuleToSync(@RequestParam("moduleId") Long moduleId);
+
+	/**
+	 * 功能描述:
+	 * 〈第三方字段映射〉
+	 * @param sourceFlag sourceFlag
+	 * @author 蝉鸣
+	 */
+	@GetMapping(value="/api/third/form/column/mapping/list", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<ThirdFormColumnMappingBO>> getThirdFormColumnMapping(@RequestParam("sourceFlag")Integer sourceFlag);
+
 }

@@ -44,7 +44,10 @@ public class MapLogServiceImpl extends ServiceImpl<MapLogMapper, MapLog> impleme
     public MPage<MapLogVO> selectPage(MapLogPageDTO mapLogPageDTO) {
         MPage<MapLog> mapLogMPage = MPageUtil.pageEntityToMPage(mapLogPageDTO,MapLog.class);
         MPage<MapLog> logMPage = this.lambdaQuery()
+                .eq(MapLog::getDataId,mapLogPageDTO.getDataId())
                 .eq(MapLog::getDelFlag,YesOrNoEnum.YES.getValue())
+                .gt(ObjectUtil.isNotEmpty(mapLogPageDTO.getStartTime()),MapLog::getCreateTime,mapLogPageDTO.getStartTime())
+                .le(ObjectUtil.isNotEmpty(mapLogPageDTO.getEndTime()),MapLog::getCreateTime,mapLogPageDTO.getEndTime())
                 .orderByDesc(MapLog::getCreateTime).page(mapLogMPage);
         if(CollUtil.isEmpty(logMPage.getRecords())){
             return new MPage<>();

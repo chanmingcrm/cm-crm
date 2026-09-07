@@ -7,7 +7,9 @@ import com.platform.mesh.log.annotation.Log;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.upms.biz.modules.org.member.domain.dto.OrgMemberDTO;
+import com.platform.mesh.upms.biz.modules.org.member.domain.dto.OrgMemberDelDTO;
 import com.platform.mesh.upms.biz.modules.org.member.domain.dto.OrgMemberPageDTO;
+import com.platform.mesh.upms.biz.modules.org.member.domain.dto.OrgMemberTransDTO;
 import com.platform.mesh.upms.biz.modules.org.member.domain.vo.OrgMemberInfoVO;
 import com.platform.mesh.upms.biz.modules.org.member.domain.vo.OrgMemberVO;
 import com.platform.mesh.upms.biz.modules.org.member.service.IOrgMemberService;
@@ -17,6 +19,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 约定当前controller 只引入当前service
@@ -92,15 +96,44 @@ public class OrgMemberController extends BaseController {
     /**
      * 功能描述:
      * 〈删除成员〉
-     * @param memberId memberId
+     * @param delDTO delDTO
      * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
     @Operation(summary = "删除成员")
     @Log(moduleName = "成员管理", operateType = OperateTypeEnum.DELETE)
-    @PostMapping("/member/delete/{memberId}")
+    @PostMapping("/member/delete")
 //	@PreAuthorize("@rolePermission.hasPermi('org:level:delete')")
-    public Result<Boolean> deleteMember(@PathVariable(value = "memberId",required = false)Long memberId) {
-        return Result.success(orgMemberService.deleteMember(memberId));
+    public Result<Boolean> deleteMember(@RequestBody OrgMemberDelDTO delDTO) {
+        return Result.success(orgMemberService.deleteMember(delDTO));
     }
+
+    /**
+     * 功能描述:
+     * 〈转移成员下的数据〉
+     * @param transDTO transDTO
+     * @return 正常返回:{@link Result<Boolean>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "转移成员下的数据")
+    @Log(moduleName = "成员管理", operateType = OperateTypeEnum.UPDATE)
+    @PostMapping("/member/trans/data")
+//	@PreAuthorize("@rolePermission.hasPermi('org:level:delete')")
+    public Result<Boolean> transMemberData(@RequestBody OrgMemberTransDTO transDTO) {
+        return Result.success(orgMemberService.transMemberData(transDTO));
+    }
+
+    /**
+     * 功能描述:
+     * 〈查询当前人员的上级〉
+     * @param id id
+     * @return 正常返回:{@link Result<List<OrgMemberVO>>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "查询当前人员的上级")
+    @PostMapping("/member/lead/list/{id}")
+    public Result<List<OrgMemberVO>> getMemberLeadList(@PathVariable("id") Long id) {
+        return Result.success(orgMemberService.getMemberLeadList(id));
+    }
+
 }

@@ -31,6 +31,18 @@ public class AppModuleSetTransMappingServiceImpl extends ServiceImpl<AppModuleSe
     /**
      * 功能描述: 
      * 〈获取当前信息〉
+     * @param transId transId
+     * @return 正常返回:{@link List<AppModuleSetTransMapping>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<AppModuleSetTransMapping> getModuleSetTransMappingByTransId(Long transId) {
+        return this.getBaseMapper().getModuleSetTransMappingByTransId(transId);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取当前信息〉
      * @param fromModuleId fromModuleId
      * @param toModuleId toModuleId
      * @return 正常返回:{@link List<AppModuleSetTransMapping>}
@@ -38,10 +50,7 @@ public class AppModuleSetTransMappingServiceImpl extends ServiceImpl<AppModuleSe
      */
     @Override
     public List<AppModuleSetTransMapping> getModuleSetTransMappingByModuleId(Long fromModuleId,Long toModuleId) {
-        return this.lambdaQuery()
-                .eq(AppModuleSetTransMapping::getFromModuleId,fromModuleId)
-                .eq(AppModuleSetTransMapping::getToModuleId,toModuleId)
-                .list();
+        return this.getBaseMapper().getModuleSetTransMappingByModuleId(fromModuleId,toModuleId);
     }
 
     /**

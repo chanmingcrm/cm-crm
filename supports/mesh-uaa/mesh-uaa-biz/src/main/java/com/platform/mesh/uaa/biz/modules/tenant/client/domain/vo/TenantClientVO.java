@@ -10,13 +10,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
- * @description 授权客户端系统关系VO
+ * @description 授权客户端租户关系VO
  * @author 蝉鸣
  */
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="授权客户端系统关系VO")
+@Schema(description ="授权客户端租户关系VO")
 public class TenantClientVO extends BaseVO {
 
 

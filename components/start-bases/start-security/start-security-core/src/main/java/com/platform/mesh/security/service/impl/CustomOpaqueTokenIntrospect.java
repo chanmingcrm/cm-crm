@@ -1,15 +1,10 @@
 package com.platform.mesh.security.service.impl;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.platform.mesh.security.domain.bo.LoginUserBO;
-import com.platform.mesh.security.service.BaseUserDetailsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.Ordered;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
@@ -19,10 +14,8 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
 import java.security.Principal;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @description 资源服务器toke内省处理器
@@ -50,7 +43,7 @@ public class CustomOpaqueTokenIntrospect implements OpaqueTokenIntrospector {
 		OAuth2Authorization oldAuthorization = authorizationService.findByToken(token, OAuth2TokenType.ACCESS_TOKEN);
 
 		if (Objects.isNull(oldAuthorization)) {
-			throw new InvalidBearerTokenException(token);
+			throw new InvalidBearerTokenException("Bearer Token 无效或已过期");
 		}
 
 		// 客户端模式默认返回
@@ -59,29 +52,16 @@ public class CustomOpaqueTokenIntrospect implements OpaqueTokenIntrospector {
 					AuthorityUtils.NO_AUTHORITIES, oldAuthorization.getPrincipalName());
 		}
 
-		Map<String, BaseUserDetailsService> userDetailsServiceMap = SpringUtil.getBeansOfType(BaseUserDetailsService.class);
-
-		Optional<BaseUserDetailsService> optional = userDetailsServiceMap.values().stream()
-				.filter(service -> service.support(Objects.requireNonNull(oldAuthorization).getRegisteredClientId(),
-						oldAuthorization.getAuthorizationGrantType().getValue()))
-				.max(Comparator.comparingInt(Ordered::getOrder));
-
-		UserDetails userDetails = null;
 		try {
 			UsernamePasswordAuthenticationToken principal = (UsernamePasswordAuthenticationToken) Objects
 					.requireNonNull(oldAuthorization).getAttributes().get(Principal.class.getName());
 			Object tokenPrincipal = principal.getPrincipal();
 			return (LoginUserBO) tokenPrincipal;
-//			userDetails = optional.get().loadUserByUser((LoginUser) tokenPrincipal);
-		}
-		catch (UsernameNotFoundException usernameNotFoundException) {
-			log.warn("用户不不存在 {}", usernameNotFoundException.getLocalizedMessage());
-			throw usernameNotFoundException;
 		}
 		catch (Exception ex) {
-			log.error("资源服务器 introspect Token error {}", ex.getLocalizedMessage());
+			log.warn("资源服务器无法恢复 Token 身份: {}", ex.getClass().getSimpleName());
+			throw new InvalidBearerTokenException("Bearer Token 身份无效", ex);
 		}
-		return (LoginUserBO) userDetails;
 	}
 
 }

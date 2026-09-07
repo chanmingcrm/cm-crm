@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
  * @description 消息接收VO
  * @author 蝉鸣
@@ -87,5 +89,19 @@ public class MsgUserRelVO extends BaseVO {
      */
     @Schema(description = "消息外链")
     private String msgHref;
+
+
+    /**
+     * 提醒时间
+     */
+    @Schema(description = "提醒时间")
+    private LocalDateTime noticeTime;
+
+
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
 
 }

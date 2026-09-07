@@ -57,6 +57,8 @@ public class OrgPostServiceImpl extends ServiceImpl<OrgPostMapper, OrgPost> impl
             List<Long> levelIds = orgPostServiceManual.getChileLevelIds(orgPageDTO.getLevelIds());
             orgPageDTO.setLevelIds(levelIds);
         }
+        List<Long> levelIds = orgPageDTO.getLevelIds().stream().filter(ObjectUtil::isNotEmpty).toList();
+        orgPageDTO.setLevelIds(levelIds);
         if(ObjectUtil.isEmpty(orgPageDTO.getLevelIds())){
             return new MPage<>();
         }

@@ -50,9 +50,9 @@ public class BpmProcessStartDTO extends BaseDTO {
     private Long eventId;
 
     /**
-     * ID
+     * 流程模板ID
      */
-    @Schema(description = "ID")
+    @Schema(description = "流程模板ID")
     private Long tempProcessId;
 
     /**
@@ -72,4 +72,22 @@ public class BpmProcessStartDTO extends BaseDTO {
      */
     @SchemaEnum(value = YesOrNoEnum.class, description = "是否自动执行")
     private Integer autoStart;
+
+    /**
+     * 字段类型
+     */
+    @Schema(description = "字段类型")
+    private Integer columnType;
+
+    /**
+     * 模块空间
+     */
+    @Schema(description = "模块空间")
+    private String moduleSchema;
+
+    /**
+     * 扩展参数
+     */
+    @Schema(description = "扩展参数")
+    private Object extendJson;
 }

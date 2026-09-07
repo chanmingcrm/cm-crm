@@ -1,22 +1,23 @@
 package com.platform.mesh.app.biz.modules.app.modulesettrans.service.manual;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleBaseBO;
 import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleSetTransBO;
 import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleSetTransMappingBO;
-import com.platform.mesh.app.api.modules.app.domain.dto.ModulePageDTO;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleBaseVO;
 import com.platform.mesh.app.biz.modules.app.modulebase.service.IAppModuleBaseService;
 import com.platform.mesh.app.biz.modules.app.modulesettrans.domain.po.AppModuleSetTrans;
 import com.platform.mesh.app.biz.modules.app.modulesettrans.domain.vo.AppModuleSetTransVO;
+import com.platform.mesh.app.biz.modules.app.modulesettransauto.domain.po.AppModuleSetTransAuto;
+import com.platform.mesh.app.biz.modules.app.modulesettransauto.service.IAppModuleSetTransAutoService;
 import com.platform.mesh.app.biz.modules.app.modulesettransmapping.domain.po.AppModuleSetTransMapping;
 import com.platform.mesh.app.biz.modules.app.modulesettransmapping.service.IAppModuleSetTransMappingService;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,42 +38,6 @@ public class AppModuleSetTransServiceManual {
 
     @Autowired
     private IAppModuleSetTransMappingService appModuleSetTransMappingService;
-
-    /**
-     * 功能描述:
-     * 〈获取当前信息〉
-     * @param pageDTO pageDTO
-     * @return 正常返回:{@link AppModuleSetTrans}
-     * @author 蝉鸣
-     */
-    public ModulePageDTO packPageDTO(ModulePageDTO pageDTO) {
-        if(CollUtil.isEmpty(pageDTO.getModuleSchemas())){
-            return pageDTO;
-        }
-        //根据表名获取模块ID
-        List<AppModuleBase> moduleBases = appModuleBaseService.getModuleBaseInfoBySchema(pageDTO.getModuleSchemas());
-        if(CollUtil.isEmpty(moduleBases)){
-            return pageDTO;
-        }
-        //将模块ID填充
-        List<Long> moduleIds = moduleBases.stream().map(AppModuleBase::getId).distinct().toList();
-        pageDTO.setModuleIds(moduleIds);
-        return pageDTO;
-    }
-
-    /**
-     * 功能描述:
-     * 〈获取当前信息〉
-     * @param transMPage transMPage
-     * @return 正常返回:{@link AppModuleSetTrans}
-     * @author 蝉鸣
-     */
-    public PageVO<AppModuleSetTransBO> transToBO(MPage<AppModuleSetTrans> transMPage) {
-        MPage<AppModuleSetTransBO> pageVO = MPageUtil.convertToPage(transMPage);
-        List<AppModuleSetTransBO> appModuleSetTransVOS = transMPage.getRecords().stream().map(this::transToBO).toList();
-        pageVO.setRecords(appModuleSetTransVOS);
-        return MPageUtil.convertToVO(pageVO, AppModuleSetTransBO.class);
-    }
 
     /**
      * 功能描述:
@@ -105,10 +70,6 @@ public class AppModuleSetTransServiceManual {
             AppModuleBase moduleBase = appModuleBaseService.getById(transSet.getModuleFromId());
             transBO.setModuleFrom(BeanUtil.copyProperties(moduleBase, AppModuleBaseBO.class));
         }
-        if(ObjectUtil.isNotEmpty(transSet.getModuleSearchId())){
-            AppModuleBase moduleBase = appModuleBaseService.getById(transSet.getModuleSearchId());
-            transBO.setModuleSearch(BeanUtil.copyProperties(moduleBase, AppModuleBaseBO.class));
-        }
         if(ObjectUtil.isNotEmpty(transSet.getModuleToId())){
             AppModuleBase moduleBase = appModuleBaseService.getById(transSet.getModuleToId());
             transBO.setModuleTo(BeanUtil.copyProperties(moduleBase, AppModuleBaseBO.class));
@@ -136,10 +97,6 @@ public class AppModuleSetTransServiceManual {
             AppModuleBase moduleBase = appModuleBaseService.getById(transSet.getModuleFromId());
             transVO.setModuleFrom(BeanUtil.copyProperties(moduleBase, AppModuleBaseVO.class));
         }
-        if(ObjectUtil.isNotEmpty(transSet.getModuleSearchId())){
-            AppModuleBase moduleBase = appModuleBaseService.getById(transSet.getModuleSearchId());
-            transVO.setModuleSearch(BeanUtil.copyProperties(moduleBase, AppModuleBaseVO.class));
-        }
         if(ObjectUtil.isNotEmpty(transSet.getModuleToId())){
             AppModuleBase moduleBase = appModuleBaseService.getById(transSet.getModuleToId());
             transVO.setModuleTo(BeanUtil.copyProperties(moduleBase, AppModuleBaseVO.class));
@@ -147,4 +104,17 @@ public class AppModuleSetTransServiceManual {
         return transVO;
     }
 
+    /**
+     * 功能描述:
+     * 〈删除转化配置〉
+     * @param transId transId
+     * @author 蝉鸣
+     */
+    public void delModuleSetTrans(Long transId) {
+        //删除自动规则
+        IAppModuleSetTransAutoService appModuleSetTransAutoService = SpringContextHolderUtil.getBean(IAppModuleSetTransAutoService.class);
+        appModuleSetTransAutoService.lambdaUpdate().eq(AppModuleSetTransAuto::getTransId,transId).remove();
+        //删除字段映射
+        appModuleSetTransMappingService.lambdaUpdate().eq(AppModuleSetTransMapping::getTransId,transId).remove();
+    }
 }

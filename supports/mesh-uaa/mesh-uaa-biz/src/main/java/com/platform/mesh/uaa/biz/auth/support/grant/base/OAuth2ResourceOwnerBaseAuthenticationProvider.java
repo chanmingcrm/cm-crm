@@ -3,10 +3,11 @@ package com.platform.mesh.uaa.biz.auth.support.grant.base;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.platform.mesh.core.constants.SymbolConst;
+import com.platform.mesh.core.exception.BaseException;
+import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.security.domain.bo.LoginUserBO;
-import com.platform.mesh.security.utils.OAuth2ErrorCodesExpand;
 import com.platform.mesh.security.utils.ScopeException;
+import com.platform.mesh.uaa.biz.auth.exception.AuthExceptionEnum;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,7 +124,7 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider<T extends OA
 	 * @author 蝉鸣
 	 */
 	@Override
-	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+	public Authentication authenticate(Authentication authentication) throws BaseException {
 		// ----- resouceOwnerBaseAuthenticationScopes -----
 		T resouceOwnerBaseAuthenticationScopes = (T) authentication;
 		// ----- clientPrincipal -----
@@ -179,7 +180,11 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider<T extends OA
 		}
 		catch (Exception ex) {
 			log.error("problem in authenticate", ex);
-			throw oAuth2AuthenticationException(authentication, (AuthenticationException) ex);
+			if (ex instanceof BaseException) {
+				throw ex;
+			}else{
+				throw oAuth2AuthenticationException(authentication, (AuthenticationException) ex);
+			}
 		}
 
 	}
@@ -227,7 +232,7 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider<T extends OA
 			authorizedScopes = new LinkedHashSet<>(resouceOwnerBaseAuthenticationScopes.getScopes());
 		}
 		else {
-			throw new ScopeException(OAuth2ErrorCodesExpand.SCOPE_IS_EMPTY);
+			throw new ScopeException(AuthExceptionEnum.AUTH_SCOPE_IS_EMPTY.name());
 		}
 		return authorizedScopes;
 	}
@@ -251,7 +256,7 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider<T extends OA
 				.principal(authenticate)
 				.authorizationServerContext(AuthorizationServerContextHolder.getContext())
 				.authorizedScopes(authorizedScopes)
-				.authorizationGrantType(AuthorizationGrantType.PASSWORD)
+				.authorizationGrantType(new AuthorizationGrantType(GrantTypeConstant.PASSWORD))
 				.authorizationGrant(resourceOwnerBaseAuthenticationScopes);
 		return tokenContextBuilder;
 	}
@@ -271,7 +276,7 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider<T extends OA
 		LoginUserBO principal = (LoginUserBO)authenticate.getPrincipal();
 		OAuth2Authorization.Builder authorizationBuilder = OAuth2Authorization
 				.withRegisteredClient(registeredClient).principalName(principal.getUserId().toString())
-				.authorizationGrantType(AuthorizationGrantType.PASSWORD)
+				.authorizationGrantType(new AuthorizationGrantType(GrantTypeConstant.PASSWORD))
 				.authorizedScopes(authorizedScopes);
 		return authorizationBuilder;
 	}
@@ -370,43 +375,30 @@ public abstract class OAuth2ResourceOwnerBaseAuthenticationProvider<T extends OA
 	 * @return 正常返回:{@link OAuth2AuthenticationException}
 	 * @author 蝉鸣
 	 */
-	private OAuth2AuthenticationException oAuth2AuthenticationException(Authentication authentication,
-			AuthenticationException authenticationException) {
+	private BaseException oAuth2AuthenticationException(Authentication authentication,
+                                                        AuthenticationException authenticationException) {
 		if (authenticationException instanceof UsernameNotFoundException) {
-			return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USERNAME_NOT_FOUND,
-					this.messages.getMessage("JdbcDaoImpl.notFound", new Object[] { authentication.getName() },
-							"Username {0} not found"),
-					SymbolConst.BLANK));
+            throw AuthExceptionEnum.USER_NO_EXIST.getBaseException();
 		}
 		if (authenticationException instanceof BadCredentialsException) {
-			return new OAuth2AuthenticationException(
-					new OAuth2Error(OAuth2ErrorCodesExpand.BAD_CREDENTIALS, this.messages.getMessage(
-							"AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"), SymbolConst.BLANK));
+            throw AuthExceptionEnum.AUTH_BAD_CREDENTIALS.getBaseException();
 		}
 		if (authenticationException instanceof LockedException) {
-			return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_LOCKED, this.messages
-					.getMessage("AbstractUserDetailsAuthenticationProvider.locked", "User account is locked"), SymbolConst.BLANK));
+            throw AuthExceptionEnum.USER_LOCKED.getBaseException();
 		}
 		if (authenticationException instanceof DisabledException) {
-			return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_DISABLE,
-					this.messages.getMessage("AbstractUserDetailsAuthenticationProvider.disabled", "User is disabled"),
-					SymbolConst.BLANK));
+            throw AuthExceptionEnum.USER_DISABLE.getBaseException();
 		}
 		if (authenticationException instanceof AccountExpiredException) {
-			return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.USER_EXPIRED, this.messages
-					.getMessage("AbstractUserDetailsAuthenticationProvider.expired", "User account has expired"), SymbolConst.BLANK));
+            throw AuthExceptionEnum.USER_EXPIRED.getBaseException();
 		}
 		if (authenticationException instanceof CredentialsExpiredException) {
-			return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodesExpand.CREDENTIALS_EXPIRED,
-					this.messages.getMessage("AbstractUserDetailsAuthenticationProvider.credentialsExpired",
-							"User credentials have expired"),
-					SymbolConst.BLANK));
+            throw AuthExceptionEnum.AUTH_CREDENTIALS_EXPIRED.getBaseException();
 		}
 		if (authenticationException instanceof ScopeException) {
-			return new OAuth2AuthenticationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_SCOPE,
-					this.messages.getMessage("AbstractAccessDecisionManager.accessDenied", "invalid_scope"), SymbolConst.BLANK));
+            throw AuthExceptionEnum.AUTH_SCOPE_IS_EMPTY.getBaseException();
 		}
-		return new OAuth2AuthenticationException(OAuth2ErrorCodesExpand.UN_KNOW_LOGIN_ERROR);
+        throw AuthExceptionEnum.AUTH_UN_KNOW_LOGIN_ERROR.getBaseException();
 	}
 
 

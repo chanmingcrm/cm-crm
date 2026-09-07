@@ -110,8 +110,8 @@ public class AppBaseController extends BaseController{
      * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
-    @Operation(summary = "拷贝模块")
-    @PostMapping("/app/base/copy")
+    @Operation(summary = "拷贝应用")
+    @PostMapping("/app/base/app/copy")
     public Result<Boolean> copyAppBase(@RequestBody AppBaseCopyDTO copyDTO) {
         return Result.success(appBaseService.copyAppBase(copyDTO));
     }

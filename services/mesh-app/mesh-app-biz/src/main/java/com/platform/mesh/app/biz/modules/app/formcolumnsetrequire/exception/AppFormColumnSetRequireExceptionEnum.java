@@ -17,6 +17,7 @@ public enum AppFormColumnSetRequireExceptionEnum implements BaseExceptionEnum<Ap
      */
     ADD_NO_ARGS("app_form_column_set_require",500, null,  "formColumnSetRequire参数为空"),
     ADD_NO_INVALID("app_form_column_set_require",501, null,  "formColumnSetRequire参数异常"),
+    ADD_NO_AUTH("app_form_column_set_require",502, null,  "系统配置，不支持修改"),
     ;
 
     /**

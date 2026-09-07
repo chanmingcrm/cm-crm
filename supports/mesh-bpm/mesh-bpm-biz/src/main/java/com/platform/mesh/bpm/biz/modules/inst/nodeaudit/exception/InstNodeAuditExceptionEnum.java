@@ -15,6 +15,7 @@ public enum InstNodeAuditExceptionEnum implements BaseExceptionEnum<InstNodeAudi
      */
     ADD_NO_ARGS("bpm-node-audit",500, null,  "审批节点审核人参数为空"),
     ADD_NO_INVALID("bpm-node-audit",501, null,  "审批节点审核人参数异常"),
+    ADD_NO_INVALID_INST_NODE("bpm-node-audit",502, null,  "未找到有效的流程节点信息"),
     ;
 
     /**

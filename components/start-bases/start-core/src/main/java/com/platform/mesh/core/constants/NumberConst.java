@@ -72,9 +72,19 @@ public interface NumberConst {
 	Integer NUM_16 = 16;
 
 	/**
+	 *  31
+	 */
+	Integer NUM_31 = 31;
+
+	/**
 	 *  32
 	 */
 	Integer NUM_32 = 32;
+
+    /**
+     *  50
+     */
+    Integer NUM_50 = 50;
 
 	/**
 	 *  55
@@ -177,6 +187,11 @@ public interface NumberConst {
 	Integer NUM_1024 = 1024;
 
 	/**
+	 * 1536
+	 */
+	Integer NUM_1536 = 1536;
+
+	/**
 	 * 默认查询2000
 	 */
 	Integer NUM_2000 = 2000;
@@ -185,4 +200,14 @@ public interface NumberConst {
 	 * 默认查询10000
 	 */
 	Integer NUM_10000 = 10000;
+
+	/**
+	 * 默认查询50000
+	 */
+	Integer NUM_50000 = 50000;
+
+	/**
+	 * 默认查询100000
+	 */
+	Integer NUM_1000000 = 1000000;
 }

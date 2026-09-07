@@ -96,4 +96,5 @@ public class DictBaseBO extends BaseBO {
     @Schema(description = "数据权限机构ID")
     private Long scopeOrgId;
 
+
 }

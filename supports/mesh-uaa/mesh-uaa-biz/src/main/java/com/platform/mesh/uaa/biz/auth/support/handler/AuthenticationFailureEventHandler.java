@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.log.enums.LoginFlagEnum;
 import com.platform.mesh.log.event.SysLoginLogEvent;
 import com.platform.mesh.log.utils.SysLogUtils;
+import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.upms.api.modules.sys.log.domain.bo.LogLoginBO;
 import com.platform.mesh.utils.result.Result;
 import com.platform.mesh.utils.spring.SpringContextHolderUtil;
@@ -13,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -31,7 +32,7 @@ public class AuthenticationFailureEventHandler implements AuthenticationFailureH
 
 	private static final Logger log = LoggerFactory.getLogger(AuthenticationFailureEventHandler.class);
 
-	private final MappingJackson2HttpMessageConverter errorHttpResponseConverter = new MappingJackson2HttpMessageConverter();
+	private final JacksonJsonHttpMessageConverter errorHttpResponseConverter = new JacksonJsonHttpMessageConverter();
 
 	/**
 	 * 功能描述:
@@ -44,7 +45,7 @@ public class AuthenticationFailureEventHandler implements AuthenticationFailureH
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) {
-		String username = request.getParameter(OAuth2ParameterNames.USERNAME);
+		String username = request.getParameter(GrantTypeConstant.USERNAME);
 
 		log.error("用户：{} 登录失败，异常：", username, exception);
 		if (StrUtil.isNotEmpty(username)) {

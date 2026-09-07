@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.ai.agent.mapper.AiAgentMapper">
+
+    <select id="getAiAgentBOById" resultType="com.platform.mesh.ai.biz.modules.ai.agent.domain.po.AiAgent">
+        SELECT
+            *
+        FROM
+            ai_agent
+        WHERE
+            id = #{agentId}
+    </select>
+
+    <select id="getAiAgentBOByGroupHash" resultType="com.platform.mesh.ai.biz.modules.ai.agent.domain.po.AiAgent">
+        SELECT a.*
+        FROM ai_agent a
+        WHERE EXISTS (
+            SELECT 1
+            FROM cc_user u
+                     INNER JOIN cc_group_user_rel gur ON gur.user_hash = u.user_hash
+            WHERE u.agent_id = a.id
+              AND gur.group_hash = #{groupHash}
+        )
+        ORDER BY (EXISTS (
+            SELECT 1
+            FROM cc_user u
+                     INNER JOIN cc_group_user_rel gur ON gur.user_hash = u.user_hash
+            WHERE u.agent_id = a.id
+              AND gur.group_hash = #{groupHash}
+        )) DESC
+        LIMIT 1
+    </select>
+
+    <select id="getDefaultAgent" resultType="com.platform.mesh.ai.biz.modules.ai.agent.domain.po.AiAgent">
+        SELECT
+            *
+        FROM
+            ai_agent
+        WHERE
+            agent_flag = #{agentFlag}
+        ORDER BY create_time ASC
+        LIMIT 1
+    </select>
+</mapper>

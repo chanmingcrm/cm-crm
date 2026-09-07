@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.bi.crm.mapper.CrmBiRankMapper">
+
+    <select id="biCustomerRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            COUNT( 1 ) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_pre_customer
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biContactsRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            COUNT( 1 ) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_pre_contacts
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biBusinessRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            COUNT( 1 ) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_on_business
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biContractRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            COUNT( 1 ) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_on_contract
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biFollowRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            COUNT( 1 ) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_on_follow
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biContractMoneyRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            IFNULL(SUM(real_money),0) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_pre_customer
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biBusinessMoneyRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            IFNULL(SUM(real_money),0) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_pre_customer
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+    <select id="biPaymentMoneyRank" resultType="com.platform.mesh.core.application.domain.vo.SimpVO">
+        SELECT
+            IFNULL(SUM(real_money),0) AS value,
+            ANY_VALUE(scope_user_id) AS extend
+        FROM
+        crm_pre_customer
+        WHERE
+        create_time &gt; #{biDTO.startTime}
+        AND create_time &lt; #{biDTO.endTime}
+        <if test="(biDTO.userIds != null and biDTO.userIds.size() > 0)">
+            AND create_user_id IN
+            <foreach collection="biDTO.userIds" item="userId" open="(" close=")" separator=",">
+                #{userId}
+            </foreach>
+        </if>
+        GROUP BY scope_user_id
+        ORDER BY value DESC
+    </select>
+
+</mapper>

@@ -2,6 +2,7 @@ package com.platform.mesh.app.biz.modules.data.common.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.app.biz.modules.data.common.domain.po.DataCommon;
 import com.platform.mesh.app.biz.modules.data.common.domain.vo.DataCommonVO;
 import com.platform.mesh.app.biz.modules.data.common.service.IDataCommonService;
@@ -12,7 +13,10 @@ import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.es.domain.dto.EsDocEGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocSGetDTO;
+import com.platform.mesh.es.domain.dto.EsDocUGetDTO;
 import com.platform.mesh.log.annotation.Log;
+import com.platform.mesh.upms.api.modules.team.domain.dto.TeamBaseDTO;
+import com.platform.mesh.upms.api.modules.team.domain.dto.TeamBaseDelDTO;
 import com.platform.mesh.utils.excel.ExcelUtil;
 import com.platform.mesh.utils.excel.dto.HeadDTO;
 import com.platform.mesh.utils.result.Result;
@@ -109,7 +113,7 @@ public class DataCommonController extends BaseController{
     @Log(moduleName = "通用管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/app/data/common/edit")
     public Result<DataCommonVO> editData(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        DataCommon crmData = dataCommonService.editData(dataEditDTO, DataCommon.class);
+        DataCommon crmData = dataCommonService.editData(dataEditDTO, DataCommon.class, DataCommonData.class);
         return Result.success(BeanUtil.copyProperties(crmData,DataCommonVO.class));
     }
 
@@ -179,8 +183,12 @@ public class DataCommonController extends BaseController{
     @Operation(summary = "导入通用")
     @Log(moduleName = "通用管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/app/data/common/import")
-    public Result<Boolean> importData(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(dataCommonService.importData(moduleId,formId,file,DataCommon.class,DataCommonData.class));
+    public Result<ImportVO> importData(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(dataCommonService.importData(importDTO,DataCommon.class,DataCommonData.class));
     }
 
     /**
@@ -198,5 +206,42 @@ public class DataCommonController extends BaseController{
                     return dataCommonService.selectEsPage(exportDTO);
                 } ,exportDTO.getHeadDTOS(),exportDTO.getModuleName(),response
         );
+    }
+
+    /**
+     * 功能描述:
+     * 〈增加团队成员列表〉
+     * @param baseDTO baseDTO
+     * @return 正常返回:{@link Result<Boolean>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "增加团队成员列表")
+    @PostMapping("/app/data/common/team/member/add")
+    public Result<Boolean> addTeamMember(@RequestBody TeamBaseDTO baseDTO) {
+        return Result.success(dataCommonService.addTeamMember(baseDTO));
+    }
+
+    /**
+     * 功能描述:
+     * 〈删除团队成员列表〉
+     * @param delDTO delDTO
+     * @return 正常返回:{@link Result<Boolean>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "删除团队成员列表")
+    @PostMapping("/app/data/common/team/member/delete")
+    public Result<Boolean> deleteTeamMember(@RequestBody TeamBaseDelDTO delDTO) {
+        return Result.success(dataCommonService.deleteTeamMember(delDTO));
+    }
+
+    /**
+     * 功能描述:
+     * 〈多索引联合过滤查询〉
+     * @author 蝉鸣
+     */
+    @Operation(summary = "多索引联合过滤查询")
+    @PostMapping("/app/data/common/uni/page")
+    public Result<PageVO<Object>> selectUniPage(@RequestBody EsDocUGetDTO pageDTO) {
+        return Result.success(dataCommonService.selectUniPage(pageDTO));
     }
 }

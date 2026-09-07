@@ -85,6 +85,13 @@ public class MsgBaseVO extends BaseVO {
 
 
     /**
+     * 提醒时间
+     */
+    @Schema(description = "提醒时间")
+    private LocalDateTime noticeTime;
+
+
+    /**
      * 创建者ID
      */
     @Schema(description = "创建者ID")

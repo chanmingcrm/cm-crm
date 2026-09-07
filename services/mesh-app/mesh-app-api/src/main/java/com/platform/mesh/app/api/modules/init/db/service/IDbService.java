@@ -1,6 +1,10 @@
 package com.platform.mesh.app.api.modules.init.db.service;
 
+import com.platform.mesh.app.api.modules.init.db.domain.bo.DbTransResBO;
 import com.platform.mesh.app.api.modules.init.db.domain.dto.DbTransDTO;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgLevelBO;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberTransBO;
 
 import java.util.List;
 
@@ -31,5 +35,30 @@ public interface IDbService {
      * 〈转换数据〉
      * @author 蝉鸣
      */
-    Boolean transDbData(DbTransDTO transDTO);
+    DbTransResBO transDbData(DbTransDTO transDTO);
+
+    /**
+     * 功能描述:
+     * 〈同步人员名称〉
+     * @param memberBO memberBO
+     * @author 蝉鸣
+     */
+    void syncUserName(OrgMemberBO memberBO);
+
+    /**
+     * 功能描述:
+     * 〈同步组织名称〉
+     * @param levelBO levelBO
+     * @author 蝉鸣
+     */
+    void syncOrgName(OrgLevelBO levelBO);
+
+    /**
+     * 功能描述:
+     * 〈转移组织数据处理〉
+     * @param transBO transBO
+     * @author 蝉鸣
+     */
+    void transOrgData(OrgMemberTransBO transBO);
+
 }

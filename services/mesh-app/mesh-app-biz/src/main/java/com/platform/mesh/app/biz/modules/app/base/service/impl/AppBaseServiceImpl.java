@@ -170,6 +170,8 @@ public class AppBaseServiceImpl extends ServiceImpl<AppBaseMapper, AppBase> impl
             targetApp.setAppMac(sourceApp.getAppMac().concat(ModuleConst.COPY_EN_SUFFIX));
             targetApp.setAppName(sourceApp.getAppName().concat(ModuleConst.COPY_CN_SUFFIX));
             targetApp.setAppDesc(sourceApp.getAppDesc().concat(ModuleConst.COPY_CN_SUFFIX));
+            targetApp.setAppLogo(sourceApp.getAppLogo());
+            targetApp.setDelFlag(YesOrNoEnum.YES.getValue());
             this.save(targetApp);
             //新增菜单
             appBaseServiceManual.addOrEditMenu(targetApp,OperateTypeEnum.INSERT);

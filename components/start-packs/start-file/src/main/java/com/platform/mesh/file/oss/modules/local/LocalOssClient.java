@@ -2,10 +2,12 @@ package com.platform.mesh.file.oss.modules.local;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.core.constants.SymbolConst;
+import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.file.oss.base.BaseOssClient;
 import com.platform.mesh.file.oss.base.common.model.OssUploadBO;
 import com.platform.mesh.file.oss.base.common.model.bo.DocFileBO;
@@ -18,9 +20,7 @@ import com.platform.mesh.file.oss.constant.OssTypeConst;
 import com.platform.mesh.file.oss.exception.FileExceptionEnum;
 import com.platform.mesh.file.oss.modules.local.properties.LocalOssProperties;
 import com.platform.mesh.file.oss.utils.OssFileUtil;
-import com.platform.mesh.file.oss.utils.OssPathUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.Bucket;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Arrays;
@@ -54,7 +55,6 @@ public class LocalOssClient implements BaseOssClient {
      * @author 蝉鸣
      */
     @Override
-    @SneakyThrows
     public List<Bucket>  getAllBuckets() {
         String basePath = localProperties.getBasePath();
         log.info("查询所有的文件列表");
@@ -68,7 +68,6 @@ public class LocalOssClient implements BaseOssClient {
      * @author 蝉鸣
      */
     @Override
-    @SneakyThrows
     public void createBucket(String bucketName) {
         log.info("创建一个文件夹");
     }
@@ -146,15 +145,12 @@ public class LocalOssClient implements BaseOssClient {
      * @author 蝉鸣
      */
     @Override
-    public byte[] downloadFile(String bucketName, String fileName) {
-        String filePath = OssPathUtil.valid(bucketName).concat(fileName).replaceAll(SymbolConst.FORWARD_SLASH_MORE,SymbolConst.FORWARD_SLASH);
-        //本地文件对象
-        File localFile = new File(filePath);
-        //读取操作
-        try (BufferedInputStream inputStream = new BufferedInputStream(Files.newInputStream(localFile.toPath()))) {
-            return inputStream.readAllBytes();
+    public InputStream downloadFileStream(String bucketName, String fileName) {
+        Path filePath = resolveSafePath(bucketName, fileName);
+        try {
+            return Files.newInputStream(filePath);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BaseException(e);
         }
     }
 
@@ -192,22 +188,22 @@ public class LocalOssClient implements BaseOssClient {
      */
     @Override
     public DocFileBO uploadFileMultiPart(MultipartFile file) {
+        String uniqueFileName = OssFileUtil.uniqueFileName(file.getOriginalFilename());
         //初始化上传信息
-        String uploadId = initiateMultipartUpload(file.getOriginalFilename());
+        String uploadId = initiateMultipartUpload(uniqueFileName);
         //切割文件：文件已经上传本地，其实后边操作都是多余的，只是为了相同步骤而进行
-        List<MultiPartBO> multiPartBOList = OssFileUtil.splitUploadFile(file, localProperties.getSliceConfig().getPartSize(),uploadId);
         //手动生成上传进度：其实文件已经上传，也已经分片操作
-        UploadProcess uploadProcess = new UploadProcess().setFilename(file.getOriginalFilename()).setUploadId(uploadId).setTempPath(uploadId);
-        UploadExtendConst.UPLOAD_PROCESS_STORAGE.put(file.getOriginalFilename(), uploadProcess);
+        UploadProcess uploadProcess = new UploadProcess().setFilename(uniqueFileName).setUploadId(uploadId).setTempPath(uploadId);
+        UploadExtendConst.UPLOAD_PROCESS_STORAGE.put(uniqueFileName, uploadProcess);
         //可自定义添加验证
-        completeMultipartUpload(file.getOriginalFilename());
+        completeMultipartUpload(uniqueFileName);
         //设置返回值
-        DocFileBO docFileBO = OssFileUtil.MultipartFileToDocFile(file);
+        DocFileBO docFileBO = OssFileUtil.multipartFileToDocFile(file);
         docFileBO.setFileSource(OssTypeConst.LOCAL);
         docFileBO.setFileEndpoint(localProperties.getBasePath());
         docFileBO.setFileBucket(localProperties.getBasePath());
-        docFileBO.setFileAddr(StrUtil.SLASH
-                .concat(docFileBO.getFileName()).concat(StrUtil.DOT).concat(docFileBO.getFileType()));
+        docFileBO.setFileAddr(StrPool.SLASH
+                .concat(uniqueFileName));
         return docFileBO;
     }
 
@@ -220,10 +216,9 @@ public class LocalOssClient implements BaseOssClient {
      */
     @Override
     public String initiateMultipartUpload(String filename) {
-        // 分块文件存储路径
-        String tempFilePath = localProperties.getTempPath() + filename + IdUtil.fastSimpleUUID();
-        FileUtil.mkdir(tempFilePath);
-        return tempFilePath;
+        Path tempPath = resolveSafePath(localProperties.getTempPath(), filename + IdUtil.fastSimpleUUID());
+        FileUtil.mkdir(tempPath.toString());
+        return tempPath.toString();
     }
 
     /**
@@ -248,12 +243,11 @@ public class LocalOssClient implements BaseOssClient {
                 throw FileExceptionEnum.FILE_MKDIR_ERROR.getBaseException();
             }
         }
-        //TODO 完善重复数据
         try (InputStream in = multiPartBO.getFile().getInputStream();
              OutputStream out = Files.newOutputStream(Paths.get(chunkFilePath))) {
             FileCopyUtils.copy(in, out);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BaseException(e);
         }
         return chunkFilePath;
     }
@@ -274,9 +268,10 @@ public class LocalOssClient implements BaseOssClient {
         // 需要合并的文件所在的文件夹
         File chunkFolder = new File(uploadProcess.getUploadId());
         // 合并后的文件
-        File mergeFile = new File(localProperties.getBasePath() + filename);
+        Path mergePath = resolveSafePath(localProperties.getBasePath(), filename);
         //合并操作
-        try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(mergeFile.toPath()))) {
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(mergePath))) {
+
             byte[] bytes = new byte[UploadExtendConst.DEFAULT_BUFFER_SIZE];
             //查询所有的文件
             File[] fileArray = Optional.ofNullable(chunkFolder.listFiles())
@@ -289,17 +284,34 @@ public class LocalOssClient implements BaseOssClient {
                         outputStream.write(bytes, 0, len);
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    throw new BaseException(e);
                 }
             });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new BaseException(e);
         } finally {
             //删除临时文件
             FileUtil.del(uploadProcess.getTempPath());
             //清除文件上传信息
             UploadExtendConst.UPLOAD_PROCESS_STORAGE.remove(filename);
         }
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取文件路径〉
+     * @param basePath basePath
+     * @param fileName fileName
+     * @author 蝉鸣
+     */
+    private Path resolveSafePath(String basePath, String fileName) {
+        Path base = Paths.get(basePath).toAbsolutePath().normalize();
+        String sanitizeName = CharSequenceUtil.removePrefix(fileName, SymbolConst.FORWARD_SLASH);
+        Path target = base.resolve(sanitizeName).normalize();
+        if (!target.startsWith(base)) {
+            throw new IllegalArgumentException("invalid file path");
+        }
+        return target;
     }
 }
 

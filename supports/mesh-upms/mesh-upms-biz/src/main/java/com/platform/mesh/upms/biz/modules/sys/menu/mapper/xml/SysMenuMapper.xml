@@ -3,42 +3,111 @@
 <mapper namespace="com.platform.mesh.upms.biz.modules.sys.menu.mapper.SysMenuMapper">
 
     <select id="getMenuPage" resultType="com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu">
-        SELECT DISTINCT
-            m.*
+        SELECT
+        m.*
         FROM
             sys_menu m
         WHERE m.del_flag != #{pageDTO.delFlag}
         <if test="pageDTO.parentId != null">
             AND m.parent_id = #{pageDTO.parentId}
         </if>
+        <if test=" pageDTO.menuIds !=null and pageDTO.menuIds.size() > 0 ">
+            AND m.id IN
+            <foreach collection="pageDTO.menuIds" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
         <if test="pageDTO.menuType != null">
             AND m.menu_type = #{pageDTO.menuType}
+        </if>
+        <if test="pageDTO.isAdmin == null or pageDTO.isAdmin == false">
+            AND (
+                EXISTS (
+                SELECT 1 FROM sys_role_menu_rel rmr
+                JOIN sys_user_role_rel urr ON rmr.role_id = urr.role_id
+                WHERE rmr.menu_id = m.id AND urr.user_id = #{pageDTO.userId}
+                )
+            )
         </if>
     </select>
 
     <select id="getMenuInfo"
             resultType="com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu">
-        SELECT DISTINCT
+        WITH
+        all_valid_menus AS (
+                SELECT
+                DISTINCT m.id
+                FROM sys_user_role_rel urr
+                INNER JOIN sys_role_menu_rel rmr ON urr.role_id = rmr.role_id
+                INNER JOIN sys_menu m ON rmr.menu_id = m.id
+                WHERE m.del_flag != 2
+                AND urr.user_id = #{userId}
+                <if test="(filters != null and filters.size() > 0)">
+                    AND m.menu_type IN
+                    <foreach collection="filters" item="menu" open="(" close=")" separator=",">
+                        #{menu}
+                    </foreach>
+                </if>
+                <if test="(ignores != null and ignores.size() > 0)">
+                    AND m.menu_type NOT IN
+                    <foreach collection="ignores" item="menu" open="(" close=")" separator=",">
+                        #{menu}
+                    </foreach>
+                </if>
+            )
+        SELECT
+        m.*
+        FROM
+        sys_menu m
+        INNER JOIN all_valid_menus avm ON m.id = avm.id
+        WHERE
+           m.del_flag != 2
+    </select>
+
+    <select id="selectUpdateMenuList"
+            resultType="com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu">
+        SELECT
+        m.*
+        FROM
+        sys_menu m
+        WHERE
+        m.del_flag != 2
+        AND m.module_id = #{moduleId}
+        AND m.menu_type = #{menuType}
+        AND m.mac = #{mac}
+    </select>
+
+    <select id="selectUpdateMenu"
+            resultType="com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu">
+        SELECT
             m.*
         FROM
-            sys_user_role_rel urr
-                LEFT JOIN sys_role_menu_rel rmr ON urr.role_id = rmr.role_id
-                LEFT JOIN sys_menu m ON rmr.menu_id = m.id
+        sys_menu m
         WHERE
-            urr.user_id = #{userId}
-            AND m.del_flag != 2
-            <if test="(filters != null and filters.size() > 0)">
-                AND m.menu_type IN
-                <foreach collection="filters" item="menu" open="(" close=")" separator=",">
-                    #{menu}
-                </foreach>
-            </if>
-            <if test="(ignores != null and ignores.size() > 0)">
-                AND m.menu_type NOT IN
-                <foreach collection="ignores" item="menu" open="(" close=")" separator=",">
-                    #{menu}
-                </foreach>
-            </if>
+        m.module_id = #{moduleId}
+        AND m.menu_type = #{menuType}
+        AND m.mac = #{mac}
+        ORDER BY m.create_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="getUniById" resultType="com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu">
+        SELECT
+            m.*
+        FROM
+            sys_menu m
+        WHERE
+            m.id = #{menuId}
+        LIMIT 1
+    </select>
+
+    <select id="getAppModules" resultType="java.lang.Long">
+        SELECT DISTINCT
+            m.module_id
+        FROM
+            sys_menu m
+        WHERE
+            m.menu_type = 6
     </select>
 
 </mapper>

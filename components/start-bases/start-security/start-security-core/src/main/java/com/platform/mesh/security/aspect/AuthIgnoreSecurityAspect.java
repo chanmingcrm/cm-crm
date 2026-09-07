@@ -1,6 +1,5 @@
 package com.platform.mesh.security.aspect;
 
-import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.core.constants.HttpConst;
 import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.utils.spring.ServletUtil;
@@ -23,9 +22,9 @@ public class AuthIgnoreSecurityAspect implements Ordered {
 
 	@Around("@annotation(authIgnore)")
 	public Object around(ProceedingJoinPoint point, AuthIgnore authIgnore) throws Throwable {
-		String header = ServletUtil.getRequestInst().getHeader(HttpConst.REQUEST_SOURCE);
+		String requestSource = ServletUtil.getRequestInst().getHeader(HttpConst.REQUEST_SOURCE);
 
-		if (authIgnore.value() && !StrUtil.equals(HttpConst.INNER, header)) {
+		if (authIgnore.value() && !HttpConst.INNER.equals(requestSource)) {
 			log.warn("访问接口 {} 没有权限", point.getSignature().getName());
 			throw new AccessDeniedException("Access is denied");
 		}

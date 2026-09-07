@@ -36,10 +36,11 @@ public class BaseException extends RuntimeException {
 	private String desc;
 
 	public BaseException(String module, Integer code, List<Object> args, String desc) {
-		this.module = module;
-		this.code = code;
-		this.args = args;
-		this.desc = desc;
+        super(buildMessage(module, code, desc, args));
+        this.module = module;
+        this.code = code;
+        this.args = args;
+        this.desc = desc;
 	}
 
 
@@ -74,5 +75,49 @@ public class BaseException extends RuntimeException {
 	public BaseException(String module,Integer code, String desc) {
 		this(module, code, null, desc);
 	}
+
+    /**
+     * 构建错误消息
+     */
+    private static String buildMessage(String module, Integer code, String desc, List<Object> args) {
+        StringBuilder message = new StringBuilder();
+
+        // 模块信息
+        if (module != null && !module.trim().isEmpty()) {
+            message.append("[").append(module).append("] ");
+        }
+
+        // 错误码
+        if (code != null) {
+            message.append("CODE:").append(code);
+        }
+
+        // 参数信息
+        if (args != null && !args.isEmpty()) {
+            if (code != null) {
+                message.append(" ");
+            }
+            message.append("ARGS:").append(args);
+        }
+
+        // 错误描述
+        if (desc != null && !desc.trim().isEmpty()) {
+            if (!message.isEmpty()) {
+                message.append(" - ");
+            }
+			if(desc.contains("{}")){
+				desc = desc.replace("{}","%s");
+				desc = String.format(desc, args);
+			}
+			message.append(desc);
+		}
+
+        // 如果所有字段都为空，返回默认消息
+        if (message.isEmpty()) {
+            return "Unknown error";
+        }
+
+        return message.toString();
+    }
 
 }

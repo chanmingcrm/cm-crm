@@ -3,4 +3,13 @@
 <mapper namespace="com.platform.mesh.crm.biz.modules.crm.oncontract.mapper.CrmOnContractMapper">
 
 
+    <select id="getTotalMoneyByCustomerId" resultType="java.math.BigDecimal">
+        SELECT
+            COALESCE(SUM(total_money), 0) AS total_money
+        FROM
+            crm_on_contract
+        WHERE
+            customer_id = #{customerId}
+        AND process_pass = #{passFlag}
+    </select>
 </mapper>

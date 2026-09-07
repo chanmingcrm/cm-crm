@@ -99,22 +99,28 @@ public class SysLogAspect {
 			HttpServletRequest request = ServletUtil.getRequestInst();
 			operationLog.setOperAgent(request.getHeader(HttpHeaders.USER_AGENT));
 			operationLog.setOperIp(IpUtil.getHostIp());
-			operationLog.setOperAddr(IpUtil.getIpAddr());
+			operationLog.setOperAddr(IpUtil.getIpAddr(operationLog.getOperIp()));
 			operationLog.setOperUrl(request.getRequestURI());
 
 			// 返回参数:保存返回值最大限制2000，避免数据太大报错
 			if(jsonResult instanceof Result<?> result){
                 operationLog.setResultCode(result.getCode().toString());
 				operationLog.setResultMsg(result.getMsg());
-				operationLog.setResultData(StrUtil.sub(JSONUtil.toJsonStr(jsonResult),NumberConst.NUM_0, NumberConst.NUM_2000));
+				if (controllerLog.isSaveResponseData()) {
+					operationLog.setResultData(StrUtil.sub(JSONUtil.toJsonStr(jsonResult),NumberConst.NUM_0, NumberConst.NUM_2000));
+				}
 			}else{
 				operationLog.setResultCode(StrUtil.toString(HttpStatus.OK.value()));
 				operationLog.setResultMsg(HttpStatus.OK.getReasonPhrase());
-				operationLog.setResultData(StrUtil.sub(StrUtil.toString(jsonResult), NumberConst.NUM_0, NumberConst.NUM_2000));
+				if (controllerLog.isSaveResponseData()) {
+					operationLog.setResultData(StrUtil.sub(StrUtil.toString(jsonResult), NumberConst.NUM_0, NumberConst.NUM_2000));
+				}
 				if (ObjectUtil.isNotEmpty(e)) {
 					operationLog.setResultCode(StrUtil.toString(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 					operationLog.setResultMsg(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-					operationLog.setResultData(StrUtil.sub(e.getMessage(), NumberConst.NUM_0, NumberConst.NUM_2000));
+					if (controllerLog.isSaveResponseData()) {
+						operationLog.setResultData(StrUtil.sub(e.getMessage(), NumberConst.NUM_0, NumberConst.NUM_2000));
+					}
 				}
 			}
 

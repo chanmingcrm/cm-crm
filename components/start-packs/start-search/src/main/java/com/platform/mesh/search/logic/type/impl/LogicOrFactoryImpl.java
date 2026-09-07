@@ -96,17 +96,19 @@ public class LogicOrFactoryImpl implements LogicTypeService {
      * @author 蝉鸣
      */
     @Override
-    public Map<EsBoolEnum, Query> esBoolQuery(List<CondDTO> condDTOS){
-        Map<EsBoolEnum, Query> boolMap = new HashMap<>();
+    public Map<EsBoolEnum, List<Query>> esBoolQuery(List<CondDTO> condDTOS){
+        Map<EsBoolEnum, List<Query>> boolMap = new HashMap<>();
         if (CollUtil.isEmpty(condDTOS)) {
             return boolMap;
         }
+        List<Query> queryList = CollUtil.newArrayList();
         for (CondDTO condDTO : condDTOS) {
             LogicRefEnum condition = condDTO.getCondRef();
             LogicRefService logicRefService = logicRefFactory.getLogicRefService(condition);
             Query query = logicRefService.getEsUniQuery(condDTO);
-            boolMap.put(EsBoolEnum.SHOULD,query);
+            queryList.add(query);
         }
+        boolMap.put(EsBoolEnum.SHOULD,queryList);
         return boolMap;
     }
 

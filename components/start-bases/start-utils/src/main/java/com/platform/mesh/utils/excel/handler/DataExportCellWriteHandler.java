@@ -1,15 +1,15 @@
 package com.platform.mesh.utils.excel.handler;
 
 import cn.hutool.core.util.BooleanUtil;
-import cn.idev.excel.enums.CellDataTypeEnum;
-import cn.idev.excel.metadata.data.CellData;
-import cn.idev.excel.metadata.data.WriteCellData;
-import cn.idev.excel.write.handler.CellWriteHandler;
-import cn.idev.excel.write.handler.context.CellWriteHandlerContext;
-import cn.idev.excel.write.metadata.holder.WriteSheetHolder;
-import cn.idev.excel.write.metadata.style.WriteCellStyle;
-import cn.idev.excel.write.metadata.style.WriteFont;
 import com.platform.mesh.core.constants.NumberConst;
+import org.apache.fesod.sheet.enums.CellDataTypeEnum;
+import org.apache.fesod.sheet.metadata.data.CellData;
+import org.apache.fesod.sheet.metadata.data.WriteCellData;
+import org.apache.fesod.sheet.write.handler.CellWriteHandler;
+import org.apache.fesod.sheet.write.handler.context.CellWriteHandlerContext;
+import org.apache.fesod.sheet.write.metadata.holder.WriteSheetHolder;
+import org.apache.fesod.sheet.write.metadata.style.WriteCellStyle;
+import org.apache.fesod.sheet.write.metadata.style.WriteFont;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
@@ -97,7 +97,6 @@ public class DataExportCellWriteHandler implements CellWriteHandler {
 
     /**
      * 自定义列宽计算方法
-     *
      * @param cellDataList cellDataList
      * @param cell cell
      * @param isHead isHead

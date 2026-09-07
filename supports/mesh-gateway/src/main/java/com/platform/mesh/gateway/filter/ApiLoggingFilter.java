@@ -1,5 +1,6 @@
 package com.platform.mesh.gateway.filter;
 
+import com.platform.mesh.core.constants.HttpConst;
 import com.platform.mesh.utils.format.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,6 @@ public class ApiLoggingFilter implements GlobalFilter, Ordered {
 	 * 开始时间字段名称
 	 */
 	private static final String START_TIME = "startTime";
-	/**
-	 * nginx需要配置
-	 */
-	private static final String X_REAL_IP = "X-Real-IP";
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -46,8 +43,8 @@ public class ApiLoggingFilter implements GlobalFilter, Ordered {
 			Long startTime = exchange.getAttribute(START_TIME);
 			if (startTime != null) {
 				Long executeTime = (System.currentTimeMillis() - startTime);
-				List<String> ips = request.getHeaders().get(X_REAL_IP);
-				String ip = ips != null ? ips.get(0) : null;
+				List<String> ips = request.getHeaders().get(HttpConst.X_REAL_IP);
+				String ip = ips != null ? ips.getFirst() : null;
 				String api = request.getURI().getRawPath();
 
 				int statusCode = 500;

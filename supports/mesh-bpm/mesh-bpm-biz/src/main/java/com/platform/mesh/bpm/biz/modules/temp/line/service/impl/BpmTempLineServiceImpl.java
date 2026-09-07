@@ -56,7 +56,7 @@ public class BpmTempLineServiceImpl extends ServiceImpl<BpmTempLineMapper, BpmTe
     @Override
     public List<BpmTempLine> selectInLineByNodeId(Long nodeId) {
         //根据节点ID查询所有的入线
-        return this.lambdaQuery().list();
+        return this.lambdaQuery().eq(BpmTempLine::getTempOutNodeId,nodeId).list();
     }
 
     /**
@@ -69,7 +69,7 @@ public class BpmTempLineServiceImpl extends ServiceImpl<BpmTempLineMapper, BpmTe
     @Override
     public List<BpmTempLine> selectOutLineByNodeId(Long nodeId) {
         //根据节点ID查询所有的出线
-        return this.lambdaQuery().list();
+        return this.lambdaQuery().eq(BpmTempLine::getTempInNodeId,nodeId).list();
     }
 }
 

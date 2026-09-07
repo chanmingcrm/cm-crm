@@ -3,7 +3,7 @@
 */
 // ==================== ↓↓↓↓↓↓ 全局配置 ↓↓↓↓↓↓ ====================
 def GIT_AUTH = "jenkins_gitlab"
-def GIT_URL = "http://192.168.0.7:9980/product/platform/pc/mesh-platform.git"
+def GIT_URL = "http://woscosmos.nat100.top/product/platform/pc/mesh-platform.git"
 def DOCKER_AUTH = "jenkins_docker"
 def DOCKER_URL = "registry.cn-hangzhou.aliyuncs.com"
 def DOCKER_NAMESPACE = "demo111111111"
@@ -19,7 +19,7 @@ def PROJECT_GIT_BRANCH = "${PROJECT_GIT_BRANCH}"
 pipeline {
     agent any
     tools {
-        jdk 'jdk-21'  // 对应全局工具配置中的名称
+        jdk 'jdk-25'  // 对应全局工具配置中的名称
     }
     options {
         //设置在项目打印日志时带上对应时间
@@ -113,7 +113,7 @@ pipeline {
                         sh 'mvn clean install -Dmaven.test.skip=true'
                     }
                     // 创建统一的构建目录
-                    sh 'mkdir -p ./build/server'
+                    sh 'mkdir -p ./builds/server'
 
                     // 遍历所有服务
                     SERVICE_NAMES.each { serviceName ->
@@ -126,7 +126,7 @@ pipeline {
                             // 无变更，执行 package
                             sh "mvn -f ${modulePath} clean package -Dmaven.test.skip=true"
                         }
-                        def targetDir = "./build/server/${moduleConfig.name}"
+                        def targetDir = "./builds/server/${moduleConfig.name}"
                         // 创建目标目录
                         sh "mkdir -p ${targetDir}"
                         // 复制 JAR 文件
@@ -225,8 +225,8 @@ pipeline {
                                                 #!/bin/bash
 
                                                 echo '=== 开始部署 ${moduleConfig.name} ==='
-                                                cd "${REMOTE_DIR}/build/script/docker" || {
-                                                    echo "错误：无法进入目录 ${REMOTE_DIR}/build/script/docker"
+                                                cd "${REMOTE_DIR}/builds/script/docker" || {
+                                                    echo "错误：无法进入目录 ${REMOTE_DIR}/builds/script/docker"
                                                     exit 1
                                                 }
                                                 # 1. 停止并清理旧容器
@@ -254,7 +254,7 @@ pipeline {
                                                 fi
                                                 """,
                                                 execTimeout: 180000, // 3分钟超时
-                                                sourceFiles: "build/server/${moduleConfig.name}/**,build/script/docker/server/Dockerfile,build/script/server/docker-compose.yml",
+                                                sourceFiles: "builds/server/${moduleConfig.name}/**,builds/script/docker/server/Dockerfile,builds/script/server/docker-compose.yml",
                                                 remoteDirectory: "${REMOTE_DIR}",
                                                 removePrefix: ""
                                             )

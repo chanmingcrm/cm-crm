@@ -2,6 +2,8 @@ package com.platform.mesh.upms.biz.modules.conf.sysset.domain.vo;
 
 import java.time.LocalDateTime;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
+import com.platform.mesh.upms.api.modules.conf.enums.ConfSourceEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,6 +28,12 @@ public class ConfSysSetVO extends BaseVO {
     private Long id;
 
     /**
+     * 配置来源
+     */
+    @SchemaEnum(value = ConfSourceEnum.class, description = "配置来源")
+    private Integer confSource;
+
+    /**
      * 配置识别
      */
     @Schema(description = "配置识别")
@@ -41,7 +49,7 @@ public class ConfSysSetVO extends BaseVO {
      * 配置值
      */
     @Schema(description = "配置值")
-    private String confValue;
+    private Object confValue;
 
     /**
      * 配置描述

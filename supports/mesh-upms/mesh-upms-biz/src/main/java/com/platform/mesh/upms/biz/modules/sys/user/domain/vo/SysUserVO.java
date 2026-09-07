@@ -1,12 +1,17 @@
 package com.platform.mesh.upms.biz.modules.sys.user.domain.vo;
 
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
+import com.platform.mesh.upms.api.modules.sys.user.enums.ActiveFlagEnum;
+import com.platform.mesh.upms.biz.modules.sys.role.domain.vo.SysRoleVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @description 用户VO
@@ -24,11 +29,17 @@ public class SysUserVO extends BaseVO {
 	@Schema(description = "用户id")
 	private Long userId;
 
+//	/**
+//	 * 用户OpenId
+//	 */
+//	@Schema(description = "用户OpenId")
+//	private String openId;
+
 	/**
-	 * 用户OpenId
+	 * 用户名
 	 */
-	@Schema(description = "用户OpenId")
-	private String openId;
+	@Schema(description = "用户名")
+	private String userName;
 
 	/**
 	 * 用户昵称
@@ -55,9 +66,9 @@ public class SysUserVO extends BaseVO {
 	private Integer gender;
 
 	/**
-	 * 帐号状态（UserFlagEnum）
+	 * 用户状态（ActiveFlagEnum）
 	 */
-	@Schema(description = "帐号状态")
+	@SchemaEnum(value = ActiveFlagEnum.class, description = "用户状态")
 	private Integer userFlag;
 
 	/**
@@ -77,7 +88,7 @@ public class SysUserVO extends BaseVO {
 	/**
 	 * 删除标志（0代表存在 2代表删除）
 	 */
-	@Schema(description = "删除标志（0代表存在 2代表删除）")
+	@SchemaEnum(value = YesOrNoEnum.class, description = "删除标志（0代表存在 2代表删除）")
 	private Integer delFlag;
 
 	/**
@@ -98,4 +109,15 @@ public class SysUserVO extends BaseVO {
 	@Schema(description = "备注")
 	private String remark;
 
+	/**
+	 * 角色组
+	 */
+	@Schema(description = "角色组")
+	private List<SysRoleVO> roleVOS;
+
+	/**
+	 * 岗位组
+	 */
+	@Schema(description = "岗位组")
+	private List<UserOrgVO> orgVOS;
 }

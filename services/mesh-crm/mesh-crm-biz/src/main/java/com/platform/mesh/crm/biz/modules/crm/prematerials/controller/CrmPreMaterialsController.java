@@ -1,14 +1,11 @@
 package com.platform.mesh.crm.biz.modules.crm.prematerials.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddCompDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataDelDTO;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.app.api.modules.app.domain.dto.TransScopeDTO;
 import com.platform.mesh.crm.biz.modules.crm.prematerials.domain.po.CrmPreMaterials;
 import com.platform.mesh.crm.biz.modules.crm.prematerials.domain.vo.CrmPreMaterialsVO;
 import com.platform.mesh.crm.biz.modules.crm.prematerials.service.ICrmPreMaterialsService;
@@ -113,7 +110,7 @@ public class CrmPreMaterialsController extends BaseController{
     @Log(moduleName = "客户关系活动物料管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/materials/edit")
     public Result<CrmPreMaterialsVO> editPreMaterials(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreMaterials crmPreMaterials = crmPreMaterialsService.editData(dataEditDTO, CrmPreMaterials.class);
+        CrmPreMaterials crmPreMaterials = crmPreMaterialsService.editData(dataEditDTO, CrmPreMaterials.class, CrmPreMaterialsData.class);
         return Result.success(BeanUtil.copyProperties(crmPreMaterials, CrmPreMaterialsVO.class));
     }
     
@@ -183,8 +180,12 @@ public class CrmPreMaterialsController extends BaseController{
     @Operation(summary = "导入客户关系活动物料")
     @Log(moduleName = "客户关系活动物料管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/materials/import")
-    public Result<Boolean> importPreMaterials(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreMaterialsService.importData(moduleId,formId,file, CrmPreMaterials.class, CrmPreMaterialsData.class));
+    public Result<ImportVO> importPreMaterials(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreMaterialsService.importData(importDTO, CrmPreMaterials.class, CrmPreMaterialsData.class));
     }
     
     /**

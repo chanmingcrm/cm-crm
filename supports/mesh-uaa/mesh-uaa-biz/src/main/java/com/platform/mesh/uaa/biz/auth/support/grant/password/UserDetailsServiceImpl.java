@@ -1,13 +1,16 @@
 package com.platform.mesh.uaa.biz.auth.support.grant.password;
 
+import cn.hutool.core.collection.CollUtil;
 import com.platform.mesh.core.enums.base.BaseEnum;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.security.constants.GrantTypeConstant;
 import com.platform.mesh.security.constants.SecurityConstant;
 import com.platform.mesh.security.service.BaseUserDetailsService;
 import com.platform.mesh.uaa.biz.auth.exception.AuthExceptionEnum;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysAccountInfoBO;
+import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysUserBO;
 import com.platform.mesh.upms.api.modules.sys.user.feign.RemoteUserService;
 import com.platform.mesh.utils.result.Result;
 import com.platform.mesh.utils.result.ResultUtil;
@@ -43,7 +46,7 @@ public class UserDetailsServiceImpl implements BaseUserDetailsService {
 	 */
 	@Override
 	public boolean support(String clientId, String grantType) {
-		return AuthorizationGrantType.PASSWORD.getValue().equals(grantType);
+		return new AuthorizationGrantType(GrantTypeConstant.PASSWORD).getValue().equals(grantType);
 	}
 
 	/**
@@ -82,15 +85,23 @@ public class UserDetailsServiceImpl implements BaseUserDetailsService {
 	 * @param accountCode username
 	 */
 	private void checkAccount(Result<SysAccountInfoBO> userInfo, String accountCode) {
-		SysAccountBO accountBO = ResultUtil.of(userInfo).getData().orElseThrow(() -> {
+		SysUserBO userBO = ResultUtil.of(userInfo).getData().orElseThrow(() -> {
 			log.info("登录用户：{} 不存在.", accountCode);
-			return AuthExceptionEnum.USER_NO_EXIST.getBaseException();
+            return AuthExceptionEnum.USER_NO_EXIST.getBaseException(CollUtil.newArrayList(accountCode));
+		}).getSysUserBO();
+		// 获取用户状态信息
+		if (userBO.getUserFlag().equals(YesOrNoEnum.NO.getValue())) {
+			log.info("{}： 用户已被冻结.", userBO.getNickName());
+			throw  AuthExceptionEnum.USER_IN_FREEZE.getBaseException(CollUtil.newArrayList(userBO.getNickName()));
+		}
+		SysAccountBO accountBO = ResultUtil.of(userInfo).getData().orElseThrow(() -> {
+			log.info("登录用户账户：{} 不存在.", accountCode);
+            return AuthExceptionEnum.USER_NO_EXIST.getBaseException(CollUtil.newArrayList(accountCode));
 		}).getAccountBO();
-
 		// 获取用户状态信息
 		if (accountBO.getAccountFlag().equals(YesOrNoEnum.NO.getValue())) {
-			log.info("{}： 用户已被冻结.", accountCode);
-			throw  AuthExceptionEnum.USER_IN_FREEZE.getBaseException();
+			log.info("{}： 账户已被冻结.", accountCode);
+			throw  AuthExceptionEnum.USER_IN_FREEZE.getBaseException(CollUtil.newArrayList(accountCode));
 		}
 	}
 

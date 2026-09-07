@@ -1,8 +1,6 @@
 package com.platform.mesh.app.api.modules.app.feign.factory;
 
-import com.platform.mesh.app.api.modules.app.domain.bo.AppFormColumnBO;
-import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleBaseBO;
-import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleSetTransBO;
+import com.platform.mesh.app.api.modules.app.domain.bo.*;
 import com.platform.mesh.app.api.modules.app.domain.dto.ModulePageDTO;
 import com.platform.mesh.app.api.modules.app.feign.RemoteAppService;
 import com.platform.mesh.core.application.domain.vo.PageVO;
@@ -13,6 +11,7 @@ import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -58,18 +57,25 @@ public class RemoteAppFallbackFactory implements FallbackFactory<RemoteAppServic
 			}
 
 			@Override
-			public Result<List<AppModuleBaseBO>> initModuleBaseEs(@PathVariable("moduleBaseId")Long moduleBaseId){
+			public Result<List<AppModuleBaseBO>> initModuleBaseEs(@RequestParam("tableSchema") String tableSchema){
 				return Result.error();
 			}
 
 			@Override
-			public Result<List<AppFormColumnBO>> getFormColumnList(@PathVariable("moduleId")Long moduleId
-					, @PathVariable("formId")Long formId){
+			public Result<List<AppFormColumnBO>> getFormColumnList(@RequestParam("moduleId")Long moduleId
+					, @RequestParam("formId")Long formId){
 				return Result.error();
 			}
 
 			@Override
-			public Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@PathVariable("moduleId")Long moduleId,@PathVariable("formType") Integer formType) {
+			public Result<AppFormBO> fastFormByModuleAndFormType(@RequestParam("moduleId")Long moduleId
+                    , @RequestParam("formType") Integer formType) {
+				return Result.error();
+			}
+
+			@Override
+			public Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@RequestParam("moduleId")Long moduleId
+                    ,@RequestParam("formType") Integer formType) {
 				return Result.error();
 			}
 
@@ -80,12 +86,25 @@ public class RemoteAppFallbackFactory implements FallbackFactory<RemoteAppServic
 			}
 
 			@Override
-			public Result<PageVO<AppModuleSetTransBO>> getModuleSetTransPage(@RequestBody ModulePageDTO pageDTO) {
+			public Result<PageVO<AppModuleSetTransBO>> getModuleSetTransAutoPage(@RequestBody ModulePageDTO pageDTO) {
 				return Result.error();
 			}
 
 			@Override
 			public Result<AppModuleSetTransBO> getModuleSetTransById(@PathVariable("transId")Long transId) {
+				return Result.error();
+			}
+
+			@Override
+			public void saveImportError(ImportErrorBO errorBO) {}
+
+			@Override
+			public Result<List<SyncDataBO>> getRelModuleToSync(Long moduleId) {
+				return Result.error();
+			}
+
+			@Override
+			public Result<List<ThirdFormColumnMappingBO>> getThirdFormColumnMapping(Integer sourceFlag) {
 				return Result.error();
 			}
 		};

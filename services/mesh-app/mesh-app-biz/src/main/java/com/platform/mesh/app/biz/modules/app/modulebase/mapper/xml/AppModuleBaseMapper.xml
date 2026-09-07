@@ -9,12 +9,9 @@
     <select id="selectMPage"
             resultType="com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase">
         SELECT
-        IFNULL(ambt.module_name,amb.module_name) module_name,
         amb.*
         FROM
         app_module_base amb
-        LEFT JOIN
-        app_module_base_tenant ambt ON ambt.module_id = amb.id
         <where>
             <if test=" pageDTO.parentId != null ">
                 AND amb.parent_id = #{pageDTO.parentId}
@@ -24,6 +21,9 @@
             </if>
             <if test=" pageDTO.delFlag != null ">
                 AND amb.del_flag = #{pageDTO.delFlag}
+            </if>
+            <if test=" pageDTO.aiFlag != null ">
+                AND amb.ai_flag = #{pageDTO.aiFlag}
             </if>
             <if test=" pageDTO.moduleName!=null and pageDTO.moduleName!='' ">
                 AND amb.module_name LIKE CONCAT('%',#{pageDTO.moduleName},'%')
@@ -49,5 +49,40 @@
                 #{comp}
             </foreach>
             AND rel_data_value IS NOT NULL
+    </select>
+
+    <select id="getModuleBaseInfoById"
+            resultType="com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase">
+        SELECT
+            amb.*
+        FROM
+            app_module_base amb
+        WHERE
+            amb.id = #{moduleId}
+        LIMIT 1
+    </select>
+
+    <select id="selectRelModuleList"
+            resultType="com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleRelVO">
+        SELECT *
+        FROM
+            app_module_base m
+        INNER JOIN (
+            SELECT
+                c.module_id,
+                c.id AS column_id,
+                c.column_mac,
+                c.column_name
+            FROM app_form_column c
+                     INNER JOIN app_form_base b ON c.form_id = b.id
+            WHERE b.form_type = 101
+              AND (
+                c.comp_mac = 'related_all_field'
+                    OR (
+                    c.comp_mac = 'relevance'
+                        AND FIND_IN_SET(#{pageDTO.moduleId}, REPLACE(c.set_data_value, '"', '')) > 0
+                    )
+                )
+        ) u ON u.module_id = m.id
     </select>
 </mapper>

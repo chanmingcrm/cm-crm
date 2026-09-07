@@ -1,7 +1,9 @@
 package com.platform.mesh.bpm.biz.modules.inst.process.domain.vo;
 
 
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +33,12 @@ public class BpmInstProcessRunVO extends BaseVO {
      */
     @Schema(description = "流程实例父ID")
     private Long parentProcessId;
+
+    /**
+     * 运行标识
+     */
+    @SchemaEnum(value = ProcessRunEnum.class, description = "运行标识")
+    private Integer runFlag;
 
     /**
      * 运行中的节点

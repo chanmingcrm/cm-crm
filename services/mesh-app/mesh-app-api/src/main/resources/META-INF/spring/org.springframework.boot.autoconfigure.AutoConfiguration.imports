@@ -1,1 +1,9 @@
 com.platform.mesh.app.api.modules.app.service.manual.AppServiceManual
+com.platform.mesh.app.api.modules.serial.SerialUtil
+com.platform.mesh.app.api.modules.serial.type.factory.SerialTypeFactory
+com.platform.mesh.app.api.modules.serial.type.impl.SerialTypeTextFactoryImpl
+com.platform.mesh.app.api.modules.serial.type.impl.SerialTypeDateFactoryImpl
+com.platform.mesh.app.api.modules.serial.type.impl.SerialTypeNumFactoryImpl
+com.platform.mesh.app.api.modules.pub.type.app.config.AppListenerConfig
+com.platform.mesh.app.api.modules.pub.type.app.factory.AppFeedbackFactory
+com.platform.mesh.app.api.modules.pub.type.app.impl.AppListenerMsgImpl

@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @description 单字段动作信息
  * @author 蝉鸣
  */
-@Tag(description = "AppFormColumnSetActionController", name = "单字段动作")
+@Tag(description = "AppFormColumnSetActionController", name = "表单字段动作")
 @RestController
 @RequestMapping
 public class AppFormColumnSetActionController extends BaseController{
@@ -70,7 +70,7 @@ public class AppFormColumnSetActionController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "新增单字段动作")
-    @Log(moduleName = "单字段动作管理", operateType = OperateTypeEnum.INSERT)
+    @Log(moduleName = "表单字段动作管理", operateType = OperateTypeEnum.INSERT)
     @PostMapping("/app/form/column/set/action/add")
     public Result<AppFormColumnSetActionVO> addFormColumnSetAction(@Validated @RequestBody AppFormColumnSetActionDTO formColumnSetActionDTO) {
         return Result.success(appFormColumnSetActionService.addFormColumnSetAction(formColumnSetActionDTO));
@@ -84,7 +84,7 @@ public class AppFormColumnSetActionController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "修改单字段动作")
-    @Log(moduleName = "单字段动作管理", operateType = OperateTypeEnum.UPDATE)
+    @Log(moduleName = "表单字段动作管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/app/form/column/set/action/edit")
     public Result<AppFormColumnSetActionVO> editFormColumnSetAction(@Validated @RequestBody AppFormColumnSetActionDTO formColumnSetActionDTO) {
         return Result.success(appFormColumnSetActionService.editFormColumnSetAction(formColumnSetActionDTO));
@@ -98,7 +98,7 @@ public class AppFormColumnSetActionController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "删除单字段动作")
-    @Log(moduleName = "单字段动作管理", operateType = OperateTypeEnum.DELETE)
+    @Log(moduleName = "表单字段动作管理", operateType = OperateTypeEnum.DELETE)
     @PostMapping("/app/form/column/set/action/delete/{formColumnSetActionId}")
     public Result<Boolean> deleteFormColumnSetAction(@PathVariable(value = "formColumnSetActionId",required = false)Long formColumnSetActionId) {
         return Result.success(appFormColumnSetActionService.deleteFormColumnSetAction(formColumnSetActionId));

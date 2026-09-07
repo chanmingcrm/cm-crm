@@ -43,7 +43,7 @@ public class RCacheConfiguration implements JCacheConfigurer {
 	/**
 	 * 功能描述:
 	 * 〈指定key策略〉
-	 * @return 正常返回:{@link Map<String,RedisCacheConfiguration>}
+	 * @return 正常返回:{@link Map}
 	 * @author 蝉鸣
 	 */
 	private Map<String, RedisCacheConfiguration> getRedisCacheConfigurationMap() {

@@ -3,6 +3,7 @@ package com.platform.mesh.mybatis.plus.handler;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.mybatis.plus.enums.MateFillEnum;
 import com.platform.mesh.security.domain.bo.LoginUserBO;
@@ -64,6 +65,12 @@ public class DataMetaObjectHandler implements MetaObjectHandler {
         //注入用户信息
         LoginUserBO loginUser = getLoginUser();
         if(ObjectUtil.isNull(loginUser)){
+            if (emptyValue(metaObject,MateFillEnum.SCOPE_USER_ID.getCode())) {
+                this.strictInsertFill(metaObject, MateFillEnum.SCOPE_USER_ID.getCode(), Long.class, NumberConst.NUM_0.longValue());
+            }
+            if (emptyValue(metaObject,MateFillEnum.SCOPE_ORG_ID.getCode())) {
+                this.strictInsertFill(metaObject, MateFillEnum.SCOPE_ORG_ID.getCode(), Long.class,NumberConst.NUM_0.longValue());
+            }
             return;
         }
         SysAccountBO userAccountCache = UserCacheUtil.getAccountInfoCache(loginUser.getAccountId());
@@ -80,10 +87,10 @@ public class DataMetaObjectHandler implements MetaObjectHandler {
             this.strictInsertFill(metaObject, MateFillEnum.UPDATE_USER_NAME.getCode(), String.class, loginUser.getNickname());
         }
         if (emptyValue(metaObject,MateFillEnum.SCOPE_USER_ID.getCode())) {
-            this.strictInsertFill(metaObject, MateFillEnum.SCOPE_USER_ID.getCode(), Long.class,loginUser.getUserId());
+            this.strictInsertFill(metaObject, MateFillEnum.SCOPE_USER_ID.getCode(), Long.class,getOrEmpty(loginUser.getUserId()));
         }
         if (emptyValue(metaObject,MateFillEnum.SCOPE_ORG_ID.getCode())) {
-            this.strictInsertFill(metaObject, MateFillEnum.SCOPE_ORG_ID.getCode(), Long.class,userAccountCache.getScopeOrgId());
+            this.strictInsertFill(metaObject, MateFillEnum.SCOPE_ORG_ID.getCode(), Long.class,getOrEmpty(userAccountCache.getScopeOrgId()));
         }
     }
 
@@ -99,7 +106,7 @@ public class DataMetaObjectHandler implements MetaObjectHandler {
             return;
         }
         if (emptyValue(metaObject,MateFillEnum.UPDATE_USER_ID.getCode())) {
-            this.strictInsertFill(metaObject, MateFillEnum.UPDATE_USER_ID.getCode(), Long.class, loginUser.getUserId());
+            this.strictInsertFill(metaObject, MateFillEnum.UPDATE_USER_ID.getCode(), Long.class,getOrEmpty(loginUser.getUserId()));
         }
         if (emptyValue(metaObject,MateFillEnum.UPDATE_USER_NAME.getCode())) {
             this.strictInsertFill(metaObject, MateFillEnum.UPDATE_USER_NAME.getCode(), String.class, loginUser.getNickname());
@@ -135,6 +142,18 @@ public class DataMetaObjectHandler implements MetaObjectHandler {
         } catch (Exception ignored) {
         }
         return null;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取值〉
+     * @author 蝉鸣
+     */
+    private Long getOrEmpty(Long value) {
+        if(ObjectUtil.isEmpty(value)){
+            return NumberConst.NUM_0.longValue();
+        }
+        return value;
     }
 
 

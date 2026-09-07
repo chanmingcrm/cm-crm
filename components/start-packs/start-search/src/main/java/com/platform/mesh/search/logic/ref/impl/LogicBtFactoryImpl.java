@@ -92,7 +92,9 @@ public class LogicBtFactoryImpl implements LogicRefService {
 //            bt.date(date->date.field(condDTO.getColumnMac()).gte(CollUtil.getFirst(condDTO.getSearchValues())).lt(CollUtil.getLast(condDTO.getSearchValues())));
 //            bt.number(number->number.field(condDTO.getColumnMac()).gte(Double.valueOf(CollUtil.getFirst(condDTO.getSearchValues()))).lt(Double.valueOf(CollUtil.getLast(condDTO.getSearchValues()))));
 //            bt.term(term->term.field(condDTO.getColumnMac()).gte(CollUtil.getFirst(condDTO.getSearchValues())).lt(CollUtil.getLast(condDTO.getSearchValues())));
-            bt.untyped(untyped->untyped.field(condDTO.getColumnMac()).gte(JsonData.of(CollUtil.getFirst(condDTO.getSearchValues()))).lt(JsonData.of(CollUtil.getLast(condDTO.getSearchValues()))));
+            bt.untyped(untyped->untyped.field(condDTO.getColumnMac())
+                    .gte(JsonData.of(CollUtil.getFirst(condDTO.getSearchValues())))
+                    .lt(JsonData.of(CollUtil.getLast(condDTO.getSearchValues()))));
             return bt;
         });
     }

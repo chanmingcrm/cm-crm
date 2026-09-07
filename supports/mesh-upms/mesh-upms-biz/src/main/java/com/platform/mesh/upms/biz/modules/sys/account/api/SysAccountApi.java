@@ -1,10 +1,8 @@
 package com.platform.mesh.upms.biz.modules.sys.account.api;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
-import com.platform.mesh.upms.biz.modules.sys.account.domain.po.SysAccount;
 import com.platform.mesh.upms.biz.modules.sys.account.service.ISysAccountService;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -32,11 +30,12 @@ public class SysAccountApi extends BaseController {
      * @param accountId 帐户ID
      * @return 用户对象信息
      */
+    @AuthIgnore
     @Operation(summary = "通过账户ID查询账户信息")
     @GetMapping("/api/account/info/{accountId}")
     public Result<SysAccountBO> getAccountInfoByAccountId(@PathVariable("accountId") Long accountId) {
-        SysAccount sysAccount = sysAccountService.getById(accountId);
-        return Result.success(BeanUtil.copyProperties(sysAccount, SysAccountBO.class));
+        SysAccountBO sysAccount = sysAccountService.getBOByAccountId(accountId);
+        return Result.success(sysAccount);
     }
 
     /**

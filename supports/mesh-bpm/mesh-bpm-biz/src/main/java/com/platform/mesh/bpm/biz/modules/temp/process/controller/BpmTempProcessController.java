@@ -10,6 +10,7 @@ import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessA
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.service.IBpmTempProcessService;
 import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,7 +29,7 @@ public class BpmTempProcessController extends BaseController {
      * 服务对象
      */
     @Autowired
-    private IBpmTempProcessService flowTempProcessService;
+    private IBpmTempProcessService bpmTempProcessService;
 
     /**
      * 功能描述:
@@ -39,7 +40,7 @@ public class BpmTempProcessController extends BaseController {
     @Operation(summary = "流程模板分页")
     @PostMapping("/temp/process/page")
     public Result<PageVO<BpmTempProcessVO>> selectPage(@RequestBody BpmTempProcessPageDTO pageDTO) {
-        PageVO<BpmTempProcessVO> tempProcessPage = flowTempProcessService.selectPage(pageDTO);
+        PageVO<BpmTempProcessVO> tempProcessPage = bpmTempProcessService.selectPage(pageDTO);
         return Result.success(tempProcessPage);
     }
 
@@ -52,7 +53,7 @@ public class BpmTempProcessController extends BaseController {
     @Operation(summary = "添加流程模板")
     @PostMapping("/temp/process/add")
     public Result<BpmTempProcess> addProcessTemp(@RequestBody BpmTempProcessAddDTO bpmTempProcessAddDTO) {
-        BpmTempProcess tempProcess = flowTempProcessService.addProcessTemp(bpmTempProcessAddDTO);
+        BpmTempProcess tempProcess = bpmTempProcessService.addProcessTemp(bpmTempProcessAddDTO);
         return Result.success(tempProcess);
     }
 
@@ -65,7 +66,7 @@ public class BpmTempProcessController extends BaseController {
     @Operation(summary = "编辑流程模板")
     @PostMapping("/temp/process/edit")
     public Result<BpmTempProcess> editProcessTemp(@RequestBody BpmTempProcessEditDTO bpmTempProcessEditDTO) {
-        BpmTempProcess tempProcess = flowTempProcessService.editProcessTemp(bpmTempProcessEditDTO);
+        BpmTempProcess tempProcess = bpmTempProcessService.editProcessTemp(bpmTempProcessEditDTO);
         return Result.success(tempProcess);
     }
 
@@ -78,7 +79,7 @@ public class BpmTempProcessController extends BaseController {
     @Operation(summary = "设计流程模板")
     @PostMapping("/temp/process/design")
     public Result<BpmTempProcess> designProcessTemp(@RequestBody BpmTempProcessDesignDTO bpmTempProcessDesignDTO) {
-        BpmTempProcess tempProcess = flowTempProcessService.designProcessTemp(bpmTempProcessDesignDTO);
+        BpmTempProcess tempProcess = bpmTempProcessService.designProcessTemp(bpmTempProcessDesignDTO);
         return Result.success(tempProcess);
     }
 
@@ -91,45 +92,44 @@ public class BpmTempProcessController extends BaseController {
     @Operation(summary = "获取流程模板")
     @GetMapping("/temp/process/get/{tempProcessId}")
     public Result<BpmTempProcessDesignVO> getProcessTemp(@PathVariable("tempProcessId")Long tempProcessId) {
-        BpmTempProcessDesignVO tempProcessDesignVO = flowTempProcessService.getProcessTemp(tempProcessId);
+        BpmTempProcessDesignVO tempProcessDesignVO = bpmTempProcessService.getProcessTemp(tempProcessId);
         return Result.success(tempProcessDesignVO);
     }
 
     /**
      * 功能描述:
      * 〈发布流程模板〉
-     * @return 正常返回:{@link Result<Object>}
+     * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
     @Operation(summary = "发布流程模板")
     @GetMapping("/temp/process/pub/{tempProcessId}")
     public Result<Boolean> pubProcessTemp(@PathVariable("tempProcessId")Long tempProcessId) {
-        return Result.success(flowTempProcessService.pubProcessTemp(tempProcessId));
+        return Result.success(bpmTempProcessService.pubProcessTemp(tempProcessId));
     }
 
     /**
      * 功能描述:
      * 〈作废流程模板〉
-     * @return 正常返回:{@link Result<Object>}
+     * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
     @Operation(summary = "作废流程模板")
     @GetMapping("/temp/process/cancel/{tempProcessId}")
     public Result<Boolean> cancelProcessTemp(@PathVariable("tempProcessId")Long tempProcessId) {
-        return Result.success(flowTempProcessService.cancelProcessTemp(tempProcessId));
+        return Result.success(bpmTempProcessService.cancelProcessTemp(tempProcessId));
     }
 
     /**
      * 功能描述:
      * 〈删除流程模板〉
-     * @return 正常返回:{@link Result<Object>}
+     * @return 正常返回:{@link Result<Boolean>}
      * @author 蝉鸣
      */
     @Operation(summary = "删除流程模板")
     @GetMapping("/temp/process/delete/{tempProcessId}")
     public Result<Boolean> deleteProcessTemp(@PathVariable("tempProcessId")Long tempProcessId) {
-        return Result.success(flowTempProcessService.delProcessTemp(tempProcessId));
+        return Result.success(bpmTempProcessService.delProcessTemp(tempProcessId));
     }
-
   
 }

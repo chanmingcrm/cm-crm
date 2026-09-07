@@ -7,6 +7,7 @@ import com.platform.mesh.app.biz.modules.app.formcolumnsetprocess.domain.dto.App
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.dto.AppFormColumnSetRequireDTO;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
 import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import com.platform.mesh.utils.excel.enums.DataTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -23,7 +24,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段关联DTO")
+@Schema(description ="表单字段关联DTO")
 public class AppFormColumnDTO extends BaseDTO {
 
 
@@ -244,6 +245,13 @@ public class AppFormColumnDTO extends BaseDTO {
 
 
     /**
+     * 可修改标识YesOrNoEnum
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "可修改标识")
+    private Integer editFlag;
+
+
+    /**
      * 删除标识YesOrNoEnum
      */
     @Schema(description = "删除标识YesOrNoEnum")
@@ -284,6 +292,11 @@ public class AppFormColumnDTO extends BaseDTO {
     @Schema(description = "样式svg")
     private String styleSvg;
 
+    /**
+     * 系统字段
+     */
+    @Schema(description = "系统字段")
+    private Integer sysFlag;
 
     /**
      * 动作集合

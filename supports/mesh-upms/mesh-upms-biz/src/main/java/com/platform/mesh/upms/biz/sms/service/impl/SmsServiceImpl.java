@@ -24,7 +24,7 @@ import java.time.Duration;
 
 /**
  * 约定当前serviceImpl 只实现当前service 相关方法，所有封装转换方法在Manual中进行
- * @description 短信业务
+ * @description 租户基础
  * @author 蝉鸣
  */
 @Service
@@ -41,16 +41,20 @@ public class SmsServiceImpl implements ISmsService {
      */
     @Override
     public void sendSmsCheckCode(SmsSendDTO sendDTO) {
+
         //校验手机号是否正确
         if(!PhoneUtil.isPhone(sendDTO.getPhone())){
             throw SmsExceptionEnum.ADD_NO_INVALID.getBaseException();
         }
-
         //校验当前手机号码验证码是否已存在,避免重复发送
         if(RedissonUtil.hasKey(sendDTO.getPhone())){
             throw SmsExceptionEnum.ADD_HAS_EXISTS.getBaseException();
         }
-
+        //校验签名是否合法
+        boolean checkSign = smsServiceManual.checkSign(sendDTO);
+        if(!checkSign){
+            throw SmsExceptionEnum.ADD_NO_SERVER.getBaseException();
+        }
         //检测限流
         //如果当前手机号码3分钟内多次发送,将限制发送10分钟
         //如果当前手机号码短信每天超过20条，则限制发送

@@ -8,6 +8,6 @@ import com.platform.mesh.upms.biz.modules.log.modify.domain.po.LogModify;
  * @author 蝉鸣
  */
 public interface LogModifyMapper extends BaseMapper<LogModify> {
-  
+
 }
 

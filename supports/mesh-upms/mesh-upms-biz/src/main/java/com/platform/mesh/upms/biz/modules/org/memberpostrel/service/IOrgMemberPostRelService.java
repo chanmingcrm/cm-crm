@@ -2,6 +2,7 @@ package com.platform.mesh.upms.biz.modules.org.memberpostrel.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.po.OrgLevelPostRel;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.vo.OrgLevelPostRelVO;
 import com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.dto.OrgMemberPostRelDTO;
 import com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.dto.OrgMemberPostRelPageDTO;
@@ -70,5 +71,13 @@ public interface IOrgMemberPostRelService extends IService<OrgMemberPostRel> {
      * @author 蝉鸣
      */
     Boolean transMemberPost(OrgMemberPostRelTransDTO transDTO);
+
+    /**
+     * 功能描述:
+     * 〈岗位变动，修改成员岗位关联信息〉
+     * @param levelPostRel levelPostRel
+     * @author 蝉鸣
+     */
+    void editMemberPostRel(OrgLevelPostRel levelPostRel);
 }
 

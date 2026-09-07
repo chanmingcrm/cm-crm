@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
  * @description 模块VO
  * @author 蝉鸣
@@ -108,4 +110,17 @@ public class AppModuleBaseBO extends BaseBO {
      */
     @SchemaEnum(value = YesOrNoEnum.class,description = "开放标识")
     private Integer openFlag;
+
+    /**
+     * AI标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class,description = "AI标识")
+    private Integer aiFlag;
+
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    private LocalDateTime createTime;
+
 }

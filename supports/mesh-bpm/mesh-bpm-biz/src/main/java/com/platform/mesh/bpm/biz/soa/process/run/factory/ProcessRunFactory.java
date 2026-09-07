@@ -1,8 +1,7 @@
 package com.platform.mesh.bpm.biz.soa.process.run.factory;
 
 import com.platform.mesh.bpm.biz.soa.process.run.ProcessRunService;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
-import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class ProcessRunFactory<T> implements InitializingBean {
 
     /**
      * 功能描述:
-     * 〈根绝类型获取对应的流程实现〉
+     * 〈根据类型获取对应的流程实现〉
      * @param nodeRun nodeRun
      * @return 正常返回:{@link ProcessRunService<T>}
      * @author 蝉鸣

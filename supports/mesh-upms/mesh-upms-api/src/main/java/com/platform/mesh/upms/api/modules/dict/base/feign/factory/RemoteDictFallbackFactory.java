@@ -45,6 +45,11 @@ public class RemoteDictFallbackFactory implements FallbackFactory<RemoteDictServ
 			public Result<DictBaseValueBO> getFistSysDictByName(Long baseId,String dictName) {
 				return Result.error();
 			}
+
+			@Override
+			public Result<DictBaseValueBO> getFistSysDictByMac(String dictMac,Integer dictValue) {
+				return Result.error();
+			}
 		};
 	}
 

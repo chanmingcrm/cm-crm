@@ -17,17 +17,23 @@ import lombok.experimental.Accessors;
 public class AppModuleSetTransSearchBO extends PageDTO {
 
     /**
-     * 模块查询
+     * 来源模块
      */
-    @Schema(description = "模块查询")
-    private AppModuleBaseBO moduleSearch;
+    @Schema(description = "来源模块")
+    private AppModuleBaseBO moduleFrom;
 
+
+    /**
+     * 查询模块
+     */
+    @Schema(description = "查询模块")
+    private AppModuleBaseBO moduleSearch;
 
     /**
      * 模块搜索字段
      */
     @Schema(description = "模块搜索字段")
-    private String moduleSearchRelColumn;
+    private String columnMac;
 
 
     /**
@@ -41,13 +47,14 @@ public class AppModuleSetTransSearchBO extends PageDTO {
      * 规则数据类型
      */
     @Schema(description = "规则数据类型")
-    private Integer roleDataType;
+    private Integer ruleDataType;
 
 
     /**
      * 规则数据值
      */
     @Schema(description = "规则数据值")
-    private String roleDataValue;
+    private String ruleDataValue;
+
 
 }

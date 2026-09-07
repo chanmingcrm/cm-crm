@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @description 文件信息
  * @author 蝉鸣
  */
-@Tag(description = "DocDirRelController", name = "文件")
+@Tag(description = "DocDirRelController", name = "目录文件关系")
 @RestController
 @RequestMapping
 public class DocDirRelController extends BaseController{

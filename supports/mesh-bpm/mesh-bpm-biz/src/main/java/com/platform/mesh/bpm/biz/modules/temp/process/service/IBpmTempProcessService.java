@@ -2,8 +2,8 @@ package com.platform.mesh.bpm.biz.modules.temp.process.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessAddDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessEditDTO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessPageDTO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
@@ -62,7 +62,7 @@ public interface IBpmTempProcessService extends IService<BpmTempProcess> {
     /**
      * 功能描述:
      * 〈新建流程模板〉
-     * @return 正常返回:{@link Result <FlowTempProcess>}
+     * @return 正常返回:{@link Result<BpmTempProcess>}
      * @author 蝉鸣
      */
     BpmTempProcess designProcessTemp(BpmTempProcessDesignDTO bpmTempProcessDesignDTO);
@@ -86,7 +86,7 @@ public interface IBpmTempProcessService extends IService<BpmTempProcess> {
     /**
      * 功能描述:
      * 〈删除流程模板〉
-     * @return 正常返回:{@link Result<Object>}
+     * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
     Boolean delProcessTemp(Long tempProcessId);

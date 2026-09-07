@@ -6,21 +6,24 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.vo.AppFormColumnSetEventVO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.dto.AppFormColumnSetRequireDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.dto.AppFormColumnSetRequireQueryDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.vo.AppFormColumnSetRequireVO;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.exception.AppFormColumnSetRequireExceptionEnum;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.mapper.AppFormColumnSetRequireMapper;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.service.IAppFormColumnSetRequireService;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.service.manual.AppFormColumnSetRequireServiceManual;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -131,6 +134,8 @@ public class AppFormColumnSetRequireServiceImpl extends ServiceImpl<AppFormColum
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AppFormColumnSetRequireVO editFormColumnSetRequire(AppFormColumnSetRequireDTO formColumnSetRequireDTO) {
+
+        AppFormColumnSetRequire setRequire = getById(formColumnSetRequireDTO.getId());
         AppFormColumnSetRequire columnSetRequire = BeanUtil.copyProperties(formColumnSetRequireDTO
                 , AppFormColumnSetRequire.class);
         this.updateById(columnSetRequire);
@@ -155,18 +160,15 @@ public class AppFormColumnSetRequireServiceImpl extends ServiceImpl<AppFormColum
      * 〈复制字段请求〉
      * @param sourceModuleId sourceModuleId
      * @param targetModuleId targetModuleId
-     * @param copyColumn copyColumn
      * @author 蝉鸣
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void copyFormColumnSetRequire(Long sourceModuleId, Long targetModuleId, Map<Long, AppFormColumn> copyColumn) {
-        if(CollUtil.isEmpty(copyColumn)){
-            return;
-        }
+    public Map<Long, AppFormColumnSetRequire> copyFormColumnSetRequire(Long sourceModuleId, Long targetModuleId) {
+        Map<Long, AppFormColumnSetRequire> copyRequire = new HashMap<>();
         List<AppFormColumnSetRequire> sourceSetRequires = this.lambdaQuery().eq(AppFormColumnSetRequire::getModuleId, sourceModuleId).list();
         if(CollUtil.isEmpty(sourceSetRequires)){
-            return;
+            return copyRequire;
         }
         List<AppFormColumnSetRequire> targetRequires = sourceSetRequires.stream()
                 .map(sourceRequire -> {
@@ -175,17 +177,22 @@ public class AppFormColumnSetRequireServiceImpl extends ServiceImpl<AppFormColum
             BeanUtil.copyProperties(sourceRequire, targetRequire, ObjFieldUtil.ignoreDefault());
             targetRequire.setId(id);
             targetRequire.setModuleId(targetModuleId);
-            AppFormColumn appFormColumn = copyColumn.get(sourceRequire.getColumnId());
-            if(ObjectUtil.isNotEmpty(appFormColumn)){
-                targetRequire.setFormId(appFormColumn.getFormId());
-                targetRequire.setColumnId(appFormColumn.getId());
-                targetRequire.setColumnMac(appFormColumn.getColumnMac());
-                targetRequire.setColumnName(appFormColumn.getColumnName());
-                targetRequire.setEventId(appFormColumn.getId());
-            }
+            copyRequire.put(sourceRequire.getId(), targetRequire);
             return targetRequire;
         }).toList();
         //批量保存
         this.saveBatch(targetRequires);
+        return copyRequire;
+    }
+
+    /**
+     * 功能描述:
+     * 〈查询用于Ai创建的添加接口〉
+     * @return 正常返回:{@link List<AppFormColumnSetEventVO>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<AppFormColumnSetRequireVO> selectAddRequire() {
+        return this.getBaseMapper().selectAddRequire();
     }
 }

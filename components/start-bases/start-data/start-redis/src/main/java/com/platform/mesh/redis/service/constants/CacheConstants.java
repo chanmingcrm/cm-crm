@@ -29,22 +29,22 @@ public interface CacheConstants {
 	/**
 	 * 用户角色信息缓存
 	 */
-	String USER_ROLE_DETAILS = "user_role_details";
+	String USER_ROLE_DETAILS = "user_role_details:{}";
 
 	/**
 	 * 用户菜单信息缓存
 	 */
-	String USER_MENU_DETAILS = "user_menu_details";
+	String USER_MENU_DETAILS = "user_menu_details:{}";
 
 	/**
 	 * 用户组织信息缓存
 	 */
-	String USER_ORG_DETAILS = "user_org_details";
+	String USER_ORG_DETAILS = "user_org_details:{}";
 
 	/**
 	 * 用户下属信息缓存
 	 */
-	String USER_CHILD_DETAILS = "user_child_details";
+	String USER_CHILD_DETAILS = "user_child_details:{}";
 
 	/**
 	 * 系统用户信息缓存
@@ -67,9 +67,9 @@ public interface CacheConstants {
 	String SYS_DICT_NAME = "sys_dict";
 
 	/**
-	 * 组织信息缓存
+	 * 租户下组织信息缓存
 	 */
-	String SYS_ACCOUNT_LEVEL_NAME = "sys_account_level_name";
+	String SYS_TENANT_LEVEL_NAME = "sys_tenant_level_name";
 
 	/**
 	 * 应用表单
@@ -77,9 +77,15 @@ public interface CacheConstants {
 	String SYS_MSG_LEAVE = "sys_msg_leave";
 
 	/**
-	 * 成员信息缓存
+	 * 租户下成员信息缓存
 	 */
-	String SYS_ACCOUNT_MEMBER_NAME = "sys_account_member_name";
+	String SYS_TENANT_MEMBER_NAME = "sys_tenant_member_name";
+
+	/**
+	 * 租户下应用模块信息缓存
+	 */
+	String SYS_APP_MODULE = "sys_app_module";
+
 
 	/**
 	 * 账户下数据权限缓存

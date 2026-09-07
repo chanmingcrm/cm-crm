@@ -1,7 +1,6 @@
 package com.platform.mesh.crm.biz.modules.crm.sufreview.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
 import com.platform.mesh.app.api.modules.app.domain.po.AppDataPO;
 import com.platform.mesh.app.api.modules.app.service.impl.AppServiceAbstract;
 import com.platform.mesh.crm.biz.modules.crm.sufreview.domain.po.CrmSufReview;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
 
 
 /**
@@ -43,19 +41,6 @@ public class CrmSufReviewServiceImpl extends AppServiceAbstract<CrmSufReviewMapp
 
     /**
      * 功能描述:
-     * 〈修改客户关系复盘总结〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
-     * @author 蝉鸣
-     */
-    @Override
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //批量保存data表数据
-        crmSufReviewServiceManual.editDbDataBatch(dataId,dataEditSimpDTO);
-    }
-
-    /**
-     * 功能描述:
      * 〈转移Data数据权限必须重写〉
      * @param dataIds dataIds
      * @param scopeUserId scopeUserId
@@ -63,14 +48,12 @@ public class CrmSufReviewServiceImpl extends AppServiceAbstract<CrmSufReviewMapp
      * @author 蝉鸣
      */
     @Override
-    public  void transDbDataBatch(List<Long> dataIds,Long scopeUserId,Long scopeOrgId){
+    public  void transDbScopeBatch(List<Long> dataIds,Long scopeUserId,Long scopeOrgId){
         //修改DB
         this.lambdaUpdate()
                 .set(CrmSufReview::getScopeUserId,scopeUserId)
                 .set(CrmSufReview::getScopeOrgId,scopeOrgId)
                 .in(CrmSufReview::getId,dataIds)
                 .update();
-        //修改DB Data
-        crmSufReviewServiceManual.transDbDataBatch(dataIds,scopeUserId,scopeOrgId);
     }
 }

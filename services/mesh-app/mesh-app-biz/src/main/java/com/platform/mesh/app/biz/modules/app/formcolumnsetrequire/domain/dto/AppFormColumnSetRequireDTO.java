@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段请求DTO")
+@Schema(description ="表单字段请求DTO")
 public class AppFormColumnSetRequireDTO extends BaseDTO {
 
 

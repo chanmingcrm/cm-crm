@@ -1,7 +1,7 @@
 package com.platform.mesh.uaa.biz.auth.support.extention;
 
 import cn.hutool.core.collection.CollUtil;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.ClaimAccessor;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;

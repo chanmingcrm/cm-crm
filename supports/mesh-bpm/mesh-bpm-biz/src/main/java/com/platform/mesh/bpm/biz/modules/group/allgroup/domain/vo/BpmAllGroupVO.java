@@ -89,4 +89,5 @@ public class BpmAllGroupVO extends BaseVO {
     @Schema(description = "组织ID")
     private Long scopeOrgId;
 
+
 }

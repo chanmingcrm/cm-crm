@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>start-packs</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>start-job</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>定时任务服务模块</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

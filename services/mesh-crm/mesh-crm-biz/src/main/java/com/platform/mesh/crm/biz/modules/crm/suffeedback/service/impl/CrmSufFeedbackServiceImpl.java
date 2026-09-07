@@ -1,7 +1,6 @@
 package com.platform.mesh.crm.biz.modules.crm.suffeedback.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
 import com.platform.mesh.app.api.modules.app.domain.po.AppDataPO;
 import com.platform.mesh.app.api.modules.app.service.impl.AppServiceAbstract;
 import com.platform.mesh.crm.biz.modules.crm.suffeedback.domain.po.CrmSufFeedback;
@@ -42,19 +41,6 @@ public class CrmSufFeedbackServiceImpl extends AppServiceAbstract<CrmSufFeedback
 
     /**
      * 功能描述:
-     * 〈修改客户关系市场反馈〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
-     * @author 蝉鸣
-     */
-    @Override
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //批量保存data表数据
-        crmSufFeedbackServiceManual.editDbDataBatch(dataId,dataEditSimpDTO);
-    }
-
-    /**
-     * 功能描述:
      * 〈转移Data数据权限必须重写〉
      * @param dataIds dataIds
      * @param scopeUserId scopeUserId
@@ -62,14 +48,12 @@ public class CrmSufFeedbackServiceImpl extends AppServiceAbstract<CrmSufFeedback
      * @author 蝉鸣
      */
     @Override
-    public  void transDbDataBatch(List<Long> dataIds,Long scopeUserId,Long scopeOrgId){
+    public  void transDbScopeBatch(List<Long> dataIds,Long scopeUserId,Long scopeOrgId){
         //修改DB
         this.lambdaUpdate()
                 .set(CrmSufFeedback::getScopeUserId,scopeUserId)
                 .set(CrmSufFeedback::getScopeOrgId,scopeOrgId)
                 .in(CrmSufFeedback::getId,dataIds)
                 .update();
-        //修改DB Data
-        crmSufFeedbackServiceManual.transDbDataBatch(dataIds,scopeUserId,scopeOrgId);
     }
 }

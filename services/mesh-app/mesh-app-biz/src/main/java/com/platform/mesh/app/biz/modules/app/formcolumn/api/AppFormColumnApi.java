@@ -1,18 +1,17 @@
 package com.platform.mesh.app.biz.modules.app.formcolumn.api;
 
 import com.platform.mesh.app.api.modules.app.domain.bo.AppFormColumnBO;
+import com.platform.mesh.app.api.modules.app.domain.bo.SyncDataBO;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.vo.AppFormColumnVO;
 import com.platform.mesh.app.biz.modules.app.formcolumn.service.IAppFormColumnService;
 import com.platform.mesh.core.application.controller.BaseController;
+import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -36,6 +35,7 @@ public class AppFormColumnApi extends BaseController{
      * @return 正常返回:{@link Result<List<AppFormColumnBO>>}
      * @author 蝉鸣
      */
+    @AuthIgnore
     @Operation(summary = "获取当前表单字段平铺结构关联信息")
     @GetMapping("/api/app/form/column/list/{moduleId}/{formId}")
     public Result<List<AppFormColumnBO>> getFormColumnList(@PathVariable("moduleId")Long moduleId
@@ -52,9 +52,11 @@ public class AppFormColumnApi extends BaseController{
      * @return 正常返回:{@link Result<List<AppFormColumnBO>>}
      * @author 蝉鸣
      */
+    @AuthIgnore
     @Operation(summary = "根据moduleId 业务字段类型快速获取默认字段信息")
-    @PostMapping("/api/app/form/column/fast/form/type/{moduleId}/{formType}")
-    public Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@PathVariable("moduleId")Long moduleId, @PathVariable("formType")Integer formType) {
+    @PostMapping("/api/app/form/column/fast/form/type")
+    public Result<List<AppFormColumnBO>> fastColumnByModuleAndFormType(@RequestParam("moduleId")Long moduleId
+            , @RequestParam("formType")Integer formType) {
         return Result.success(appFormColumnService.fastColumnBOByModuleAndFormType(moduleId,formType));
     }
 
@@ -71,6 +73,20 @@ public class AppFormColumnApi extends BaseController{
             ,@PathVariable("formId")Long formId) {
         List<AppFormColumnVO> appFormColumnVOs = appFormColumnService.getFormColumnTree(moduleId,formId);
         return Result.success(appFormColumnVOs);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取同步信息使用关联模块以及字段信息〉
+     * @param moduleId moduleId
+     * @return 正常返回:{@link Result<List<SyncDataBO>>}
+     * @author 蝉鸣
+     */
+    @AuthIgnore
+    @GetMapping("/api/app/form/column/rel/module")
+    public Result<List<SyncDataBO>> getRelModuleToSync(@RequestParam("moduleId")Long moduleId) {
+        List<SyncDataBO> syncDataBOS = appFormColumnService.getRelModuleToSync(moduleId);
+        return Result.success(syncDataBOS);
     }
 
 }

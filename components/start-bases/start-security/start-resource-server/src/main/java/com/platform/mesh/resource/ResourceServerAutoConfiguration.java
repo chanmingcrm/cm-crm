@@ -1,5 +1,11 @@
 package com.platform.mesh.resource;
 
+import com.platform.mesh.resource.accesskey.registry.AccessKeyVerifierRegistry;
+import com.platform.mesh.resource.accesskey.web.AccessKeyAuthenticationFilter;
+import com.platform.mesh.resource.channel.AuthenticationChannelResolver;
+import com.platform.mesh.resource.inner.InnerIdentityFilter;
+import com.platform.mesh.resource.inner.InnerEndpointPolicy;
+import com.platform.mesh.security.accesskey.spi.AccessKeyVerifier;
 import com.platform.mesh.security.service.impl.AuthorizationBearerTokenExtractor;
 import com.platform.mesh.security.service.impl.CustomOpaqueTokenIntrospect;
 import com.platform.mesh.security.config.AuthIgnoreConfiguration;
@@ -11,12 +17,45 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
+import java.util.List;
+
 /**
  * @description 注入Bean配置
  * @author 蝉鸣
  */
 @EnableConfigurationProperties(AuthIgnoreConfiguration.class)
 public class ResourceServerAutoConfiguration {
+
+	@Bean
+	public AuthenticationChannelResolver authenticationChannelResolver() {
+		return new AuthenticationChannelResolver();
+	}
+
+	@Bean
+	public AccessKeyVerifierRegistry accessKeyVerifierRegistry(List<AccessKeyVerifier> verifiers) {
+		return new AccessKeyVerifierRegistry(verifiers);
+	}
+
+	@Bean
+	public AccessKeyAuthenticationFilter accessKeyAuthenticationFilter(
+			AuthenticationChannelResolver channelResolver,
+			AccessKeyVerifierRegistry verifierRegistry,
+			ResourceAuthExceptionEntryPoint authenticationEntryPoint) {
+		return new AccessKeyAuthenticationFilter(channelResolver, verifierRegistry,
+				authenticationEntryPoint);
+	}
+
+	@Bean
+	public InnerEndpointPolicy innerEndpointPolicy() {
+		return new InnerEndpointPolicy();
+	}
+
+	@Bean
+	public InnerIdentityFilter innerIdentityFilter(AuthenticationChannelResolver channelResolver,
+			InnerEndpointPolicy endpointPolicy,
+			ResourceAuthExceptionEntryPoint authenticationEntryPoint) {
+		return new InnerIdentityFilter(channelResolver, endpointPolicy, authenticationEntryPoint);
+	}
 
 	/**
 	 * 功能描述:

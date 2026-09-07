@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @description 单字段配置信息
  * @author 蝉鸣
  */
-@Tag(description = "AppFormColumnSettingController", name = "单字段配置")
+@Tag(description = "AppFormColumnSettingController", name = "表单字段配置")
 @RestController
 @RequestMapping
 public class AppFormColumnSettingController extends BaseController{
@@ -70,7 +70,7 @@ public class AppFormColumnSettingController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "新增单字段配置")
-    @Log(moduleName = "单字段配置管理", operateType = OperateTypeEnum.INSERT)
+    @Log(moduleName = "表单字段配置管理", operateType = OperateTypeEnum.INSERT)
     @PostMapping("/app/form/column/setting/add")
     public Result<AppFormColumnSettingVO> addFormColumnMapping(@Validated @RequestBody AppFormColumnSettingDTO formColumnMappingDTO) {
         return Result.success(appFormColumnSettingService.addFormColumnMapping(formColumnMappingDTO));
@@ -84,7 +84,7 @@ public class AppFormColumnSettingController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "修改单字段配置")
-    @Log(moduleName = "单字段配置管理", operateType = OperateTypeEnum.UPDATE)
+    @Log(moduleName = "表单字段配置管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/app/form/column/setting/edit")
     public Result<AppFormColumnSettingVO> editFormColumnMapping(@Validated @RequestBody AppFormColumnSettingDTO formColumnMappingDTO) {
         return Result.success(appFormColumnSettingService.editFormColumnMapping(formColumnMappingDTO));
@@ -98,7 +98,7 @@ public class AppFormColumnSettingController extends BaseController{
      * @author 蝉鸣
      */
     @Operation(summary = "删除单字段配置")
-    @Log(moduleName = "单字段配置管理", operateType = OperateTypeEnum.DELETE)
+    @Log(moduleName = "表单字段配置管理", operateType = OperateTypeEnum.DELETE)
     @PostMapping("/app/form/column/setting/delete/{formColumnMappingId}")
     public Result<Boolean> deleteFormColumnMapping(@PathVariable(value = "formColumnMappingId",required = false)Long formColumnMappingId) {
         return Result.success(appFormColumnSettingService.deleteFormColumnMapping(formColumnMappingId));

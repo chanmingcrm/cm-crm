@@ -2,6 +2,7 @@ package com.platform.mesh.bpm.biz.modules.group.allgroup.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.platform.mesh.core.application.domain.po.BasePO;
+import com.platform.mesh.mybatis.plus.annotation.TableParentId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -29,6 +30,7 @@ public class BpmAllGroup extends BasePO {
     /**
     * 父主键ID
     */
+    @TableParentId(value = "parent_id")
     private Long parentId;
 
 

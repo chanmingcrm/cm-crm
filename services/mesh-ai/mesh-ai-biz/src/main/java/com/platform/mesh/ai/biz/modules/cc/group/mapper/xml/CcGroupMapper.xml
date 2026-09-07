@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.cc.group.mapper.CcGroupMapper">
+
+    <select id="selectMPage" resultType="com.platform.mesh.ai.biz.modules.cc.group.domain.vo.CcGroupVO">
+        SELECT
+            ANY_VALUE(g.id) AS id,
+            ANY_VALUE(g.group_hash) AS group_hash,
+            ANY_VALUE(g.group_name) AS group_name,
+            ANY_VALUE(g.group_type) AS group_type,
+            ANY_VALUE(g.reply_type) AS reply_type,
+            ANY_VALUE(COALESCE(g.status, 1)) AS status,
+            ANY_VALUE(g.source) AS source,
+            ANY_VALUE(g.source_page) AS source_page,
+            ANY_VALUE(g.visitor_name) AS visitor_name,
+            ANY_VALUE(g.visitor_contact) AS visitor_contact,
+            ANY_VALUE(g.visitor_company) AS visitor_company,
+            ANY_VALUE(g.visitor_demand) AS visitor_demand,
+            ANY_VALUE(g.first_response_at) AS first_response_at,
+            ANY_VALUE(g.last_msg_at) AS last_msg_at,
+            ANY_VALUE(g.closed_at) AS closed_at,
+            ANY_VALUE(g.assignee_user_hash) AS assignee_user_hash,
+            ANY_VALUE(g.tags) AS tags,
+            ANY_VALUE(g.summary) AS summary,
+            ANY_VALUE(COALESCE(g.lead_status, 0)) AS lead_status,
+            ANY_VALUE(g.lead_id) AS lead_id,
+            ANY_VALUE(g.create_time) AS create_time,
+            ANY_VALUE(g.tenant_id) AS tenant_id,
+            COUNT(DISTINCT msg.id) AS un_read_num
+        FROM cc_group g
+                 LEFT JOIN cc_group_user_rel current_gur
+                           ON current_gur.group_hash = g.group_hash
+                               AND current_gur.user_hash = #{pageDTO.userHash}
+                 LEFT JOIN cc_session_msg latest_msg
+                           ON latest_msg.group_hash = g.group_hash
+                 LEFT JOIN cc_session_msg msg
+                           ON msg.group_hash = g.group_hash
+                               AND msg.user_type = 0
+                               AND msg.create_time > COALESCE(current_gur.last_visit_time, '1970-01-01')
+        WHERE (
+            current_gur.user_hash IS NOT NULL
+            OR g.assignee_user_hash IS NULL
+            OR g.assignee_user_hash = ''
+            OR g.assignee_user_hash = #{pageDTO.userHash}
+        )
+        AND g.group_hash IS NOT NULL
+        <if test="pageDTO.status != null">
+            <choose>
+                <when test="pageDTO.status == 1">
+                    AND (g.status = #{pageDTO.status} OR g.status IS NULL)
+                </when>
+                <otherwise>
+                    AND g.status = #{pageDTO.status}
+                </otherwise>
+            </choose>
+        </if>
+        GROUP BY g.group_hash
+        ORDER BY
+            GREATEST(
+                COALESCE(ANY_VALUE(g.last_msg_at), '1970-01-01 00:00:00'),
+                COALESCE(MAX(latest_msg.create_time), '1970-01-01 00:00:00'),
+                COALESCE(ANY_VALUE(g.create_time), '1970-01-01 00:00:00'),
+                COALESCE(MAX(current_gur.create_time), '1970-01-01 00:00:00')
+            ) DESC,
+            ANY_VALUE(g.create_time) DESC,
+            un_read_num DESC
+    </select>
+
+    <select id="getCcGroupByHash" resultType="com.platform.mesh.ai.biz.modules.cc.group.domain.po.CcGroup">
+        SELECT
+            *
+        FROM
+            cc_group
+        WHERE
+            group_hash = #{groupHash}
+    </select>
+
+    <update id="saveConsultationLead">
+        UPDATE cc_group
+        SET visitor_contact = #{phone},
+            visitor_demand = CASE #{intent}
+                WHEN 'book_demo' THEN '预约演示'
+                WHEN 'pricing' THEN '价格与版本'
+                WHEN 'private_deployment' THEN '私有化/源码'
+                ELSE visitor_demand
+            END,
+            source_page = COALESCE(NULLIF(#{sourcePage}, ''), source_page),
+            lead_status = COALESCE(lead_status, 0)
+        WHERE group_hash = #{groupHash}
+    </update>
+
+    <update id="setReplyType">
+        UPDATE
+            cc_group
+        SET reply_type = #{replyType}
+        WHERE
+            group_hash = #{groupHash}
+    </update>
+
+    <update id="setStatus">
+        UPDATE
+            cc_group
+        SET status = #{status},
+            closed_at = CASE WHEN #{status} = 3 THEN NOW() ELSE NULL END
+        WHERE
+            group_hash = #{groupHash}
+        AND tenant_id = #{tenantId}
+    </update>
+</mapper>

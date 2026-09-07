@@ -3,6 +3,8 @@ package com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.bo.BpmInstNodePassBO;
+import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.dto.BpmInstNodeAuditAddDTO;
+import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.dto.BpmInstNodeAuditDelDTO;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.po.BpmInstNodeAudit;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service.manual.BpmInstNodeAuditServiceManual;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.po.BpmInstNodeSub;
@@ -61,5 +63,23 @@ public interface IBpmInstNodeAuditService extends IService<BpmInstNodeAudit> {
      * @author 蝉鸣
      */
     List<Long> getAuditDataIds(Integer auditDataType, String auditDataIds);
+
+    /**
+     * 功能描述:
+     * 〈添加当前节点审批信息〉
+     * @param addDTO addDTO
+     * @return 正常返回:{@link Boolean}
+     * @author 蝉鸣
+     */
+    Boolean addInstNodeAudit(BpmInstNodeAuditAddDTO addDTO);
+
+    /**
+     * 功能描述:
+     * 〈删除当前节点审批信息〉
+     * @param delDTO delDTO
+     * @return 正常返回:{@link Boolean}
+     * @author 蝉鸣
+     */
+    Boolean delInstNodeAudit(BpmInstNodeAuditDelDTO delDTO);
 }
 

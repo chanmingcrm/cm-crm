@@ -99,9 +99,21 @@ public class DocFile extends BasePO {
 
 
     /**
-    * 关联ID
+    * 开放标识
     */
-    private Long relId;
+    private Integer openFlag;
+
+
+    /**
+    * 模块ID
+    */
+    private Long moduleId;
+
+
+    /**
+    * 数据ID
+    */
+    private Long dataId;
 
 
     /**

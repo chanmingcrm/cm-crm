@@ -5,9 +5,9 @@
 
     <select id="selectMPage" resultType="com.platform.mesh.app.biz.modules.app.base.domain.po.AppBase">
         SELECT
-            *
+            ab.*
         FROM
-            app_base
-        WHERE del_flag != 2
+            app_base ab
+        WHERE ab.del_flag != 2
     </select>
 </mapper>

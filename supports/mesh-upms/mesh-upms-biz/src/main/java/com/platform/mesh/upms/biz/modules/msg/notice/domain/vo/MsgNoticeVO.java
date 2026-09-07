@@ -170,4 +170,5 @@ public class MsgNoticeVO extends BaseVO {
     @Schema(description = "组织ID")
     private Long scopeOrgId;
 
+
 }

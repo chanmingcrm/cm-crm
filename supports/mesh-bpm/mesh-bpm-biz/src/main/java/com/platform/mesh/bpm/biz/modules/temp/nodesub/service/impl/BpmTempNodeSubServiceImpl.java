@@ -20,7 +20,7 @@ public class BpmTempNodeSubServiceImpl extends ServiceImpl<BpmTempNodeSubMapper,
 
 
     @Autowired
-    private BpmTempNodeSubServiceManual flowTempNodeServiceManual;
+    private BpmTempNodeSubServiceManual bpmTempNodeServiceManual;
 
     /**
      * 功能描述:
@@ -30,7 +30,7 @@ public class BpmTempNodeSubServiceImpl extends ServiceImpl<BpmTempNodeSubMapper,
      */
     @Override
     public BpmTempNodeSubServiceManual getServiceManual() {
-        return flowTempNodeServiceManual;
+        return bpmTempNodeServiceManual;
     }
 
     /**

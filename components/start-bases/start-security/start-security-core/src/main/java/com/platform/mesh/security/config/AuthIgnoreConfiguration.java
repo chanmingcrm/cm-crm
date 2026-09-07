@@ -10,13 +10,16 @@ import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -68,7 +71,7 @@ public class AuthIgnoreConfiguration implements InitializingBean {
 	public RequestMatcher[] getPermitAllRequestMatchers() {
 		if (CollUtil.isNotEmpty(this.urls)) {
 			this.urls.addAll(SecurityConstant.STATIC_IGNORE_URLS);
-			List<AntPathRequestMatcher> matchers = this.urls.stream().map(AntPathRequestMatcher::new).toList();
+			List<PathPatternRequestMatcher> matchers = this.urls.stream().map(item -> PathPatternRequestMatcher.withDefaults().matcher(item)).toList();
 			RequestMatcher[] result = new RequestMatcher[matchers.size()];
 			return matchers.toArray(result);
 		} else {

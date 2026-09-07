@@ -20,7 +20,10 @@ import com.platform.mesh.bpm.biz.modules.temp.action.domain.po.BpmTempAction;
 import com.platform.mesh.bpm.biz.modules.temp.action.domain.vo.BpmTempActionVO;
 import com.platform.mesh.bpm.biz.modules.temp.action.service.IBpmTempActionService;
 import com.platform.mesh.bpm.biz.modules.temp.node.domain.dto.BpmTempNodeDTO;
+import com.platform.mesh.bpm.biz.modules.temp.node.domain.po.BpmTempNode;
+import com.platform.mesh.bpm.biz.modules.temp.node.service.IBpmTempNodeService;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessVO;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
@@ -31,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -54,6 +58,9 @@ public class ProcessTypeActionFactoryImpl implements ProcessTypeService {
 
     @Autowired
     private IBpmHistActionService bpmHistActionService;
+
+    @Autowired
+    private IBpmTempNodeService bpmTempNodeService;
 
     @Autowired
     private IBpmInstNodeService bpmInstNodeService;
@@ -202,5 +209,40 @@ public class ProcessTypeActionFactoryImpl implements ProcessTypeService {
                 .eq(BpmHistAction::getInstProcessId,getVO.getInstProcessId())
                 .list();
         getVO.setActionVOs(BeanUtil.copyToList(histActions, BpmHistActionVO.class));
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+        List<BpmTempAction> bpmTempActions = bpmTempActionService.selectActionsByTemplateId(sourceProcess.getId());
+        if(CollUtil.isEmpty(bpmTempActions)){
+            return;
+        }
+        List<BpmTempNode> bpmTempNodes = bpmTempNodeService.selectNodesByTemplateId(targetProcess.getId());
+        if(CollUtil.isEmpty(bpmTempNodes)){
+            return;
+        }
+        Map<String, BpmTempNode> nodeMap = bpmTempNodes.stream().collect(Collectors.toMap(BpmTempNode::getNodeHash, Function.identity()));
+        bpmTempActions.forEach(bpmTempAction -> {
+            bpmTempAction.setId(null);
+            bpmTempAction.setTempProcessId(targetProcess.getId());
+            bpmTempAction.setCreateTime(LocalDateTime.now());
+            bpmTempAction.setCreateUserId(targetProcess.getCreateUserId());
+            bpmTempAction.setUpdateTime(LocalDateTime.now());
+            bpmTempAction.setUpdateUserId(targetProcess.getUpdateUserId());
+            bpmTempAction.setScopeOrgId(targetProcess.getScopeOrgId());
+            bpmTempAction.setScopeUserId(targetProcess.getScopeUserId());
+            if(nodeMap.containsKey(bpmTempAction.getTempNodeHash())){
+                BpmTempNode bpmTempNode = nodeMap.get(bpmTempAction.getTempNodeHash());
+                bpmTempAction.setTempNodeId(bpmTempNode.getId());
+            }
+        });
+        bpmTempActionService.saveBatch(bpmTempActions);
     }
 }

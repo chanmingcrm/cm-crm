@@ -1,23 +1,21 @@
 package com.platform.mesh.upms.biz.modules.conf.sysset.controller;
 
+import com.platform.mesh.core.application.controller.BaseController;
+import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.core.enums.custom.OperateTypeEnum;
+import com.platform.mesh.log.annotation.Log;
+import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.upms.biz.modules.conf.sysset.domain.dto.ConfSysSetDTO;
-import com.platform.mesh.upms.biz.modules.conf.sysset.domain.po.ConfSysSet;
+import com.platform.mesh.upms.biz.modules.conf.sysset.domain.dto.ConfSysSetPageDTO;
 import com.platform.mesh.upms.biz.modules.conf.sysset.domain.vo.ConfSysSetVO;
 import com.platform.mesh.upms.biz.modules.conf.sysset.service.IConfSysSetService;
-import com.platform.mesh.core.application.controller.BaseController;
-import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.core.application.domain.dto.PageDTO;
-import com.platform.mesh.core.application.domain.vo.PageVO;
-import com.platform.mesh.mybatis.plus.extention.MPage;
-import com.platform.mesh.log.annotation.Log;
-import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 
 
 /**
@@ -41,10 +39,8 @@ public class ConfSysSetController extends BaseController{
 	 */
 	@Operation(summary = "获取配置系统分页")
 	@PostMapping("/conf/sys/set/page")
-	public Result<PageVO<ConfSysSetVO>> selectPage(@RequestBody PageDTO pageDTO) {
-	    MPage<ConfSysSet> sysSetMPage = MPageUtil.pageEntityToMPage(pageDTO, ConfSysSet.class);
-        MPage<ConfSysSet> page = confSysSetService.page(sysSetMPage);
-        PageVO<ConfSysSetVO> voPage = MPageUtil.convertToVO(page, ConfSysSetVO.class);
+	public Result<PageVO<ConfSysSetVO>> selectPage(@RequestBody ConfSysSetPageDTO pageDTO) {
+        PageVO<ConfSysSetVO> voPage = confSysSetService.selectPage(pageDTO);
         return Result.success(voPage);
 	}
 
@@ -59,6 +55,20 @@ public class ConfSysSetController extends BaseController{
     @GetMapping("/conf/sys/set/info/{sysSetId}")
     public Result<ConfSysSetVO> getSysSetInfoById(@PathVariable("sysSetId")Long sysSetId) {
         ConfSysSetVO confSysSetVO = confSysSetService.getSysSetInfoById(sysSetId);
+        return Result.success(confSysSetVO);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取当前配置系统信息〉
+     * @param confMac confMac
+     * @return 正常返回:{@link Result<ConfSysSetVO>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "获取当前配置系统信息")
+    @GetMapping("/conf/sys/set/by/mac/{confMac}")
+    public Result<ConfSysSetVO> getSysSetInfoByMac(@PathVariable("confMac")String confMac) {
+        ConfSysSetVO confSysSetVO = confSysSetService.getSysSetInfoByMac(confMac);
         return Result.success(confSysSetVO);
     }
 

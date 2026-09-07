@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.upms.biz.modules.team.base.mapper.TeamBaseMapper">
+
+    <select id="selectTeamMemberPage"
+            resultType="com.platform.mesh.upms.biz.modules.team.memberrel.domain.vo.TeamMemberRelVO">
+        SELECT
+            ANY_VALUE ( mr.team_id ) AS team_id,
+            ANY_VALUE ( mr.member_id ) AS member_id,
+            MAX( mr.start_time ) AS start_time,
+            MAX( mr.end_time ) AS end_time,
+            ANY_VALUE ( mr.create_time ) AS create_time,
+            ANY_VALUE ( m.member_name ) AS member_name,
+            GROUP_CONCAT( r.role_name ) AS role_name
+        FROM
+            team_link l
+            LEFT JOIN team_member_rel mr ON l.team_id = mr.team_id
+            LEFT JOIN org_member m ON m.id = mr.member_id
+            LEFT JOIN team_member_role_rel mrr ON mrr.team_id = mr.team_id
+            AND mrr.member_id = mr.member_id
+            LEFT JOIN sys_role r ON r.id = mrr.role_id
+            <if test=" pageDTO.openFlag != null and pageDTO.openFlag == 2">
+                INNER JOIN (
+                SELECT DISTINCT
+                    t.team_id,
+                    CASE
+                    WHEN t.user_id = #{pageDTO.userId} THEN t.create_user_id
+                    ELSE t.user_id
+                    END AS user_id
+                FROM team_member_rel t
+                WHERE  (t.user_id = #{pageDTO.userId} OR t.create_user_id = #{pageDTO.userId})
+                <if test=" pageDTO.teamId != null ">
+                    AND t.team_id = #{pageDTO.teamId}
+                </if>
+                <if test=" pageDTO.moduleId != null ">
+                    AND EXISTS (
+                    SELECT 1 FROM team_link tl
+                    WHERE tl.team_id = t.team_id
+                    AND tl.module_id = #{pageDTO.moduleId}
+                    AND tl.data_id = #{pageDTO.dataId}
+                    )
+                </if>
+                ) u ON (mr.user_id = u.user_id OR mr.user_id = #{pageDTO.userId}) AND mr.team_id = u.team_id
+            </if>
+        WHERE
+            l.data_id = #{pageDTO.dataId}
+            AND mr.team_id IS NOT null
+            <if test=" pageDTO.moduleId != null ">
+                AND EXISTS (
+                SELECT 1 FROM team_link tl
+                WHERE tl.team_id = l.team_id
+                AND tl.module_id = #{pageDTO.moduleId}
+                )
+            </if>
+            <if test=" pageDTO.teamId != null ">
+                AND l.team_id = #{pageDTO.teamId}
+            </if>
+        GROUP BY
+            mr.member_id
+
+    </select>
+
+    <select id="getTeamMember" resultType="com.platform.mesh.upms.api.modules.team.domain.bo.TeamMemberRelBO">
+        SELECT
+            ANY_VALUE ( mur.user_id ) AS id,
+            ANY_VALUE( m.member_name ) AS name,
+            ANY_VALUE ( mr.member_id ) AS member_id,
+            MAX( mr.start_time ) AS start_time,
+            MAX( mr.end_time ) AS end_time
+        FROM
+            team_link l
+                INNER JOIN team_member_rel mr ON l.team_id = mr.team_id
+                INNER JOIN org_member m ON m.id = mr.member_id
+                INNER JOIN org_member_user_rel mur ON mur.member_id = m.id
+        WHERE
+         l.module_id = #{getDTO.moduleId}
+        AND l.data_id = #{getDTO.dataId}
+        GROUP BY
+        mr.member_id
+    </select>
+</mapper>

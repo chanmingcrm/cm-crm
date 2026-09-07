@@ -5,7 +5,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.dto.SysUserPageDTO;
 import com.platform.mesh.upms.biz.modules.sys.user.domain.po.SysUser;
+import com.platform.mesh.upms.biz.modules.sys.user.domain.vo.SysUserVO;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @description 用户信息Mapper
@@ -14,5 +17,7 @@ import org.apache.ibatis.annotations.Param;
 public interface SysUserMapper extends BaseMapper<SysUser> {
 
     @InterceptorIgnore(tenantLine = "true")
-    MPage<SysUser> selectMPage(MPage<SysUser> mPage,@Param("pageDTO") SysUserPageDTO pageDTO);
+    MPage<SysUserVO> selectMPage(MPage<SysUser> mPage, @Param("pageDTO") SysUserPageDTO pageDTO);
+
+    List<Long> getUserIdsByModules(@Param("moduleIds") List<Long> moduleIds);
 }

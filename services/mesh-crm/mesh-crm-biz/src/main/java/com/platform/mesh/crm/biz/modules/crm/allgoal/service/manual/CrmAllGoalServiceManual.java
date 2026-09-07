@@ -115,7 +115,7 @@ public class CrmAllGoalServiceManual {
      * @author 蝉鸣
      */
     public BigDecimal getTotalGoal(List<CrmAllGoal> crmAllGoals, LocalDate startDate, LocalDate endDate) {
-        Map<Year, CrmAllGoal> goalMap = crmAllGoals.stream().collect(Collectors.toMap(CrmAllGoal::getYearTime, Function.identity(),(v1,v2)->v2));
+        Map<Year, CrmAllGoal> goalMap = crmAllGoals.stream().collect(Collectors.toMap(year->Year.of(year.getYearTime()), Function.identity(),(v1,v2)->v2));
         List<Year> yearPeriod = DateTimeUtil.getYearPeriod(startDate, endDate);
         //获取月份总目标
         BigDecimal sum = BigDecimal.ZERO;
@@ -214,7 +214,7 @@ public class CrmAllGoalServiceManual {
     public BigDecimal getAvgDayGoal(CrmAllGoal crmAllGoal, Month month) {
         BigDecimal monthGoal = getMonthGoal(crmAllGoal, month);
         //获取当前月有多少天;
-        int length = DateTimeUtil.getMonthDays(crmAllGoal.getYearTime(), month);
+        int length = DateTimeUtil.getMonthDays(Year.of(crmAllGoal.getYearTime()), month);
         return monthGoal.divide(new BigDecimal(length), NumberConst.NUM_2, RoundingMode.HALF_UP);
     }
 
@@ -267,7 +267,7 @@ public class CrmAllGoalServiceManual {
         goalValue.add(crmAllGoal.getNovGoal());
         goalValue.add(crmAllGoal.getDecGoal());
         if(isAvg(goalValue)){
-            return getAvgDayGoal(crmAllGoal.getYearGoal(),crmAllGoal.getYearTime());
+            return getAvgDayGoal(crmAllGoal.getYearGoal(),Year.of(crmAllGoal.getYearTime()));
         }else{
             //否则返回空 视为非平均分配
             return null;
@@ -283,7 +283,7 @@ public class CrmAllGoalServiceManual {
      */
     public Map<String,BigDecimal> getGoalMap(Integer timeUnit,LocalDate startDate,LocalDate endDate, List<CrmAllGoal> goalList) {
         Map<String, BigDecimal> map = new HashMap<>();
-        Map<Year, CrmAllGoal> yearGoalMap = goalList.stream().collect(Collectors.toMap(CrmAllGoal::getYearTime, Function.identity()));
+        Map<Year, CrmAllGoal> yearGoalMap = goalList.stream().collect(Collectors.toMap(year->Year.of(year.getYearTime()), Function.identity()));
         if(TimeUnitEnum.YEAR.getValue().equals(timeUnit)){
             List<Year> yearPeriod = DateTimeUtil.getYearPeriod(startDate, endDate);
             yearPeriod.forEach(item->{

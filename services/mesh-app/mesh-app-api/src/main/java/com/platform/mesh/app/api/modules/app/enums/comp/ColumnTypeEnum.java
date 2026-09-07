@@ -4,7 +4,7 @@ import com.platform.mesh.core.enums.base.BaseEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * @description
+ * @description  需要与前端组件类型同步
  * @author 蝉鸣
  */
 @Schema(description = "字段组件需要特殊处理类型枚举",enumAsRef = true)
@@ -13,43 +13,56 @@ public enum ColumnTypeEnum implements BaseEnum<ColumnTypeEnum, Integer> {
     /**
      * 自定义
      */
-    CUSTOM(0,  "CUSTOM"),
+    CUSTOM(0,  "自定义"),
     /**
      * 新建
      */
-    ADD(1,  "ADD"),
+    ADD(1,  "新建"),
     /**
      * 编辑
      */
-    EDIT(2,  "EDIT"),
+    EDIT(2,  "编辑"),
     /**
      * 详情
      */
-    DETAIL(3,  "DETAIL"),
+    DETAIL(3,  "详情"),
     /**
      * 删除
      */
-    DELETE(4,  "DELETE"),
+    DELETE(4,  "删除"),
     /**
      * 批量删除
      */
-    DELETE_BATCH(5,  "DELETE_BATCH"),
+    DELETE_BATCH(5,  "批量删除"),
     /**
      * 导入
      */
-    IMPORT(6,  "IMPORT"),
+    IMPORT(6,  "导入"),
     /**
      * 导出
      */
-    EXPORT(7,  "EXPORT"),
+    EXPORT(7,  "导出"),
     /**
-     * 转化
+     * 表格
      */
-    TRANS_DATA(8,  "转化"),
+    TABLE(8,  "表格"),
     /**
      * 转移
      */
     TRANS_USER(9,  "转移"),
+    /**
+     * 分配
+     */
+    PEEK_DATA(10,  "分配"),
+    /**
+     * 转化
+     */
+    TRANS_DATA(11,  "转化"),
+    /**
+     * 流程阶段
+     */
+    PROCESS_STAGE(13,  "流程阶段"),
+
     ;
 
 

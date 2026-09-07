@@ -1,4 +1,2 @@
-com.platform.mesh.web.configuration.SecurityMessageSourceConfiguration
-com.platform.mesh.web.configuration.MappingJackson2HttpMessageConfiguration
+com.platform.mesh.web.configuration.MessageSourceConfiguration
 com.platform.mesh.web.handler.GlobalExceptionAdviceHandler
-com.platform.mesh.web.handler.GlobalResponseAdviceHandler

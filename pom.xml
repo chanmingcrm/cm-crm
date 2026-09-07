@@ -7,13 +7,13 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>dependency-pom</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
         <relativePath>configurations/dependency-pom/pom.xml</relativePath>
     </parent>
 
     <artifactId>mesh-platform</artifactId>
     <packaging>pom</packaging>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
 
 
     <modules>
@@ -71,6 +71,7 @@
                 <filtering>true</filtering>
                 <excludes>
                     <exclude>**/*.ico</exclude>
+                    <exclude>**/*.xdb</exclude>
                 </excludes>
             </resource>
             <resource>
@@ -78,6 +79,7 @@
                 <filtering>false</filtering>
                 <includes>
                     <include>**/*.ico</include>
+                    <include>**/*.xdb</include>
                 </includes>
             </resource>
             <resource>
@@ -136,10 +138,33 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <parameters>true</parameters>
                     <encoding>UTF-8</encoding>
                     <!-- 启用 -parameters 编译器标志 -->
                     <compilerArgument>-parameters</compilerArgument>
+                    <!-- 注解处理器配置 -->
+                    <annotationProcessorPaths>
+                        <!-- Lombok 注解处理器 -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                        <!-- 保留参数名 -->
+                        <arg>-parameters</arg>
+                        <!-- 弃用警告 -->
+                        <arg>-Xlint:deprecation</arg>
+                        <!-- 未检查转换警告 -->
+                        <arg>-Xlint:unchecked</arg>
+<!--                        &lt;!&ndash; 原始类型警告 &ndash;&gt;-->
+<!--                        <arg>-Xlint:rawtypes</arg>-->
+<!--                        &lt;!&ndash; 未使用代码警告 &ndash;&gt;-->
+<!--                        <arg>-Xlint:unused</arg>-->
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <!--忽略测试文件-->

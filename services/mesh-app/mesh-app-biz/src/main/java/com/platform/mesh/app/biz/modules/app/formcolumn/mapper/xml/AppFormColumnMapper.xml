@@ -36,6 +36,7 @@
         <result property="multiFlag" column="multi_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
         <result property="hiddenFlag" column="hidden_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
         <result property="deleteFlag" column="delete_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result property="editFlag" column="edit_flag" javaType="java.lang.Integer" jdbcType="INTEGER"/>
         <result property="xAddr" column="x_addr" javaType="java.lang.Integer" jdbcType="INTEGER"/>
         <result property="yAddr" column="y_addr" javaType="java.lang.Integer" jdbcType="INTEGER"/>
         <result property="stylePercent" column="style_percent" javaType="java.lang.Integer" jdbcType="INTEGER"/>
@@ -46,20 +47,44 @@
     <select id="getFormColumnSortList" resultMap="resultMap">
         SELECT
             DISTINCT
-            IFNULL(afcs.x_addr,afc.x_addr) x_addr,
-            IFNULL(afcs.y_addr,afc.y_addr) y_addr,
-            IFNULL(afct.column_name,afc.column_name) column_name,
             afc.*
         FROM
             app_form_column afc
-            LEFT JOIN
-            app_form_column_tenant afct ON afct.column_id = afc.id
             LEFT JOIN
             app_form_column_sorting afcs ON afc.id = afcs.column_id
         WHERE
             afc.module_id = #{moduleId}
             AND afc.form_id = #{formId}
-        ORDER BY y_addr,x_addr;
+            AND IFNULL(afc.delete_flag,0) != 2
+        ORDER BY y_addr,x_addr
+    </select>
+
+
+    <select id="getFormColumnBOList" resultMap="resultMap">
+        SELECT
+            DISTINCT
+            afc.*
+        FROM
+            app_form_column afc
+        WHERE
+            afc.module_id = #{moduleId}
+          AND afc.form_id = #{formId}
+    </select>
+
+    <select id="getRelModuleToSync"
+            resultType="com.platform.mesh.app.biz.modules.app.formcolumn.domain.bo.ModuleFieldBO">
+        SELECT
+            mb.id AS module_id,
+            module_index,
+            module_schema,
+            afc.column_mac
+        FROM
+            app_form_column afc
+                INNER JOIN app_module_base mb ON mb.id = afc.module_id
+        WHERE afc.comp_mac = #{compType}
+          AND mb.module_type = 3
+          AND FIND_IN_SET(#{moduleId},REPLACE(afc.set_data_value, '"', ''))
+          AND module_schema IS NOT NULL
     </select>
 
     <delete id="deleteLossColumn">
@@ -70,4 +95,5 @@
             module_id = #{moduleId} AND form_id = #{formId}
             AND (parent_id NOT IN ( SELECT id FROM ( SELECT id FROM app_form_column WHERE module_id = #{moduleId} AND form_id = #{formId}) a ) AND parent_id != 0)
     </delete>
+
 </mapper>

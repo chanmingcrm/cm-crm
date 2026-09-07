@@ -2,6 +2,7 @@ package com.platform.mesh.upms.biz.modules.sys.role.domain.vo;
 
 import com.platform.mesh.core.application.domain.vo.BaseVO;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,10 +32,10 @@ public class SysRoleVO extends BaseVO {
     @Schema(description = "角色名")
     private String roleName;
     /**
-    * (YesOrNoEnum)
+    * 初始化标识
     */
-    @Schema(implementation= YesOrNoEnum.class)
-    private Integer delFlag;
+    @SchemaEnum(value = YesOrNoEnum.class, description = "初始化标识")
+    private Integer initFlag;
     /**
     * 排序
     */

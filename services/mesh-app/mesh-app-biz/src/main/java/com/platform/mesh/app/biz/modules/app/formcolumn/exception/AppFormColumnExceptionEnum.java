@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @description 单字段关联异常枚举
  * @author 蝉鸣
  */
-@Schema(description = "单字段关联异常枚举",enumAsRef = true)
+@Schema(description = "表单字段关联异常枚举",enumAsRef = true)
 public enum AppFormColumnExceptionEnum implements BaseExceptionEnum<AppFormColumnExceptionEnum, String>  {
 
      /**

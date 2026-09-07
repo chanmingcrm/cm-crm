@@ -2,6 +2,8 @@ package com.platform.mesh.app.api.modules.init.es.service;
 
 import com.platform.mesh.app.api.modules.app.domain.dto.InitEsDTO;
 
+import java.util.List;
+
 
 /**
  * 约定当前service 只提供当前controller.api 相关接口
@@ -14,11 +16,11 @@ public interface IAppInitEsService {
      * 功能描述:
      * 〈客户关系缓存初始化〉
      * @param needIgnore needIgnore
-     * @param initEsDTO initEsDTO
+     * @param appTables appTables
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
-    Boolean initEs(Boolean needIgnore,InitEsDTO initEsDTO);
+    Boolean initEs(Boolean needIgnore, List<String> appTables);
 
     /**
      * 功能描述:

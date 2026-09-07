@@ -110,4 +110,5 @@ public class LabelValue extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }

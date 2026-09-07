@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.gen.biz.modules.gen.grouprel.mapper.GenGroupRelMapper">
+
+
+    <select id="selectAllPage"
+            resultType="com.platform.mesh.gen.biz.modules.gen.grouprel.domain.vo.GenGroupRelVO">
+        SELECT
+            gagr.*,
+            <if test="pageDTO.groupType == 1">
+                ct.build_name AS data_name,
+            </if>
+            <if test="pageDTO.groupType == 2">
+                ct.conf_name AS data_name,
+            </if>
+            <if test="pageDTO.groupType == 3">
+                ct.db_name AS data_name,
+            </if>
+            <if test="pageDTO.groupType == 4">
+                ct.field_flag AS data_name,
+            </if>
+            <if test="pageDTO.groupType == 5">
+                ct.table_comment AS data_name,
+            </if>
+            <if test="pageDTO.groupType == 6">
+                ct.column_comment AS data_name,
+            </if>
+            <if test="pageDTO.groupType == 7">
+                ct.template_name AS data_name,
+            </if>
+            gag.group_name
+        FROM
+            gen_all_group_rel gagr
+        LEFT JOIN gen_all_group gag ON gagr.group_id = gag.id
+        <if test="pageDTO.groupType == 1">
+            LEFT JOIN code_build ct ON gagr.data_id = ct.id
+        </if>
+        <if test="pageDTO.groupType == 2">
+            LEFT JOIN code_build_conf ct ON gagr.data_id = ct.id
+        </if>
+        <if test="pageDTO.groupType == 3">
+            LEFT JOIN code_datasource ct ON gagr.data_id = ct.id
+        </if>
+        <if test="pageDTO.groupType == 4">
+            LEFT JOIN code_field_mapping ct ON gagr.data_id = ct.id
+        </if>
+        <if test="pageDTO.groupType == 5">
+            LEFT JOIN code_table ct ON gagr.data_id = ct.id
+        </if>
+        <if test="pageDTO.groupType == 6">
+            LEFT JOIN code_table_column ct ON gagr.data_id = ct.id
+        </if>
+        <if test="pageDTO.groupType == 7">
+            LEFT JOIN code_template ct ON gagr.data_id = ct.id
+        </if>
+        WHERE
+            gagr.group_id = #{pageDTO.groupId} AND gagr.group_type = #{pageDTO.groupType}
+    </select>
+</mapper>

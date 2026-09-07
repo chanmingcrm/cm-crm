@@ -95,4 +95,5 @@ public class LabelBaseVO extends BaseVO {
     @Schema(description = "数据权限机构ID")
     private Long scopeOrgId;
 
+
 }

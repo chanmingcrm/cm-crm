@@ -34,6 +34,7 @@ public interface IOrgMemberUserRelService extends IService<OrgMemberUserRel> {
     /**
      * 功能描述:
      * 〈获取成员默认关联信息〉
+     * @param tenantId tenantId
      * @param userId userId
      * @return 正常返回:{@link OrgMemberRelBO}
      * @author 蝉鸣

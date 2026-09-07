@@ -95,4 +95,5 @@ public class MsgUserRelDTO extends BaseDTO {
     @Schema(description = "数据权限层级ID")
     private Long scopeOrgId;
 
+
 }

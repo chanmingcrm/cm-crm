@@ -3,11 +3,13 @@ package com.platform.mesh.app.biz.modules.app.formcolumn.service;
 import co.elastic.clients.elasticsearch._types.mapping.Property;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.mesh.app.api.modules.app.domain.bo.AppFormColumnBO;
+import com.platform.mesh.app.api.modules.app.domain.bo.SyncDataBO;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.dto.AppFormColumnDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.dto.AppFormColumnPageDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.vo.AppFormColumnSimpVO;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.vo.AppFormColumnVO;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
 import com.platform.mesh.es.domain.bo.EsIndexMappingBO;
 import com.platform.mesh.mybatis.plus.extention.MPage;
@@ -69,10 +71,9 @@ public interface IAppFormColumnService extends IService<AppFormColumn> {
      * 〈新增单字段关联〉
      * @param batchId batchId
      * @param formColumnDTOs formColumnDTOs
-     * @return 正常返回:{@link AppFormColumnVO}
      * @author 蝉鸣
      */
-    Boolean addFormColumn(Long batchId,List<AppFormColumnDTO> formColumnDTOs);
+    void addFormColumn(Long batchId,List<AppFormColumnDTO> formColumnDTOs);
 
     /**
      * 功能描述:
@@ -93,36 +94,37 @@ public interface IAppFormColumnService extends IService<AppFormColumn> {
      */
     MPage<AppFormColumn> page(AppFormColumnPageDTO appFormColumnPageDTO);
 
-    /***
-     * 功能描述:
-     * 〈根据条件查询〉
-     * @param appFormColumnPageDTO appFormColumnPageDTO
-     * @return 正常返回:{@link List<AppFormColumn>}
-     * @author 蝉鸣
-     * @since 2024/8/29 17:45
-     */
-    List<AppFormColumn> queryList(AppFormColumnPageDTO appFormColumnPageDTO);
-
     /**
      * 功能描述:
      * 〈新增单字段关联〉
-     * @param moduleBaseId moduleBaseId
      * @param moduleIndex moduleIndex
-     * @return 正常返回:{@link Map<String,Property>}
+     * @param moduleBaseIds moduleBaseIds
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
-    EsIndexMappingBO getFormColumnEsMapping(Long moduleBaseId,String moduleIndex);
+    EsIndexMappingBO getFormColumnEsMapping(String moduleIndex,List<Long> moduleBaseIds);
 
     /**
      * 功能描述:
      * 〈复制字段关联〉
-     * @param sourceModule sourceModule
+     * @param sourceId sourceId
      * @param targetModule targetModule
      * @param copyForm copyForm
-     * @return 正常返回:{@link Map<Long,AppFormColumn>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
-    Map<Long, AppFormColumn> copyFormColumn(AppModuleBase sourceModule, AppModuleBase targetModule, Map<Long, Long> copyForm);
+    Map<AppFormColumn, AppFormColumn> copyFormColumn(Long sourceId, AppModuleBase targetModule, Map<Long, Long> copyForm,Map<Long, AppFormColumnSetRequire> copyRequire);
+
+    /**
+     * 功能描述:
+     * 〈复制字段关联〉
+     * @param sourceFormColumns sourceFormColumns
+     * @param target target
+     * @param copyForm copyForm
+     * @return 正常返回:{@link Map}
+     * @author 蝉鸣
+     */
+    Map<AppFormColumn, AppFormColumn> copyFormColumn(List<AppFormColumn> sourceFormColumns, AppModuleBase target, Map<Long, Long> copyForm,Map<Long, AppFormColumnSetRequire> copyRequire);
 
     /**
      * 功能描述:
@@ -164,4 +166,22 @@ public interface IAppFormColumnService extends IService<AppFormColumn> {
      */
     AppFormColumnVO fastColumnByModuleAndType(Long moduleId, Integer columnType);
 
+    /**
+     * 功能描述:
+     * 〈获取同步信息使用关联模块以及字段信息〉
+     * @param moduleId moduleId
+     * @return 正常返回:{@link List<SyncDataBO>}
+     * @author 蝉鸣
+     */
+    List<SyncDataBO> getRelModuleToSync(Long moduleId);
+
+    /**
+     * 功能描述:
+     * @author 蝉鸣
+     */
+
+    /**
+     * 功能描述:
+     * @author 蝉鸣
+     */
 }

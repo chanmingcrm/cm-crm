@@ -62,16 +62,6 @@ public class LogLogin extends BasePO {
     private String loginAddr;
 
     /**
-     * 登录URL
-     */
-    private String loginUrl;
-
-    /**
-     * 登录参数
-     */
-    private String loginParam;
-
-    /**
      * 登录标识
      */
     private Integer loginFlag;
@@ -85,6 +75,7 @@ public class LogLogin extends BasePO {
     * 创建时间
     */
     private LocalDateTime createTime;
+
 
 }
 

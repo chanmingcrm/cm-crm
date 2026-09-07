@@ -5,14 +5,12 @@
 
     <select id="selectMPage" resultType="com.platform.mesh.app.biz.modules.app.formbase.domain.po.AppFormBase">
         SELECT
-            IFNULL(afbt.form_name,afb.form_name) form_name,
             afb.*
         FROM
             app_form_base afb
-                LEFT JOIN
-            app_form_base_tenant afbt ON afbt.form_id = afb.id
         WHERE
             afb.module_id = #{pageDTO.moduleId}
+            AND IFNULL(afb.del_flag,0) != 2
             <if test=" pageDTO.formName !=null and pageDTO.formName!='' ">
                 AND afb.form_name LIKE CONCAT('%',#{pageDTO.formName},'%')
             </if>

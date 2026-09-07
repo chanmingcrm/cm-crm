@@ -1,11 +1,15 @@
 package com.platform.mesh.upms.biz.modules.doc.file.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.api.modules.doc.domain.vo.DocFileVO;
 import com.platform.mesh.upms.biz.modules.doc.file.domain.dto.DocFileDTO;
+import com.platform.mesh.upms.biz.modules.doc.file.domain.dto.DocPageDTO;
 import com.platform.mesh.upms.biz.modules.doc.file.domain.po.DocFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 
@@ -18,6 +22,15 @@ import java.util.List;
  */
 public interface IDocFileService extends IService<DocFile> {
 
+
+    /**
+     * 功能描述:
+     * 〈分页查询文档〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link MPage<DocFile>}
+     * @author 蝉鸣
+     */
+    MPage<DocFile> selectPage(DocPageDTO pageDTO);
 
     /**
      * 功能描述:
@@ -49,20 +62,21 @@ public interface IDocFileService extends IService<DocFile> {
     /**
      * 功能描述:
      * 〈新增文件〉
+     * @param moduleId moduleId
+     * @param dataId dataId
      * @param files files
      * @return 正常返回:{@link DocFileVO}
      * @author 蝉鸣
      */
-    List<DocFileVO> uploadFile(MultipartFile[] files);
+    List<DocFileVO> uploadFile(Long moduleId,Long dataId,MultipartFile[] files);
 
     /**
      * 功能描述:
-     * 〈下载文件〉
+     * 〈流式下载文件〉
      * @param fileId fileId
-     * @return 正常返回:{@link byte[]}
-     * @author 蝉鸣
+     * @return 正常返回:{@link InputStream}
      */
-    byte[] downloadFile(Long fileId);
+    InputStream downloadFileStream(Long fileId);
 
     /**
      * 功能描述:
@@ -82,4 +96,21 @@ public interface IDocFileService extends IService<DocFile> {
      */
     Boolean deleteFile(Long fileId);
 
+    /**
+     * 功能描述:
+     * 〈分页查询文档〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link PageVO<DocFileVO>}
+     * @author 蝉鸣
+     */
+    PageVO<DocFileVO> selectOpenPage(DocPageDTO pageDTO);
+
+    /**
+     * 功能描述:
+     * 〈新增文件〉
+     * @param dirId dirId
+     * @param files files
+     * @author 蝉鸣
+     */
+    List<DocFileVO> uploadFileByDir(Long dirId,MultipartFile[] files);
 }

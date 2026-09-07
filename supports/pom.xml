@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>mesh-platform</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>supports</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -21,6 +21,7 @@
         <module>mesh-uaa</module>
         <module>mesh-upms</module>
         <module>mesh-bpm</module>
+        <module>mesh-gen</module>
         <module>mesh-monitor</module>
     </modules>
 

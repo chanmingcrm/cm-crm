@@ -1,14 +1,7 @@
 package com.platform.mesh.bpm.biz.modules.inst.node.domain.vo;
 
 
-import com.platform.mesh.bpm.biz.modules.inst.node.enums.InstNodeInEnum;
-import com.platform.mesh.bpm.biz.modules.inst.node.enums.InstNodeOutEnum;
-import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDesignVO;
-import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
-import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
-import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
-import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

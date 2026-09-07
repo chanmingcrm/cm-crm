@@ -17,6 +17,7 @@ public enum DocFileExceptionEnum implements BaseExceptionEnum<DocFileExceptionEn
      */
     ADD_NO_ARGS("doc-file",500, null,  "文件参数为空"),
     ADD_NO_INVALID("doc-file",501, null,  "文件参数异常"),
+    ADD_NO_EXIST("doc-file",502, null,  "文件丢失"),
     ;
 
     /**

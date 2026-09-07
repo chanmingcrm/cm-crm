@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.modules.tmp.task.base.mapper.TmpTaskBaseMapper">
+
+
+    <select id="taskBaseAndRelPage"
+            resultType="com.platform.mesh.crm.biz.modules.tmp.task.base.domain.vo.TmpTaskBaseVO">
+        SELECT
+            tb.*
+        FROM
+            tmp_task_base_rel tdr
+            LEFT JOIN tmp_task_base tb ON tb.id = tdr.task_id
+        WHERE
+            tdr.rel_module_id = #{pageDTO.relModuleId}
+          AND tdr.rel_data_id = #{pageDTO.relDataId}
+    </select>
+</mapper>

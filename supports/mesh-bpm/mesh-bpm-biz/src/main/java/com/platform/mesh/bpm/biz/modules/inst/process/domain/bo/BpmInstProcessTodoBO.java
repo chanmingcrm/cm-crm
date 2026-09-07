@@ -2,7 +2,7 @@ package com.platform.mesh.bpm.biz.modules.inst.process.domain.bo;
 
 
 import cn.hutool.core.collection.CollUtil;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.core.application.domain.bo.BaseBO;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,8 +10,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -57,7 +57,7 @@ public class BpmInstProcessTodoBO extends BaseBO {
     /**
      * 流程父ID
      */
-    @SchemaEnum(value = ProcessRunEnum.class, description = "流程父ID")
+    @Schema(description = "流程父ID")
     private Long instRootId;
 
     /**
@@ -70,7 +70,7 @@ public class BpmInstProcessTodoBO extends BaseBO {
      * 人员ID
      */
     @Schema(description = "人员ID")
-    private List<Long> userIds = CollUtil.newArrayList();
+    private Set<Long> userIds = CollUtil.newHashSet();
 
     /**
      * 组织类型
@@ -82,7 +82,7 @@ public class BpmInstProcessTodoBO extends BaseBO {
      * 组织ID
      */
     @Schema(description = "组织ID")
-    private List<Long> orgIds = CollUtil.newArrayList();
+    private Set<Long> orgIds = CollUtil.newHashSet();
 
     /**
      * 角色类型
@@ -94,6 +94,6 @@ public class BpmInstProcessTodoBO extends BaseBO {
      * 角色ID
      */
     @Schema(description = "角色ID")
-    private List<Long> roleIds = CollUtil.newArrayList();
+    private Set<Long> roleIds = CollUtil.newHashSet();
 
 }

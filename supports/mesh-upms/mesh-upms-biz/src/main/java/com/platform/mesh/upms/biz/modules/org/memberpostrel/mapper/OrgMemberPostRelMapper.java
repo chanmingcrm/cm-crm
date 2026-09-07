@@ -1,5 +1,6 @@
 package com.platform.mesh.upms.biz.modules.org.memberpostrel.mapper;
 
+import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.upms.biz.modules.org.memberpostrel.domain.dto.OrgMemberPostRelPageDTO;
@@ -14,7 +15,8 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface OrgMemberPostRelMapper extends BaseMapper<OrgMemberPostRel> {
 
-    MPage<OrgMemberLevelVO> selectLevelPage(MPage<OrgMemberLevelVO> levelMPage, @Param("accountId") Long accountId);
+    @InterceptorIgnore(tenantLine = "true")
+    MPage<OrgMemberLevelVO> selectLevelPage(MPage<OrgMemberLevelVO> levelMPage, @Param("userId") Long userId);
 
     MPage<OrgMemberPostRelPageVO> selectPageRel(MPage<OrgMemberPostRel> userMPage,@Param("pageDTO") OrgMemberPostRelPageDTO pageDTO);
 

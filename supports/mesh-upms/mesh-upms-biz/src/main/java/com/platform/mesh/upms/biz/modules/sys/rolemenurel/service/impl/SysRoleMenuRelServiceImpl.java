@@ -84,5 +84,15 @@ public class SysRoleMenuRelServiceImpl extends ServiceImpl<SysRoleMenuRelMapper,
         removeById(relId);
         return Boolean.TRUE;
     }
+
+    /**
+     * 功能描述:
+     * 〈清楚不存在的菜单关系〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void clearNullRoleMenuRel() {
+        this.getBaseMapper().clearNullRoleMenuRel();
+    }
 }
 

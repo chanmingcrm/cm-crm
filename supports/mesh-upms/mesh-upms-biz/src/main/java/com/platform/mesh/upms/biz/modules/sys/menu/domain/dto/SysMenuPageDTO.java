@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 
 /**
  * @description 菜单页面列表查询请求对象
@@ -36,6 +38,18 @@ public class SysMenuPageDTO extends PageDTO {
      */
     @Schema(description = "命名路由")
     private String name;
+
+    /**
+     * 是否需要子项
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "是否需要子项")
+    private Integer needChild;
+
+    /**
+     * 菜单ID
+     */
+    @Schema(description = "菜单ID",hidden = true)
+    private List<Long> menuIds;
 
     /**
      * 是否管理员

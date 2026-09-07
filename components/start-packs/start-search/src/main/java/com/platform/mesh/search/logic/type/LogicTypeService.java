@@ -52,5 +52,5 @@ public interface LogicTypeService {
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
-    Map<EsBoolEnum, Query> esBoolQuery(List<CondDTO> condDTOS);
+    Map<EsBoolEnum, List<Query>> esBoolQuery(List<CondDTO> condDTOS);
 }

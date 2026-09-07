@@ -1,8 +1,7 @@
 package com.platform.mesh.bpm.biz.soa.process.pass.factory;
 
 import com.platform.mesh.bpm.biz.soa.process.pass.ProcessPassService;
-import com.platform.mesh.bpm.biz.soa.process.pass.enums.ProcessPassEnum;
-import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
+import com.platform.mesh.core.enums.bpm.ProcessPassEnum;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class ProcessPassFactory<T> implements InitializingBean {
 
     /**
      * 功能描述:
-     * 〈根绝类型获取对应的流程实现〉
+     * 〈根据类型获取对应的流程实现〉
      * @param processPass processPass
      * @return 正常返回:{@link ProcessPassService<T>}
      * @author 蝉鸣

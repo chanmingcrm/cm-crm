@@ -2,7 +2,6 @@ package com.platform.mesh.app.biz.modules.app.modulebase.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.platform.mesh.core.application.domain.po.BasePO;
-import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
 import com.platform.mesh.mybatis.plus.annotation.TableParentId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -102,6 +101,18 @@ public class AppModuleBase extends BasePO {
 
 
     /**
+     * 流程标识
+     */
+    private Integer flowFlag;
+
+
+    /**
+     * AI标识
+     */
+    private Integer aiFlag;
+
+
+    /**
      * 删除标识
      */
     private Integer delFlag;
@@ -129,19 +140,5 @@ public class AppModuleBase extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 用户ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @IgnoreDataScope()
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
 
 }

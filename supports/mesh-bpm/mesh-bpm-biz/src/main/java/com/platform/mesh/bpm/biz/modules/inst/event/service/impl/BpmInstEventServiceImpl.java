@@ -1,11 +1,17 @@
 package com.platform.mesh.bpm.biz.modules.inst.event.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.bpm.biz.modules.inst.event.domain.po.BpmInstEvent;
 import com.platform.mesh.bpm.biz.modules.inst.event.mapper.BpmInstEventMapper;
 import com.platform.mesh.bpm.biz.modules.inst.event.service.IBpmInstEventService;
 import com.platform.mesh.bpm.biz.modules.inst.event.service.manual.BpmInstEventServiceManual;
+import com.platform.mesh.bpm.biz.soa.event.rel.domain.bo.EventRelBO;
+import com.platform.mesh.core.constants.StrConst;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -101,6 +107,36 @@ public class BpmInstEventServiceImpl extends ServiceImpl<BpmInstEventMapper, Bpm
         }
         //执行实例事件信息
         bpmInstEventServiceManual.handleInstEvent(bpmInstEvents);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取关联对象〉
+     * @param relDataType relDataType
+     * @param relData relData
+     * @author 蝉鸣
+     */
+    @Override
+    public List<EventRelBO> getRelData(Integer relDataType, String relData) {
+        List<EventRelBO> relBOS = CollUtil.newArrayList();
+        JSONArray jsonArray = JSONUtil.parseArray(relData);
+        jsonArray.forEach(json->{
+            EventRelBO relBO = new EventRelBO();
+            JSONObject jsonObject = JSONUtil.parseObj(json);
+            if(jsonObject.containsKey(StrConst.ID)){
+                relBO.setRelDataId(jsonObject.get(StrConst.ID).toString());
+            }
+            if(jsonObject.containsKey(StrConst.NAME)){
+                relBO.setRelDataName(jsonObject.get(StrConst.NAME).toString());
+            }
+            if(StrUtil.isNotBlank(relData)){
+                relBOS.add(relBO);
+            }
+        });
+        if(CollUtil.isEmpty(relBOS)){
+            return CollUtil.newArrayList();
+        }
+        return bpmInstEventServiceManual.getRelData(relDataType,relBOS);
     }
 }
 

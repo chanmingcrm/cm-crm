@@ -1,15 +1,13 @@
 package com.platform.mesh.bpm.biz.modules.inst.event.domain.vo;
 
 
-import com.platform.mesh.bpm.biz.soa.event.enums.EventTypeEnum;
+import com.platform.mesh.bpm.biz.soa.event.type.enums.EventTypeEnum;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-
-import java.util.List;
 
 
 /**

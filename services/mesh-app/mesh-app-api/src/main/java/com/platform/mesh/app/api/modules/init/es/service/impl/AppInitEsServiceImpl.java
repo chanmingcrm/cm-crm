@@ -31,14 +31,14 @@ public abstract class AppInitEsServiceImpl implements IAppInitEsService {
     /**
      * 功能描述:
      * 〈客户关系缓存初始化〉
-     * @param initEsDTO initEsDTO
+     * @param tableSchemas tableSchemas
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
     @Override
-    public Boolean initEs(Boolean needIgnore,InitEsDTO initEsDTO) {
+    public Boolean initEs(Boolean needIgnore,List<String> tableSchemas) {
         //初始化索引和字段
-        List<AppModuleBaseBO> moduleBaseBOS = appInitEsServiceManual.initEsIndex(initEsDTO);
+        List<AppModuleBaseBO> moduleBaseBOS = appInitEsServiceManual.initEsIndex(tableSchemas);
         if(CollUtil.isEmpty(moduleBaseBOS)){
             log.info(AppInitEsExceptionEnum.ADD_NO_INDEX.getDesc());
             return false;
@@ -64,6 +64,10 @@ public abstract class AppInitEsServiceImpl implements IAppInitEsService {
      */
     @Override
     public Boolean deleteES(InitEsDTO initEsDTO) {
+        //暂时禁用
+        if(true){
+            return false;
+        }
         //删除数据
         return appInitEsServiceManual.deleteES(initEsDTO);
     }
@@ -77,10 +81,14 @@ public abstract class AppInitEsServiceImpl implements IAppInitEsService {
      */
     @Override
     public Boolean refreshES(InitEsDTO initEsDTO) {
+        //暂时禁用
+        if(true){
+            return false;
+        }
         //删除数据
         appInitEsServiceManual.deleteES(initEsDTO);
         //初始化索引和字段
-        List<AppModuleBaseBO> moduleBaseBOS = appInitEsServiceManual.initEsIndex(initEsDTO);
+        List<AppModuleBaseBO> moduleBaseBOS = appInitEsServiceManual.initEsIndex(CollUtil.newArrayList());
         if(CollUtil.isEmpty(moduleBaseBOS)){
             return false;
         }

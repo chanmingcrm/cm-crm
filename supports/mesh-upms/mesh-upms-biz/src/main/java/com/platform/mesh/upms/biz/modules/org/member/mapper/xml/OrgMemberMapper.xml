@@ -12,20 +12,28 @@
             GROUP_CONCAT(p.post_name) AS post_name,
             MAX(m.id) AS id,
             ANY_VALUE(mur.user_id) AS user_id,
-            ANY_VALUE(m.member_name) AS member_name
+            ANY_VALUE(u.nick_name) AS member_name
         FROM
             org_member m
                 LEFT JOIN org_member_user_rel mur ON m.id = mur.member_id
                 LEFT JOIN org_member_post_rel mpr ON m.id = mpr.member_id
                 LEFT JOIN org_post p ON p.id = mpr.post_id
                 LEFT JOIN org_level l ON l.id = mpr.level_id
+                LEFT JOIN sys_user u ON u.user_id = mur.user_id
         <where>
-            <if test="orgMemberPageDTO.memberName != null ">
-                AND m.member_name LIKE CONCAT('%',#{orgMemberPageDTO.memberName},'%')
+            u.del_flag != 2
+            <if test="orgMemberPageDTO.searchValue != null ">
+                AND m.member_name LIKE CONCAT('%',#{orgMemberPageDTO.searchValue},'%')
             </if>
             <if test="orgMemberPageDTO.levelIds !=null and orgMemberPageDTO.levelIds.size()>0">
                 AND l.id IN
                 <foreach collection="orgMemberPageDTO.levelIds" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="orgMemberPageDTO.userIds !=null and orgMemberPageDTO.userIds.size()>0">
+                AND mur.user_id IN
+                <foreach collection="orgMemberPageDTO.userIds" item="item" open="(" separator="," close=")">
                     #{item}
                 </foreach>
             </if>
@@ -40,20 +48,43 @@
     </select>
 
     <select id="getMemberInfoByUserId" resultType="com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO">
+        -- 先获取用户岗位，再关联其他数据，避免重复连接
+        WITH user_posts AS (
+            SELECT DISTINCT mpr.level_id,mpr.post_id
+            FROM org_member_user_rel mur
+                     INNER JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
+            WHERE mur.user_id = #{userId}
+        )
         SELECT
             l.id AS level_id,
             l.level_name,
             pds.post_id,
+            p.post_name,
             pds.data_id,
             pds.data_scope,
             pds.data_flag
-        FROM
-            org_member_user_rel mur
-                LEFT JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
-                LEFT JOIN org_post_data_scope pds ON mpr.post_id = pds.post_id
-                LEFT JOIN org_level l ON mpr.level_id = l.id
-        WHERE
-            mur.user_id = #{userId}
+        FROM user_posts
+                 LEFT JOIN org_post_data_scope pds ON user_posts.post_id = pds.post_id
+                 LEFT JOIN org_level l ON user_posts.level_id = l.id
+                 LEFT JOIN org_post p ON user_posts.post_id = p.id
+    </select>
+
+    <select id="getMemberOrgByUserId" resultType="com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO">
+        -- 先获取用户岗位，再关联其他数据，避免重复连接
+        WITH user_posts AS (
+            SELECT DISTINCT mpr.level_id,mpr.post_id
+            FROM org_member_user_rel mur
+                     INNER JOIN org_member_post_rel mpr ON mur.member_id = mpr.member_id
+            WHERE mur.user_id = #{userId}
+        )
+        SELECT
+            l.id AS level_id,
+            l.level_name,
+            user_posts.post_id,
+            p.post_name
+        FROM user_posts
+                 LEFT JOIN org_level l ON user_posts.level_id = l.id
+                 LEFT JOIN org_post p ON user_posts.post_id = p.id
     </select>
 
     <select id="getOrgMemberByUserIds"
@@ -70,6 +101,23 @@
         </foreach>
     </select>
 
+    <select id="getOrgMemberByIds"
+            resultType="com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO">
+        SELECT
+            om.id,
+            om.member_name,
+            omur.user_id AS user_id
+        FROM
+        org_member_user_rel omur
+        LEFT JOIN org_member om ON omur.member_id = om.id
+        WHERE
+        om.id IN
+        <foreach collection="memberIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+
     <select id="getMemberVOByUserId"
             resultType="com.platform.mesh.upms.biz.modules.sys.user.domain.vo.SysMemberVO">
         SELECT
@@ -81,6 +129,114 @@
         LEFT JOIN org_member om ON omur.member_id = om.id
         WHERE
         omur.user_id = #{userId}
+    </select>
+
+    <select id="getOrgMemberByNameFirst"
+            resultType="com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO">
+        SELECT
+            om.id,
+            om.member_name,
+            omur.user_id AS user_id
+        FROM
+            org_member om
+                LEFT JOIN org_member_user_rel omur ON omur.member_id = om.id
+                LEFT JOIN sys_user u ON u.user_id = omur.user_id
+        WHERE
+            om.member_name = #{memberName}
+        LIMIT 1
+    </select>
+
+    <select id="getOrgMemberByUserIdFirst"
+            resultType="com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO">
+        SELECT
+            om.id,
+            om.member_name,
+            omur.user_id AS user_id
+        FROM
+            org_member om
+                LEFT JOIN org_member_user_rel omur ON omur.member_id = om.id
+        WHERE
+            omur.user_id = #{userId}
+            LIMIT 1
+    </select>
+
+    <select id="getTransMember"
+            resultType="com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberTransBO">
+        SELECT
+            om.member_name AS target_member_name,
+            omur.user_id AS target_user_id,
+            fp.level_id AS target_level_id,
+            l.level_name AS target_level_name
+        FROM org_member_user_rel omur
+        INNER JOIN org_member om ON om.id = omur.member_id
+        LEFT JOIN LATERAL (
+            SELECT level_id
+            FROM org_member_post_rel
+            WHERE member_id = om.id
+            ORDER BY id
+                LIMIT 1
+            ) fp ON true
+        LEFT JOIN org_level l ON l.id = fp.level_id
+        WHERE omur.user_id = #{targetUserId}
+        LIMIT 1
+    </select>
+
+    <select id="getMemberLeadList"
+            resultType="com.platform.mesh.upms.biz.modules.org.member.domain.vo.OrgMemberVO">
+        SELECT
+        om.id,
+        om.member_name,
+        ompl.level_id,
+        ol.level_name,
+        ompl.post_id,
+        op.post_name,
+        FROM
+            org_member_post_rel ompl
+                LEFT JOIN org_member om ON om.id = ompl.member_id
+                LEFT JOIN org_level ol ON ol.id = ompl.level_id
+                LEFT JOIN org_post op ON op.id = ompl.post_id
+        WHERE
+            ompl.level_id IN
+            <foreach collection="levelIds" item="levelId" open="(" close=")" separator=",">
+                #{levelId}
+            </foreach>
+          AND ompl.lead_flag = #{leadFlag}
+    </select>
+
+    <select id="getLeaderDirect"
+            resultType="com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO">
+        SELECT
+            omur.user_id,
+            om.id,
+            om.member_name
+        FROM sys_account a
+                 INNER JOIN org_level_post_rel olpr ON olpr.level_id = r.scope_org_id AND olpr.lead_flag = #{leadFlag}
+                 LEFT JOIN org_member_post_rel ompr ON ompr.post_id = olpr.post_id
+                 LEFT JOIN org_member om ON ompr.member_id = om.id
+                 LEFT JOIN org_member_user_rel omur ON ompr.member_id = omur.member_id
+        WHERE a.account_id = #{accountId}
+        ORDER BY
+            om.create_time DESC
+        LIMIT 1
+    </select>
+
+
+    <select id="getLeaderLoop"
+            resultType="com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO">
+        SELECT
+            omur.user_id,
+            om.id,
+            om.member_name
+        FROM  org_level_post_rel olpr
+                LEFT JOIN org_member_post_rel ompr ON ompr.post_id = olpr.post_id
+                LEFT JOIN org_member om ON ompr.member_id = om.id
+                LEFT JOIN org_member_user_rel omur ON ompr.member_id = omur.member_id
+        WHERE a.account_id = #{accountId}
+        olpr.level_id IN
+        <foreach collection="levelIds" item="levelId" open="(" close=")" separator=",">
+            #{levelId}
+        </foreach>
+        AND olpr.lead_flag = #{leadFlag}
     </select>
 
 </mapper>

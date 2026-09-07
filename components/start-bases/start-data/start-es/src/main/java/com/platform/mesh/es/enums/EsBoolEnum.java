@@ -9,13 +9,13 @@ public enum EsBoolEnum implements BaseEnum<EsBoolEnum, Integer> {
      */
     MUST(1,  "必须匹配每个子项"),
     /**
-     * 选择匹配,不参与算分
+     * 必须不匹配,不参与算分
      */
-    MUST_NOT(2,  "选择匹配,不参与算分"),
+    MUST_NOT(2,  "必须不匹配,不参与算分"),
     /**
-     * 必须不匹配
+     * 或条件
      */
-    SHOULD(3,  "必须不匹配"),
+    SHOULD(3,  "或条件"),
     /**
      * 必须匹配,不参与算分
      */

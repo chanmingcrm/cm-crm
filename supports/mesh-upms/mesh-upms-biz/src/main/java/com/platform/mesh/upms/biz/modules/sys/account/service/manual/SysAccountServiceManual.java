@@ -48,10 +48,10 @@ public class SysAccountServiceManual {
 	@Autowired
 	private IConfSysSafeService confSysSafeService;
 
+
 	/**
 	 * 功能描述:
 	 * 〈获取系统安全配置〉
-	 * @param scopeRootId scopeRootId
 	 * @return 正常返回:{@link Boolean}
 	 * @author 蝉鸣
 	 */
@@ -151,8 +151,9 @@ public class SysAccountServiceManual {
 	 * @author 蝉鸣
 	 */
     public OrgLevel getLevelById(Long levelId) {
-		return orgLevelService.getById(levelId);
+		return orgLevelService.getLevelById(levelId);
     }
+
 
 	/**
 	 * 功能描述:
@@ -183,4 +184,5 @@ public class SysAccountServiceManual {
 
 		return aes.decryptStr(password);
 	}
+
 }

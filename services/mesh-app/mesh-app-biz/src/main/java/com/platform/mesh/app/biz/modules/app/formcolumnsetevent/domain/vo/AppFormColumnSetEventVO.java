@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(description ="单字段事件VO")
+@Schema(description ="表单字段事件VO")
 public class AppFormColumnSetEventVO extends BaseVO {
 
 

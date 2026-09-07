@@ -3,21 +3,30 @@ package com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service.manual;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.bpm.biz.modules.inst.node.domain.bo.BpmInstNodeBO;
+import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
+import com.platform.mesh.bpm.biz.modules.inst.node.service.IBpmInstNodeService;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.bo.BpmInstNodePassBO;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.po.BpmInstNodeAudit;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.po.BpmInstNodeSub;
+import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
+import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.bpm.biz.soa.node.audit.NodeAuditService;
-import com.platform.mesh.bpm.biz.soa.node.auditdata.NodeAuditDataService;
-import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
 import com.platform.mesh.bpm.biz.soa.node.audit.enums.NodeAuditFlagEnum;
 import com.platform.mesh.bpm.biz.soa.node.audit.factory.NodeAuditFactory;
+import com.platform.mesh.bpm.biz.soa.node.auditdata.NodeAuditDataService;
+import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.factory.NodeAuditDataFactory;
 import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
+import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.core.enums.base.BaseEnum;
-import com.platform.mesh.security.utils.UserCacheUtil;
-import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
-import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysOrgBO;
-import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysRoleBO;
+import com.platform.mesh.upms.api.modules.msg.domain.bo.MsgBaseBO;
+import com.platform.mesh.upms.api.modules.msg.enums.MsgFlagEnum;
+import com.platform.mesh.upms.api.modules.msg.enums.MsgTypeEnum;
+import com.platform.mesh.upms.api.modules.msg.feign.RemoteMsgService;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO;
+import com.platform.mesh.upms.api.modules.org.member.feign.RemoteOrgMemberService;
+import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +46,12 @@ public class BpmInstNodeAuditServiceManual {
 
     @Autowired
     private NodeAuditDataFactory nodeAuditDataFactory;
+
+    @Autowired
+    private RemoteMsgService remoteMsgService;
+
+    @Autowired
+    private RemoteOrgMemberService remoteOrgMemberService;
 
     /**
      * 功能描述:
@@ -72,6 +87,12 @@ public class BpmInstNodeAuditServiceManual {
                 nodeAuditBO.setAuditPass(CollUtil.getFirst(unPassList).getAuditPass());
             }
         }
+        //流程记录最后审批状态
+        IBpmInstProcessService instProcessService = SpringContextHolderUtil.getBean(IBpmInstProcessService.class);
+        instProcessService.lambdaUpdate()
+                .set(BpmInstProcess::getPassFlag,nodeAuditBO.getAuditPass())
+                .eq(BpmInstProcess::getId,nodeAudit.getInstProcessId())
+                .update();
         return nodeAuditBO;
     }
 
@@ -112,7 +133,49 @@ public class BpmInstNodeAuditServiceManual {
         if(ObjectUtil.isEmpty(nodeAuditDataService)) {
             return CollUtil.newArrayList();
         }
-        return nodeAuditDataService.getAuditDataToUserIds(ids);
+        return nodeAuditDataService.getAuditDataIds(ids);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取流程节点〉
+     * @param instNodeId instNodeId
+     * @return 正常返回:{@link BpmInstNode}
+     * @author 蝉鸣
+     */
+    public BpmInstNode getInstNodeById(Long instNodeId) {
+        IBpmInstNodeService bpmInstNodeService = SpringContextHolderUtil.getBean(IBpmInstNodeService.class);
+        return bpmInstNodeService.getById(instNodeId);
+    }
+
+    /**
+     * 功能描述:
+     * 〈给审批人发送消息〉
+     * @param instNode instNode
+     * @param auditDataIds auditDataIds
+     * @author 蝉鸣
+     */
+    public void sendAuditMsg(BpmInstNode instNode, List<Long> auditDataIds) {
+        if(!NodeRunEnum.RUNNING.getValue().equals(instNode.getRunFlag())){
+            return;
+        }
+        //当前auditDataIds是组织的成员member_id,需要转化为user_id
+        List<OrgMemberBO> relBOS = remoteOrgMemberService.getOrgMemberByIds(auditDataIds).getData();
+        if (CollUtil.isEmpty(relBOS)) {
+            return;
+        }
+        List<Long> userIds = relBOS.stream().map(OrgMemberBO::getUserId).distinct().toList();
+        IBpmInstNodeService bpmInstNodeService = SpringContextHolderUtil.getBean(IBpmInstNodeService.class);
+        BpmInstNodeBO bpmInstNodeBO = bpmInstNodeService.getInstNodeData(instNode.getId());
+        MsgBaseBO msgBaseBO = new MsgBaseBO();
+        msgBaseBO.setModuleId(bpmInstNodeBO.getModuleId());
+        msgBaseBO.setDataId(bpmInstNodeBO.getDataId());
+        msgBaseBO.setMsgFlag(MsgFlagEnum.AUDIT_TODO.getValue());
+        msgBaseBO.setMsgType(MsgTypeEnum.INIT.getValue());
+        msgBaseBO.setMsgTitle(bpmInstNodeBO.getInstProcessName());
+        msgBaseBO.setMsgBody(bpmInstNodeBO.getDataName());
+        msgBaseBO.setMsgUserIds(userIds);
+        remoteMsgService.sendMsg(msgBaseBO);
     }
 }
 

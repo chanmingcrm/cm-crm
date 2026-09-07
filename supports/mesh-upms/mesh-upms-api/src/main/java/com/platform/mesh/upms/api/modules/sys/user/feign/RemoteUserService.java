@@ -8,10 +8,7 @@ import com.platform.mesh.upms.api.modules.sys.user.feign.factory.RemoteUserFallb
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -82,7 +79,7 @@ public interface RemoteUserService {
 	 * @return 正常返回:{@link Result<List<SysRoleBO>>}
 	 * @author 蝉鸣
 	 */
-	@GetMapping(value = "/api/sys/role/by/ids", headers = HttpConst.HEADER_FROM_IN)
+	@PostMapping(value = "/api/sys/role/by/ids", headers = HttpConst.HEADER_FROM_IN)
 	Result<List<SysRoleBO>> getRoleByIds(@RequestBody List<Long> roleIds);
 
 	/**
@@ -114,5 +111,11 @@ public interface RemoteUserService {
 	 */
 	@GetMapping(value = "/api/org/level/info/{levelId}", headers = HttpConst.HEADER_FROM_IN)
 	Result<SysOrgInfoBO> getOrgInfoByLevelId(@PathVariable("levelId") Long levelId);
+
+	@PostMapping(value = "/api/user/by/modules", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<Long>> getUserIdsByModules(@RequestBody UserMenuBO userMenuBO);
+
+	@PostMapping(value = "/api/app/modules", headers = HttpConst.HEADER_FROM_IN)
+	Result<List<Long>> getAppModules();
 
 }

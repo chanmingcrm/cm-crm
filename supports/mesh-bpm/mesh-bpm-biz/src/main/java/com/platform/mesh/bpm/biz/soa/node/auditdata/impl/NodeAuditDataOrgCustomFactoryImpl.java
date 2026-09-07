@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @description 定时节点工厂实现
@@ -43,7 +44,19 @@ public class NodeAuditDataOrgCustomFactoryImpl implements NodeAuditDataService {
      */
     @Override
     public NodeAuditDataTypeEnum nodeAuditData() {
-        return NodeAuditDataTypeEnum.USER_CUSTOM;
+        return NodeAuditDataTypeEnum.ORG_CUSTOM;
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取节点审批人员Ids〉
+     * @param auditDataIds auditDataIds
+     * @return 正常返回:{@link List<Long>}
+     * @author 蝉鸣
+     */
+    @Override
+    public List<Long> getAuditDataIds(List<Long> auditDataIds) {
+        return auditDataIds;
     }
 
     /**
@@ -68,8 +81,9 @@ public class NodeAuditDataOrgCustomFactoryImpl implements NodeAuditDataService {
         List<Integer> orgTypes = processTodoBO.getOrgTypes();
         //增加当前支持类型
         orgTypes.add(this.nodeAuditData().getValue());
-        List<Long> orgIds = processTodoBO.getOrgIds();
+        Set<Long> orgIds = processTodoBO.getOrgIds();
         //增加当前人员组织ID
+        SysAccountBO sysAccountBO = UserCacheUtil.getAccountInfoCache(processTodoBO.getAccountId());
         List<SysOrgBO> SysOrgBOS = UserCacheUtil.getAccountOrgCache(processTodoBO.getAccountId());
         List<Long> ids = SysOrgBOS.stream().map(SysOrgBO::getLevelId).distinct().toList();
         orgIds.addAll(ids);
@@ -114,7 +128,6 @@ public class NodeAuditDataOrgCustomFactoryImpl implements NodeAuditDataService {
     @Override
     public Boolean getCanAudit(List<Long> auditDataIds, Long accountId){
         //增加当前人员组织ID
-        SysAccountBO sysAccountBO = UserCacheUtil.getAccountInfoCache(accountId);
         List<SysOrgBO> SysOrgBOS = UserCacheUtil.getAccountOrgCache(accountId);
         List<Long> ids = SysOrgBOS.stream().map(SysOrgBO::getLevelId).distinct().toList();
         return CollUtil.containsAny(ids, auditDataIds);
@@ -131,7 +144,6 @@ public class NodeAuditDataOrgCustomFactoryImpl implements NodeAuditDataService {
     @Override
     public List<BpmInstNodeAudit> getCanAuditNode(List<BpmInstNodeAudit> nodeAudits, Long accountId){
         //增加当前人员组织ID
-        SysAccountBO sysAccountBO = UserCacheUtil.getAccountInfoCache(accountId);
         List<SysOrgBO> SysOrgBOS = UserCacheUtil.getAccountOrgCache(accountId);
         List<Long> ids = SysOrgBOS.stream().map(SysOrgBO::getLevelId).distinct().toList();
         //如果以人维度审批，则通过levelId 代表auditDataId

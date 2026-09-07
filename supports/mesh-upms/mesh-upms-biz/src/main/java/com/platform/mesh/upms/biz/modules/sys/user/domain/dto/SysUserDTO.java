@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @description 用户信息
@@ -20,6 +21,9 @@ public class SysUserDTO extends BaseDTO {
 
     @Schema(description = "用户ID")
     private Long userId;
+
+    @Schema(description = "用户名")
+    private String userName;
 
     @Schema(description = "用户昵称")
     private String nickName;
@@ -39,15 +43,10 @@ public class SysUserDTO extends BaseDTO {
     @Schema(description = "帐号状态（0正常 1停用）")
     private Integer userFlag;
 
-    @Schema(description = "删除标志（0代表存在 2代表删除）")
-    private Integer delFlag;
+    @Schema(description = "角色")
+    private List<Long> roleIds;
 
-    @Schema(description = "管理员状态(AdminFlagEnum)")
-    private Integer adminFlag;
+    @Schema(description = "岗位")
+    private List<Long> postIds;
 
-    @Schema(description = "最后登陆IP")
-    private String loginIp;
-
-    @Schema(description = "最后登录时间")
-    private LocalDateTime loginDate;
 }

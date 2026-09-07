@@ -61,5 +61,13 @@ public interface UaaParamsConstant {
 	 */
 	String THIRD_PARAMETER_CLIENT_CODE = "code";
 
+	/**
+	 * 静默登录
+	 */
+	String SILENCE = "silence";
 
+	/**
+	 * 企微应用ID
+	 */
+	String AGENT_ID = "agentId";
 }

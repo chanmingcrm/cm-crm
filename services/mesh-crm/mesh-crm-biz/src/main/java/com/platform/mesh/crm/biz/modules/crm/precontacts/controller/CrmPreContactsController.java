@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.precontacts.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -9,6 +10,8 @@ import com.platform.mesh.crm.biz.modules.crm.precontacts.domain.po.CrmPreContact
 import com.platform.mesh.crm.biz.modules.crm.precontacts.domain.vo.CrmPreContactsVO;
 import com.platform.mesh.crm.biz.modules.crm.precontacts.service.ICrmPreContactsService;
 import com.platform.mesh.crm.biz.modules.crm.precontactsdata.domain.po.CrmPreContactsData;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.dto.CheckDTO;
+import com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO;
 import com.platform.mesh.es.domain.dto.EsDocEGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
 import com.platform.mesh.es.domain.dto.EsDocSGetDTO;
@@ -109,7 +112,7 @@ public class CrmPreContactsController extends BaseController{
     @Log(moduleName = "客户关系联系人管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/pre/contacts/edit")
     public Result<CrmPreContactsVO> editPreContacts(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmPreContacts crmPreContacts = crmPreContactsService.editData(dataEditDTO, CrmPreContacts.class);
+        CrmPreContacts crmPreContacts = crmPreContactsService.editData(dataEditDTO, CrmPreContacts.class, CrmPreContactsData.class);
         return Result.success(BeanUtil.copyProperties(crmPreContacts, CrmPreContactsVO.class));
     }
     
@@ -179,8 +182,12 @@ public class CrmPreContactsController extends BaseController{
     @Operation(summary = "导入客户关系联系人")
     @Log(moduleName = "客户关系联系人管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/pre/contacts/import")
-    public Result<Boolean> importPreContacts(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmPreContactsService.importData(moduleId,formId,file, CrmPreContacts.class, CrmPreContactsData.class));
+    public Result<ImportVO> importPreContacts(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmPreContactsService.importData(importDTO, CrmPreContacts.class, CrmPreContactsData.class));
     }
 
    /**
@@ -198,6 +205,20 @@ public class CrmPreContactsController extends BaseController{
                 return crmPreContactsService.selectEsPage(exportDTO);
             } ,exportDTO.getHeadDTOS(),exportDTO.getModuleName(),response
         );
+    }
+
+
+    /**
+     * 功能描述:
+     * 〈查重客户关系联系人〉
+     * @param checkDTO checkDTO
+     * @author 蝉鸣
+     */
+    @Operation(summary = "查重客户关系联系人")
+    @PostMapping("/crm/pre/contacts/check")
+    public Result<List<CheckVO>> checkPreContacts(@RequestBody CheckDTO checkDTO) {
+        List<CheckVO> page = crmPreContactsService.checkPreContacts(checkDTO);
+        return Result.success(page);
     }
 
 }

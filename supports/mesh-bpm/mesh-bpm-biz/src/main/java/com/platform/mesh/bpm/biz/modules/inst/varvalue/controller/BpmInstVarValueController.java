@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @description 变量值信息
  * @author 蝉鸣
  */
-@Tag(description = "FlowInstVarValueController", name = "变量值信息")
+@Tag(description = "BpmInstVarValueController", name = "变量值信息")
 @RestController
 public class BpmInstVarValueController extends BaseController {
     /**

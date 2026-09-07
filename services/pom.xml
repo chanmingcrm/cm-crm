@@ -5,21 +5,20 @@
     <parent>
         <artifactId>mesh-platform</artifactId>
         <groupId>com.platform</groupId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>services</artifactId>
     <description>系统核心服务</description>
 
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
+        <module>mesh-ai</module>
         <module>mesh-app</module>
         <module>mesh-crm</module>
-        <module>mesh-tmp</module>
-
     </modules>
 
 </project>

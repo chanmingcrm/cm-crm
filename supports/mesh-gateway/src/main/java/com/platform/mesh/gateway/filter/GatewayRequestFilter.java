@@ -7,14 +7,11 @@ import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.StrConst;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.redis.service.constants.CacheConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -29,12 +26,20 @@ import java.util.List;
  * @author 蝉鸣
  */
 @Component
+@ConditionalOnClass(ReactiveStringRedisTemplate.class)
 public class GatewayRequestFilter implements GlobalFilter, Ordered {
 
-	private static final Logger log = LoggerFactory.getLogger(GatewayRequestFilter.class);
+	private final ReactiveStringRedisTemplate redisTemplate;
 
-	@Autowired
-	private RedisTemplate<String, Object> redisTemplate;
+	/**
+	 * 功能描述:
+	 * 〈创建网关请求过滤器〉
+	 * @param redisTemplate 响应式字符串 Redis 操作模板
+	 * @author qingfeng
+	 */
+	public GatewayRequestFilter(ReactiveStringRedisTemplate redisTemplate) {
+		this.redisTemplate = redisTemplate;
+	}
 
 	/**
 	 * 功能描述:
@@ -49,39 +54,39 @@ public class GatewayRequestFilter implements GlobalFilter, Ordered {
 		// 获取 ServerHttpRequest
 		ServerHttpRequest request = exchange.getRequest().mutate()
 				.headers(httpHeaders -> httpHeaders.remove(HttpConst.REQUEST_SOURCE)).build();
-		// 放行返回值
-		Mono<Void> filter = chain.filter(exchange.mutate().request(request.mutate().build()).build());
+		// 构建移除内部来源标识后的网关请求
+		ServerWebExchange filteredExchange = exchange.mutate().request(request).build();
 		// 获取token
 		List<String> tokens = request.getHeaders().get(HttpHeaders.AUTHORIZATION);
 		//token为空放行
 		if(CollUtil.isEmpty(tokens)){
-			return filter;
+			return chain.filter(filteredExchange);
 		}
 		//验证是否是BEARER类型token
 		String token = CollUtil.getFirst(tokens);
 		if(!token.contains(StrConst.BEARER+ SymbolConst.SPACE)){
-			return filter;
+			return chain.filter(filteredExchange);
 		}
 		token = token.replace(StrConst.BEARER+ SymbolConst.SPACE, StrUtil.EMPTY);
 		//构建redis TokenKey
 		String tokenKey = this.buildKey(token);
-		//
-		redisTemplate.setValueSerializer(RedisSerializer.java());
-		Boolean hasKey = redisTemplate.hasKey(tokenKey);
-		if(Boolean.FALSE.equals(hasKey)){
-			return filter;
-		}
 		//TODO 模拟查询后端配置
 //		Boolean confBool = Boolean.TRUE?token.contains(StrConst.BEARER):token.contains(StrConst.VALUE);
 //		//查询配置 1：不允许续期 2：允许续期系统配置默认2小时 3：允许续期自定义配置N小时
 //		if(Boolean.FALSE.equals(confBool)){
 //			return filter;
 //		}
+		//如果小于2小时则自动续期
 		//条件允许则续期
 		Duration duration = Duration.ofHours(NumberConst.NUM_2);
-		//设置token过期时间
-		redisTemplate.expire(tokenKey,duration);
-		return filter;
+		// 使用响应式 Redis 查询并续期，避免阻塞 WebFlux 事件线程
+		Mono<Void> renewToken = redisTemplate.getExpire(tokenKey)
+				.filter(expire -> !expire.isNegative()
+						&& expire.compareTo(duration) < NumberConst.NUM_0)
+				.flatMap(expire -> redisTemplate.expire(tokenKey, duration))
+				.then();
+		// Redis 操作完成后再继续网关过滤链，保证整个处理过程保持非阻塞
+		return renewToken.then(Mono.defer(() -> chain.filter(filteredExchange)));
 	}
 
 	@Override

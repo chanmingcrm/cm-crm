@@ -1,9 +1,12 @@
 package com.platform.mesh.mybatis.plus.handler;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.plugins.handler.TableNameHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * @description 动态表名处理
@@ -21,6 +24,10 @@ public class FormatTableNameHandler implements TableNameHandler {
      * 线程隔离，避免多线程数据冲突
      */
     private static final ThreadLocal<String> FORMAT_TABLE_NAME = new ThreadLocal<>();
+    /**
+     * 线程隔离，避免多线程数据冲突
+     */
+    private static final ThreadLocal<Map<String,String>> FORMAT_TABLE_NAME_MAP = new ThreadLocal<>();
 
     /**
      * 开启重定表单名称
@@ -36,6 +43,7 @@ public class FormatTableNameHandler implements TableNameHandler {
     public static void unEnableTableName() {
         FORMAT_TABLE_NAME.remove();
         ENABLE_TABLE_NAME.remove();
+        FORMAT_TABLE_NAME_MAP.remove();
     }
 
     /**
@@ -43,7 +51,17 @@ public class FormatTableNameHandler implements TableNameHandler {
      * @param tableName tableName
      */
     public static void setTableName(String tableName) {
+        FORMAT_TABLE_NAME_MAP.remove();
         FORMAT_TABLE_NAME.set(tableName);
+    }
+
+    /**
+     * 设置表单名称
+     * @param tableNameMap tableNameMap
+     */
+    public static void setTableName(Map<String,String> tableNameMap) {
+        FORMAT_TABLE_NAME.remove();
+        FORMAT_TABLE_NAME_MAP.set(tableNameMap);
     }
 
     /**
@@ -51,6 +69,7 @@ public class FormatTableNameHandler implements TableNameHandler {
      */
     public static void removeTableName() {
         FORMAT_TABLE_NAME.remove();
+        FORMAT_TABLE_NAME_MAP.remove();
     }
 
     @Override
@@ -59,6 +78,16 @@ public class FormatTableNameHandler implements TableNameHandler {
         if(ObjectUtil.isEmpty(enabled) || !enabled) {
             return tableName;
         }
-        return FORMAT_TABLE_NAME.get();
+        if(ObjectUtil.isNotEmpty(FORMAT_TABLE_NAME.get())){
+            return FORMAT_TABLE_NAME.get();
+        }
+        Map<String, String> tableNameMap = FORMAT_TABLE_NAME_MAP.get();
+        if(CollUtil.isEmpty(tableNameMap)){
+            return tableName;
+        }
+        if(tableNameMap.containsKey(tableName)){
+            return tableNameMap.get(tableName);
+        }
+        return tableName;
     }
 }

@@ -65,14 +65,13 @@ public interface LogicRefService {
      */
     default String getEsColumnMac(CondDTO condDTO){
         String columnMac = condDTO.getColumnMac();
-        CompTypeEnum enumByDesc = BaseEnum.getEnumByDesc(CompTypeEnum.class, condDTO.getCompMac());
-        if(ObjectUtil.isEmpty(enumByDesc)){
+        if(!isJson(condDTO.getCompMac())){
             return columnMac;
         }else{
-            if(columnMac.endsWith(StrConst.ES_SUFFIX_ID)){
-                return columnMac.replace(StrConst.ES_SUFFIX_ID,SymbolConst.BLANK).concat(SymbolConst.PERIOD).concat(StrConst.ID);
+            if (columnMac.contains(SymbolConst.AT)){
+                return columnMac.replace(SymbolConst.AT,SymbolConst.PERIOD);
             }else{
-                return columnMac.replace(StrConst.ES_SUFFIX_NAME,SymbolConst.BLANK).concat(SymbolConst.PERIOD).concat(StrConst.NAME);
+                return columnMac.concat(SymbolConst.PERIOD).concat(StrConst.ID);
             }
         }
     }
@@ -90,22 +89,22 @@ public interface LogicRefService {
         //重置字段名称
         condDTO.setColumnMac(columnMac);
         //封装查询条件
-        Query query = esQuery(condDTO);
-        if(ObjectUtil.isEmpty(query)){
-            return query;
-        }
-        CompTypeEnum enumByDesc = BaseEnum.getEnumByDesc(CompTypeEnum.class, condDTO.getCompMac());
+        return esQuery(condDTO);
+    }
+
+    /**
+     * 功能描述:
+     * 〈符合es嵌套查询〉
+     * @param compMac compMac
+     * @return 正常返回:{@link Query}
+     * @author 蝉鸣
+     */
+    default Boolean isJson(String compMac){
+        CompTypeEnum enumByDesc = BaseEnum.getEnumByDesc(CompTypeEnum.class, compMac);
         if(ObjectUtil.isEmpty(enumByDesc)){
-            return query;
+            return Boolean.FALSE;
         }else{
-            return QueryBuilders.nested(nested->{
-                String pathMac = StrUtil.subBefore(condDTO.getColumnMac(), SymbolConst.PERIOD, Boolean.TRUE);
-                nested.path(pathMac);
-                nested.ignoreUnmapped(condDTO.getIgnoreCase());
-                nested.scoreMode(ChildScoreMode.Avg);
-                nested.query(query);
-                return nested;
-            });
+            return Boolean.TRUE;
         }
     }
 }

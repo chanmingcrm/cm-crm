@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.ai.biz.modules.cc.groupuserrel.mapper.CcGroupUserRelMapper">
+
+    <select id="selectMPage"
+            resultType="com.platform.mesh.ai.biz.modules.cc.groupuserrel.domain.po.CcGroupUserRel">
+            SELECT
+                *
+            FROM
+                cc_group_user_rel
+            WHERE
+                group_hash = #{pageDTO.groupHash}
+                <if test="pageDTO.groupName != null and pageDTO.groupName != '' ">
+                    AND group_name = #{pageDTO.groupName}
+                </if>
+    </select>
+
+    <select id="getByGroupHashAndType"
+            resultType="com.platform.mesh.ai.biz.modules.cc.groupuserrel.domain.po.CcGroupUserRel">
+        SELECT
+            *
+        FROM
+            cc_group_user_rel
+        WHERE
+            group_hash = #{groupHash}
+          AND user_type = #{userType}
+        LIMIT 1
+    </select>
+
+    <select id="getUserUnReadNum" resultType="com.platform.mesh.core.application.domain.bo.SimpBO">
+        SELECT
+            gu.group_id AS id,
+            COUNT(DISTINCT msg.id) AS value
+        FROM cc_group_user_rel gu
+        LEFT JOIN cc_session_msg msg ON msg.group_hash = gu.group_hash
+            AND msg.user_type = 0
+            AND msg.create_time > COALESCE(gu.last_visit_time, '1970-01-01')
+        WHERE gu.user_hash = #{userHash}
+          AND gu.user_type = 2
+          AND msg.id IS NOT NULL
+        GROUP BY gu.group_id
+    </select>
+
+</mapper>

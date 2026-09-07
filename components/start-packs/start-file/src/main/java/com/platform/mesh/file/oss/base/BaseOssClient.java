@@ -5,6 +5,8 @@ import com.platform.mesh.file.oss.base.common.model.bo.DocFileBO;
 import com.platform.mesh.file.oss.base.extend.upload.UploadExtendOssClient;
 import software.amazon.awssdk.services.s3.model.Bucket;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -91,12 +93,12 @@ public interface BaseOssClient extends UploadExtendOssClient {
     //-- --------------------------------------------------------
     /**
      * 功能描述:
-     * 〈简易下载〉
+     * 〈流式下载〉
      * @param bucketName bucketName
      * @param fileName fileName
-     * @author 蝉鸣
+     * @return 正常返回:{@link InputStream}
      */
-    byte[] downloadFile(String bucketName, String fileName);
+    InputStream downloadFileStream(String bucketName, String fileName);
 
     //-- --------------------------------------------------------
     //        -- 文件删除接口

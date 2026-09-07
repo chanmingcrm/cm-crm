@@ -1,9 +1,14 @@
 package com.platform.mesh.utils.format;
 
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.Mode;
+import cn.hutool.crypto.symmetric.AES;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.StrConst;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.core.enums.base.BaseEnum;
@@ -116,5 +121,36 @@ public class FormatUtil {
 		}
 
 		return JSONUtil.parseObj(JSONUtil.toJsonStr(camelCaseMap));
+	}
+
+
+	/**
+	 * 功能描述:
+	 * 〈解密加密字符串〉
+	 * @param encryptStr encryptStr
+	 * @param encryptCode encryptCode
+	 * @return 正常返回:{@link Boolean}
+	 * @author 蝉鸣
+	 */
+	public static String decryptStr(String encryptStr, String encryptCode, String prefix) {
+		if(ObjectUtil.isEmpty(encryptStr) || ObjectUtil.isEmpty(encryptCode) || ObjectUtil.isEmpty(prefix)){
+			return null;
+		}
+		//base64解密
+		String decodeStr = Base64.decodeStr(encryptCode);
+		//判断校验码格式是否正确
+		if(!decodeStr.startsWith(prefix)){
+			return null;
+		}
+		String replaced = decodeStr.replace(prefix, SymbolConst.BLANK);
+		byte[] bytes = replaced.getBytes();
+		if (bytes.length < NumberConst.NUM_16) {
+			return null;
+		}
+		byte[] iv = Arrays.copyOfRange(bytes, NumberConst.NUM_0, NumberConst.NUM_16); // 前 16 字节是 IV
+		byte[] key = Arrays.copyOfRange(bytes, NumberConst.NUM_16, bytes.length);
+		//AES解密密码
+		AES aes = new AES(Mode.CBC.name(), "PKCS7Padding", key, iv);
+		return aes.decryptStr(encryptStr);
 	}
 }

@@ -37,6 +37,7 @@ public class AppModuleBaseApi extends BaseController{
      * @return 正常返回:{@link Result<AppModuleBaseVO>}
      * @author 蝉鸣
      */
+    @AuthIgnore
     @Operation(summary = "获取当前模块信息")
     @GetMapping("/api/app/module/base/info/{moduleBaseId}")
     public Result<AppModuleBaseVO> getModuleBaseInfoById(@PathVariable("moduleBaseId")Long moduleBaseId) {
@@ -90,15 +91,15 @@ public class AppModuleBaseApi extends BaseController{
     /**
      * 功能描述:
      * 〈初始化模块ES信息〉
-     * @param moduleBaseId moduleBaseId
+     * @param tableSchema tableSchema
      * @return 正常返回:{@link Result<List<AppModuleBaseVO>>}
      * @author 蝉鸣
      */
     @AuthIgnore
     @Operation(summary = "初始化模块ES信息")
-    @GetMapping("/api/app/module/base/init/es/{moduleBaseId}")
-    public Result<List<AppModuleBaseBO>> initModuleBaseEs(@PathVariable("moduleBaseId")Long moduleBaseId) {
-        List<AppModuleBase> moduleBases = appModuleBaseService.initModuleBaseEs(moduleBaseId);
+    @GetMapping("/api/app/module/base/init/es")
+    public Result<List<AppModuleBaseBO>> initModuleBaseEs(@RequestParam("tableSchema") String tableSchema) {
+        List<AppModuleBase> moduleBases = appModuleBaseService.initModuleBaseEs(tableSchema);
         return Result.success(BeanUtil.copyToList(moduleBases, AppModuleBaseBO.class));
     }
 

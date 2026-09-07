@@ -96,4 +96,5 @@ public class AppAllGroupVO extends BaseVO {
     @Schema(description = "组织ID")
     private Long scopeOrgId;
 
+
 }

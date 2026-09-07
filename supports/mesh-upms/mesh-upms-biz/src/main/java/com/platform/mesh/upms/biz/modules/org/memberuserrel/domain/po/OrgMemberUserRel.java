@@ -70,5 +70,6 @@ public class OrgMemberUserRel extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }
 

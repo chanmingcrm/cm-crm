@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.onprogramme.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -109,7 +110,7 @@ public class CrmOnProgrammeController extends BaseController{
     @Log(moduleName = "客户关系方案输出管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/programme/edit")
     public Result<CrmOnProgrammeVO> editOnProgramme(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnProgramme crmOnProgramme = crmOnProgrammeService.editData(dataEditDTO, CrmOnProgramme.class);
+        CrmOnProgramme crmOnProgramme = crmOnProgrammeService.editData(dataEditDTO, CrmOnProgramme.class, CrmOnProgrammeData.class);
         return Result.success(BeanUtil.copyProperties(crmOnProgramme,CrmOnProgrammeVO.class));
     }
     
@@ -179,8 +180,12 @@ public class CrmOnProgrammeController extends BaseController{
     @Operation(summary = "导入客户关系方案输出")
     @Log(moduleName = "客户关系方案输出管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/programme/import")
-    public Result<Boolean> importOnProgramme(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnProgrammeService.importData(moduleId,formId,file, CrmOnProgramme.class, CrmOnProgrammeData.class));
+    public Result<ImportVO> importOnProgramme(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnProgrammeService.importData(importDTO, CrmOnProgramme.class, CrmOnProgrammeData.class));
     }
     
     /**

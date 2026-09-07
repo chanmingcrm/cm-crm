@@ -1,19 +1,28 @@
 package com.platform.mesh.crm.biz.modules.crm.preproposal.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.platform.mesh.app.api.modules.app.domain.dto.DataEditSimpDTO;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.app.api.modules.app.domain.dto.DataAddSimpDTO;
 import com.platform.mesh.app.api.modules.app.domain.po.AppDataPO;
+import com.platform.mesh.app.api.modules.app.domain.vo.AppVO;
 import com.platform.mesh.app.api.modules.app.service.impl.AppServiceAbstract;
+import com.platform.mesh.app.api.modules.app.util.AppUtil;
+import com.platform.mesh.core.application.domain.vo.PageVO;
+import com.platform.mesh.crm.api.modules.crm.constants.CrmConst;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.domain.po.CrmPreProposal;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.mapper.CrmPreProposalMapper;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.service.ICrmPreProposalService;
 import com.platform.mesh.crm.biz.modules.crm.preproposal.service.manual.CrmPreProposalServiceManual;
 import com.platform.mesh.crm.biz.modules.crm.preproposaldata.domain.po.CrmPreProposalData;
+import com.platform.mesh.es.domain.dto.EsDocPGetDTO;
+import com.platform.mesh.security.utils.UserCacheUtil;
+import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import java.util.Map;
 
 
 /**
@@ -30,6 +39,23 @@ public class CrmPreProposalServiceImpl extends AppServiceAbstract<CrmPreProposal
 
     /**
      * 功能描述:
+     * 〈获取ES数据分页〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link PageVO<Object>}
+     * @author 蝉鸣
+     */
+    @Override
+    public PageVO<Object> selectEsPage(EsDocPGetDTO pageDTO) {
+        
+        //添加分析字段
+        List<String> aggregations = CollUtil.newArrayList();
+        aggregations.add(ObjFieldUtil.getColumnName(CrmPreProposal::getRealMoney));
+        pageDTO.setAggregations(aggregations);
+        return this.getAppServiceManual().selectEsPage(pageDTO);
+    }
+
+    /**
+     * 功能描述:
      * 〈新增客户关系提案报价〉
      * @param dataList dataList
      * @author 蝉鸣
@@ -43,19 +69,6 @@ public class CrmPreProposalServiceImpl extends AppServiceAbstract<CrmPreProposal
 
     /**
      * 功能描述:
-     * 〈修改客户关系提案报价〉
-     * @param dataId dataId
-     * @param dataEditSimpDTO dataEditSimpDTO
-     * @author 蝉鸣
-     */
-    @Override
-    public void editDbDataBatch(Long dataId, DataEditSimpDTO dataEditSimpDTO) {
-        //批量保存data表数据
-        crmPreProposalServiceManual.editDbDataBatch(dataId,dataEditSimpDTO);
-    }
-
-    /**
-     * 功能描述:
      * 〈转移Data数据权限必须重写〉
      * @param dataIds dataIds
      * @param scopeUserId scopeUserId
@@ -63,14 +76,49 @@ public class CrmPreProposalServiceImpl extends AppServiceAbstract<CrmPreProposal
      * @author 蝉鸣
      */
     @Override
-    public  void transDbDataBatch(List<Long> dataIds,Long scopeUserId,Long scopeOrgId){
+    public  void transDbScopeBatch(List<Long> dataIds,Long scopeUserId,Long scopeOrgId){
         //修改DB
         this.lambdaUpdate()
                 .set(CrmPreProposal::getScopeUserId,scopeUserId)
                 .set(CrmPreProposal::getScopeOrgId,scopeOrgId)
                 .in(CrmPreProposal::getId,dataIds)
                 .update();
-        //修改DB Data
-        crmPreProposalServiceManual.transDbDataBatch(dataIds,scopeUserId,scopeOrgId);
     }
+
+    /**
+     * 功能描述:
+     * 〈自动初始化财务管理应收数据〉
+     * @param dataPO dataPO
+     * @param dataAddDTO dataAddDTO
+     * @author 蝉鸣
+     */
+    @Override
+    public void addOtherAction(CrmPreProposal dataPO, DataAddSimpDTO dataAddDTO) {
+        Map<String, Object> docData = dataAddDTO.getDocData();
+        //获取客户关联数据
+        Long customerId = AppUtil.getSingleColumnIdValue(CrmConst.CUSTOMER, docData);
+        dataPO.setCustomerId(customerId);
+        //获取商机关联数据
+        Long businessId = AppUtil.getSingleColumnIdValue(CrmConst.BUSINESS, docData);
+        dataPO.setBusinessId(businessId);
+        //更新信息
+        this.updateById(dataPO);
+        //处理子表数据
+        crmPreProposalServiceManual.saveSubProductList(dataPO,dataAddDTO);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取订单下的产品列表〉
+     * @param dataVO dataVO
+     * @author 蝉鸣
+     */
+    @Override
+    public <E extends AppVO> E getOtherAction(E dataVO){
+        //填充订单产品列表数据
+        List<Object> dataList = crmPreProposalServiceManual.getSubProductList(dataVO.getId());
+        dataVO.getEsData().put(CrmConst.PRODUCT_LIST,dataList);
+        return dataVO;
+    }
+
 }

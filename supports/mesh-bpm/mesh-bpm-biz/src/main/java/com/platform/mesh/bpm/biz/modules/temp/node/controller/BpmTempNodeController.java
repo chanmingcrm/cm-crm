@@ -25,7 +25,7 @@ public class BpmTempNodeController extends BaseController {
      * 服务对象
      */
     @Autowired
-    private IBpmTempNodeService flowTempNodeService;
+    private IBpmTempNodeService bpmTempNodeService;
 
 
     /**
@@ -38,7 +38,7 @@ public class BpmTempNodeController extends BaseController {
     @Operation(summary = "获取模板下节点信息")
     @GetMapping("/temp/node/get{tempProcessId}")
     public Result<List<BpmTempNode>> getNodeTemp(@PathVariable("tempProcessId")Long tempProcessId) {
-        return Result.success(flowTempNodeService.selectNodesByTemplateId(tempProcessId));
+        return Result.success(bpmTempNodeService.selectNodesByTemplateId(tempProcessId));
     }
   
 }

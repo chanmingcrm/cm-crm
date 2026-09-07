@@ -80,5 +80,6 @@ public class OrgPostDataScope extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
 
+
 }
 

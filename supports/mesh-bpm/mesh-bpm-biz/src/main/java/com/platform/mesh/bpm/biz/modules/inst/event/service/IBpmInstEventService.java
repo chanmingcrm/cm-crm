@@ -3,6 +3,7 @@ package com.platform.mesh.bpm.biz.modules.inst.event.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.mesh.bpm.biz.modules.inst.event.domain.po.BpmInstEvent;
+import com.platform.mesh.bpm.biz.soa.event.rel.domain.bo.EventRelBO;
 
 import java.util.List;
 
@@ -65,5 +66,13 @@ public interface IBpmInstEventService extends IService<BpmInstEvent> {
      */
     void handleInstEvent(List<BpmInstEvent> bpmInstEvents);
 
+    /**
+     * 功能描述:
+     * 〈获取关联对象〉
+     * @param relDataType relDataType
+     * @param relData relData
+     * @author 蝉鸣
+     */
+    List<EventRelBO> getRelData(Integer relDataType, String relData);
 }
 

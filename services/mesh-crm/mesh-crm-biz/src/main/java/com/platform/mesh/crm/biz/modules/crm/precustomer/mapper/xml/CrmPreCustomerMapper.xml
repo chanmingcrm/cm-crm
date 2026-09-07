@@ -3,4 +3,48 @@
 <mapper namespace="com.platform.mesh.crm.biz.modules.crm.precustomer.mapper.CrmPreCustomerMapper">
 
 
+    <select id="checkPreCustomer"
+            resultType="com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO">
+        SELECT
+            pc.id,
+            pc.module_id,
+            pc.data_name,
+            pc.phone,
+            pc.create_time,
+            pc.scope_user_id,
+            ofr.create_time AS last_time
+        FROM
+            crm_pre_customer pc
+                LEFT JOIN (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY data_id ORDER BY create_time DESC) as rn
+                FROM
+                    crm_on_follow_rel
+            ) ofr ON pc.id = ofr.data_id AND ofr.rn = 1
+        WHERE
+            pc.data_name LIKE CONCAT('%', #{checkDTO.checkValue}, '%')
+        ORDER BY
+            pc.update_time DESC
+        LIMIT 10;
+    </select>
+
+    <select id="abstractPreCustomer"
+            resultType="com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.AbatractVO">
+        SELECT
+            pc.id,
+            ( SELECT COUNT(*) FROM crm_on_follow_rel ofr INNER JOIN crm_on_follow f ON ofr.data_id = f.id WHERE ofr.rel_module_id = pc.module_id AND ofr.rel_data_id = pc.id AND f.del_flag = 1) AS follow_num,
+            DATEDIFF(NOW(),IFNULL(( SELECT MAX( create_time ) FROM crm_on_follow_rel ofr2 WHERE ofr2.rel_module_id = pc.module_id AND ofr2.rel_data_id = pc.id ),pc.create_time)) AS unfollow_days,
+            ( SELECT COUNT(*) FROM crm_on_business ob WHERE ob.customer_id = pc.id AND ob.del_flag = 1 ) AS business_num,
+            ( SELECT SUM( real_money ) FROM crm_on_business ob2 WHERE ob2.customer_id = pc.id AND ob2.del_flag = 1 ) AS business_money,
+            ( SELECT COUNT(*) FROM crm_on_contract oc WHERE oc.customer_id = pc.id AND oc.del_flag = 1 ) AS contract_num,
+            ( SELECT SUM( real_money ) FROM crm_on_contract oc2 WHERE oc2.customer_id = pc.id AND oc2.del_flag = 1 ) AS contract_money,
+            ( SELECT SUM( received_money ) FROM crm_on_contract oc3 WHERE oc3.customer_id = pc.id AND oc3.del_flag = 1 ) AS received_money,
+            ( SELECT SUM( unreceived_money ) FROM crm_on_contract oc4 WHERE oc4.customer_id = pc.id AND oc4.del_flag = 1 ) AS un_received_money,
+            ( SELECT SUM( real_money ) FROM crm_on_invoice oi WHERE oi.customer_id = pc.id AND oi.del_flag = 1 ) AS invoice_money
+        FROM
+            crm_pre_customer pc
+        WHERE
+            pc.id = #{customerId}
+    </select>
 </mapper>

@@ -1,18 +1,28 @@
 package com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.bo.BpmInstNodePassBO;
+import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.dto.BpmInstNodeAuditAddDTO;
+import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.dto.BpmInstNodeAuditDelDTO;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.po.BpmInstNodeAudit;
+import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.exception.InstNodeAuditExceptionEnum;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.mapper.BpmInstNodeAuditMapper;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service.IBpmInstNodeAuditService;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.service.manual.BpmInstNodeAuditServiceManual;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.po.BpmInstNodeSub;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
 import com.platform.mesh.bpm.biz.soa.process.run.factory.ProcessRunFactory;
+import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.SymbolConst;
+import com.platform.mesh.core.enums.custom.AuditPassEnum;
+import com.platform.mesh.core.exception.BaseException;
+import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +61,7 @@ public class BpmInstNodeAuditServiceImpl extends ServiceImpl<BpmInstNodeAuditMap
      * 功能描述:
      * 〈根据实例节点ID获取节点审批信息〉
      * @param instNodeId instNodeId
-     * @return 正常返回:{@link List< BpmInstNodeSub >}
+     * @return 正常返回:{@link List<BpmInstNodeSub>}
      * @author 蝉鸣
      */
     @Override
@@ -116,10 +126,68 @@ public class BpmInstNodeAuditServiceImpl extends ServiceImpl<BpmInstNodeAuditMap
      */
     @Override
     public List<Long> getAuditDataIds(Integer auditDataType, String auditDataIds) {
-        if(StrUtil.isEmpty(auditDataIds)){
-            return CollUtil.newArrayList();
+        List<Long> ids;
+        if(CharSequenceUtil.isEmpty(auditDataIds)){
+            ids = CollUtil.newArrayList();
+        }else{
+            ids = Arrays.stream(auditDataIds.split(SymbolConst.COMMA)).filter(NumberUtil::isNumber).map(Long::parseLong).distinct().toList();
         }
-        return Arrays.stream(auditDataIds.split(SymbolConst.COMMA)).filter(NumberUtil::isNumber).map(Long::parseLong).distinct().toList();
+        return bpmInstNodeAuditServiceManual.getAuditDataIds(auditDataType,ids);
+    }
+
+    /**
+     * 功能描述:
+     * 〈添加当前节点审批信息〉
+     * @param addDTO addDTO
+     * @return 正常返回:{@link Boolean}
+     * @author 蝉鸣
+     */
+    @Override
+    @Transactional(rollbackFor = BaseException.class)
+    public Boolean addInstNodeAudit(BpmInstNodeAuditAddDTO addDTO) {
+        if(CollUtil.isEmpty(addDTO.getAuditDataIds())){
+            return Boolean.FALSE;
+        }
+        BpmInstNode instNode = bpmInstNodeAuditServiceManual.getInstNodeById(addDTO.getInstNodeId());
+        if(ObjectUtil.isEmpty(instNode)){
+            throw InstNodeAuditExceptionEnum.ADD_NO_INVALID_INST_NODE.getBaseException();
+        }
+        List<BpmInstNodeAudit> nodeAudits = CollUtil.newArrayList();
+        int order = NumberConst.NUM_0;
+        addDTO.getAuditDataIds().forEach(auditDataId -> {
+            BpmInstNodeAudit nodeAudit = new BpmInstNodeAudit();
+            BeanUtil.copyProperties(instNode,nodeAudit, ObjFieldUtil.ignoreDefault());
+            nodeAudit.setAuditPass(AuditPassEnum.INIT.getValue());
+            nodeAudit.setAuditOrder(order+NumberConst.NUM_1);
+            nodeAudit.setAuditDataId(auditDataId);
+            nodeAudit.setInstNodeId(instNode.getId());
+            nodeAudit.setScopeUserId(instNode.getScopeUserId());
+            nodeAudit.setScopeOrgId(instNode.getScopeOrgId());
+            nodeAudits.add(nodeAudit);
+        });
+        this.saveBatch(nodeAudits);
+        //如果当前节点是运行中，则发送消息给审批人提醒审批
+        bpmInstNodeAuditServiceManual.sendAuditMsg(instNode, addDTO.getAuditDataIds());
+        return Boolean.TRUE;
+    }
+
+    /**
+     * 功能描述:
+     * 〈删除当前节点审批信息〉
+     * @param delDTO delDTO
+     * @return 正常返回:{@link Boolean}
+     * @author 蝉鸣
+     */
+    @Override
+    public Boolean delInstNodeAudit(BpmInstNodeAuditDelDTO delDTO) {
+        if(CollUtil.isEmpty(delDTO.getAuditDataIds())){
+            return Boolean.FALSE;
+        }
+        this.lambdaUpdate()
+                .eq(BpmInstNodeAudit::getInstNodeId, delDTO.getInstNodeId())
+                .in(BpmInstNodeAudit::getAuditDataId, delDTO.getAuditDataIds())
+                .remove();
+        return Boolean.TRUE;
     }
 }
 

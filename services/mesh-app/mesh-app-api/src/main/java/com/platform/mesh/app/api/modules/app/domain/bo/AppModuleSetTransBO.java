@@ -1,6 +1,8 @@
 package com.platform.mesh.app.api.modules.app.domain.bo;
 
 import com.platform.mesh.core.application.domain.bo.BaseBO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,17 +22,16 @@ public class AppModuleSetTransBO extends BaseBO {
 
 
     /**
+     * 转化配置ID
+     */
+    @Schema(description = "转化配置ID")
+    private Long transId;
+
+    /**
      * 模块来源
      */
     @Schema(description = "模块来源")
     private AppModuleBaseBO moduleFrom;
-
-
-    /**
-     * 模块查询
-     */
-    @Schema(description = "模块查询")
-    private AppModuleBaseBO moduleSearch;
 
 
     /**
@@ -41,10 +42,17 @@ public class AppModuleSetTransBO extends BaseBO {
 
 
     /**
+     * 模块查询
+     */
+    @Schema(description = "模块查询")
+    private AppModuleBaseBO moduleSearch;
+
+
+    /**
      * 模块搜索字段
      */
     @Schema(description = "模块搜索字段")
-    private String moduleSearchRelColumn;
+    private String columnMac;
 
 
     /**
@@ -58,18 +66,26 @@ public class AppModuleSetTransBO extends BaseBO {
      * 规则数据类型
      */
     @Schema(description = "规则数据类型")
-    private String roleDataType;
+    private String ruleDataType;
 
 
     /**
      * 规则数据值
      */
     @Schema(description = "规则数据值")
-    private String roleDataValue;
+    private String ruleDataValue;
+
 
     /**
      * 模块目标字段映射BO
      */
     @Schema(description = "模块目标字段映射BO")
     private List<AppModuleSetTransMappingBO> mappingBOList;
+
+    /**
+     * 模块目标分配BO
+     */
+    @Schema(description = "模块目标分配BO")
+    private List<AppModuleSetTransPickBO> pickBOList;
+
 }

@@ -15,6 +15,7 @@ public enum MemberExceptionEnum implements BaseExceptionEnum<MemberExceptionEnum
      */
     ADD_NO_ARGS("org-member",500, null,  "层级参数为空"),
     ADD_NO_INVALID("org-member",501, null,  "层级参数异常"),
+    TRANS_NO_INVALID("org-member",501, null,  "转移数据目标人员信息缺失"),
     ;
 
     /**

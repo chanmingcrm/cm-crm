@@ -36,4 +36,36 @@ public interface SysMenuMapper extends BaseMapper<SysMenu> {
     @InterceptorIgnore(tenantLine = "true")
     List<SysMenu> getMenuInfo(@Param("userId") Long userId,@Param("filters") List<Integer> filters,@Param("ignores") List<Integer> ignoreMenuTypes);
 
+    /**
+     * 功能描述:
+     * 〈查询模块变更需要修改的菜单〉
+     * @param moduleId moduleId
+     * @param menuType menuType
+     * @param mac mac
+     * @return 正常返回:{@link List<SysMenu>}
+     * @author 蝉鸣
+     */
+    List<SysMenu> selectUpdateMenuList(@Param("moduleId") Long moduleId,@Param("menuType") Integer menuType, @Param("mac") String mac);
+
+    /**
+     * 功能描述:
+     * 〈查询模块变更需要修改的菜单〉
+     * @param moduleId moduleId
+     * @param menuType menuType
+     * @param mac mac
+     * @return 正常返回:{@link SysMenu}
+     * @author 蝉鸣
+     */
+    SysMenu selectUpdateMenu(@Param("moduleId") Long moduleId,@Param("menuType") Integer menuType, @Param("mac") String mac);
+
+    /**
+     * 功能描述:
+     * 〈根据ID获取菜单〉
+     * @param menuId menuId
+     * @return 正常返回:{@link List<SysMenu>}
+     * @author 蝉鸣
+     */
+    SysMenu getUniById(@Param("menuId") Long menuId);
+
+    List<Long> getAppModules();
 }

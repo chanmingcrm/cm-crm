@@ -1,19 +1,14 @@
 package com.platform.mesh.upms.biz.modules.org.levelpostrel.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.exception.BaseException;
-import com.platform.mesh.upms.biz.modules.org.level.domain.po.OrgLevel;
-import com.platform.mesh.upms.biz.modules.org.level.service.IOrgLevelService;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.dto.OrgLevelPostRelAddDTO;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.po.OrgLevelPostRel;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.domain.vo.OrgLevelPostRelVO;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.exception.LevelPostRelExceptionEnum;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.mapper.OrgLevelPostRelMapper;
 import com.platform.mesh.upms.biz.modules.org.levelpostrel.service.IOrgLevelPostRelService;
-import com.platform.mesh.upms.biz.modules.org.post.exception.PostExceptionEnum;
-import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +49,7 @@ public class OrgLevelPostRelServiceImpl extends ServiceImpl<OrgLevelPostRelMappe
             OrgLevelPostRel orgLevelPostRel = new OrgLevelPostRel();
             orgLevelPostRel.setLevelRootId(levelPostRelDTO.getRootId());
             orgLevelPostRel.setLevelId(levelPostRelDTO.getLevelId());
+            orgLevelPostRel.setLeadFlag(levelPostRelDTO.getLeadFlag());
             orgLevelPostRel.setPostId(postId);
             list.add(orgLevelPostRel);
         }

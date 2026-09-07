@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>mesh-crm</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>mesh-crm-api</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>组织架构API</description>
 
     <properties>
@@ -19,6 +19,10 @@
 
 
     <dependencies>
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-ai-api</artifactId>
+        </dependency>
 
         <!--feign-->
         <dependency>

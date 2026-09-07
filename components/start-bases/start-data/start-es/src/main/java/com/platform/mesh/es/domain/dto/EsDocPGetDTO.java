@@ -37,4 +37,16 @@ public class EsDocPGetDTO extends QueryDTO {
 	@Schema(description = "ES搜索")
 	private List<Map<String,Object>> searchAfter;
 
+	/**
+	 * ES分析
+	 */
+	@Schema(description = "ES分析")
+	private List<String> aggregations;
+
+	/**
+	 * 扩展参数
+	 */
+	@Schema(description = "扩展参数")
+	private Map<String,Object> extendMap;
+
 }

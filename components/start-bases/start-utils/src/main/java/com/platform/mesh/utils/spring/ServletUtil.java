@@ -1,12 +1,8 @@
 package com.platform.mesh.utils.spring;
 
-import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.core.constants.HttpConst;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.constants.SymbolConst;
-import com.platform.mesh.utils.file.MimeTypeConst;
 import com.platform.mesh.utils.http.IpUtil;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,7 +37,7 @@ public class ServletUtil {
 	public static void render(int code, String json) {
 		HttpServletResponse response = getResponse();
 		try {
-			response.setCharacterEncoding(CharsetUtil.UTF_8);
+			response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 			response.setStatus(code);
 			response.setContentType(HttpConst.APPLICATION_JSON_CHARSET);
 			response.getWriter().print(json);
@@ -157,54 +153,6 @@ public class ServletUtil {
 			log.error(e.getMessage(), e);
 			return stringBuilder.toString();
 		}
-	}
-
-	/**
-	 * 获取Integer参数
-	 * @param name 参数名称
-	 * @return 返回参数数据
-	 */
-	public static Integer getParameterToInt(String name) {
-		return Convert.toInt(getRequestInst().getParameter(name));
-	}
-
-	/**
-	 * 获取String参数
-	 */
-	public static String getParameter(String name) {
-		return getRequestInst().getParameter(name);
-	}
-
-	/**
-	 * 是否是Ajax异步请求
-	 */
-	public static boolean isAjax() {
-		HttpServletRequest request = getRequestInst();
-		String accept = getRequestInst().getHeader(HttpConst.ACCEPT);
-		if (accept != null && accept.contains(HttpConst.APPLICATION_JSON)) {
-			return true;
-		}
-
-		String xRequestedWith = request.getHeader(HttpConst.X_REQUESTED_WITH);
-		if (xRequestedWith != null && xRequestedWith.contains(HttpConst.XML_HTTP_REQUEST)) {
-			return true;
-		}
-
-		String uri = request.getRequestURI();
-		if (StrUtil.containsAnyIgnoreCase(uri, MimeTypeConst.SUFFIX_JSON, MimeTypeConst.SUFFIX_XML)) {
-			return true;
-		}
-
-		String ajax = request.getParameter(HttpConst.AJAX);
-
-		return StrUtil.containsAnyIgnoreCase(ajax, MimeTypeConst.getExtension(MimeTypeConst.SUFFIX_JSON), MimeTypeConst.getExtension(MimeTypeConst.SUFFIX_XML));
-	}
-
-	/**
-	 * 不为Ajax异步请求
-	 */
-	public static boolean isNotAjax() {
-		return !isAjax();
 	}
 
 	/**

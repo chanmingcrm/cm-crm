@@ -3,4 +3,42 @@
 <mapper namespace="com.platform.mesh.crm.biz.modules.crm.predrainage.mapper.CrmPreDrainageMapper">
 
 
+    <select id="checkPreDrainage"
+            resultType="com.platform.mesh.crm.biz.modules.crm.precustomer.domain.vo.CheckVO">
+        SELECT
+            pd.id,
+            pd.module_id,
+            pd.data_name,
+            pd.phone,
+            pd.create_time,
+            pd.scope_user_id,
+            ofr.create_time AS last_time
+        FROM
+            crm_pre_drainage pd
+                LEFT JOIN (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY data_id ORDER BY create_time DESC) as rn
+                FROM
+                    crm_on_follow_rel
+            ) ofr ON pd.id = ofr.data_id AND ofr.rn = 1
+        WHERE
+            pd.data_name LIKE CONCAT('%', #{checkDTO.checkValue}, '%')
+        ORDER BY
+            pd.update_time DESC
+        LIMIT 10;
+    </select>
+
+    <select id="getExistByPhone"
+            resultType="com.platform.mesh.crm.biz.modules.crm.predrainage.domain.po.CrmPreDrainage">
+        SELECT
+            *
+        FROM
+            crm_pre_drainage
+        WHERE
+            module_id = #{moduleId}
+            AND phone = #{phone}
+            LIMIT 1
+    </select>
+
 </mapper>

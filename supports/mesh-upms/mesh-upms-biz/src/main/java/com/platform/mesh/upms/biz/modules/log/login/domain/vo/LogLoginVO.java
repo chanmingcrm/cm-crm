@@ -20,14 +20,75 @@ import java.time.LocalDateTime;
 public class LogLoginVO extends BaseVO {
 
     /**
-     * 创建人
+     * 用户ID
      */
     @Schema(description = "创建人")
-    private Long createUserId;
+    private Long userId;
+
+    /**
+     * 账户ID
+     */
+    @Schema(description = "创建人")
+    private Long accountId;
+
+    /**
+     * openID
+     */
+    @Schema(description = "创建人")
+    private Long openId;
+
+    /**
+     * 登录用户名称
+     */
+    @Schema(description = "创建人")
+    private String loginUserName;
+
+    /**
+     * 登录浏览器
+     */
+    @Schema(description = "创建人")
+    private String loginAgent;
+
+    /**
+     * 登录Ip
+     */
+    @Schema(description = "创建人")
+    private String loginIp;
+
+    /**
+     * 登录地址
+     */
+    @Schema(description = "创建人")
+    private String loginAddr;
+
+    /**
+     * 登录URL
+     */
+    @Schema(description = "创建人")
+    private String loginUrl;
+
+    /**
+     * 登录参数
+     */
+    @Schema(description = "创建人")
+    private String loginParam;
+
+    /**
+     * 登录标识
+     */
+    @Schema(description = "创建人")
+    private Integer loginFlag;
+
+    /**
+     * 备注
+     */
+    @Schema(description = "创建人")
+    private String remark;
 
     /**
      * 创建时间
      */
-    @Schema(description = "创建时间")
+    @Schema(description = "创建人")
     private LocalDateTime createTime;
+
 }

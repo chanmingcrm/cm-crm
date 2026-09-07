@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.log.annotation.Log;
+import com.platform.mesh.security.annotation.AuthIgnore;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.AppMenuBO;
 import com.platform.mesh.upms.api.modules.sys.user.domain.bo.SysMenuBO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu;
@@ -84,6 +85,18 @@ public class SysMenuApi extends BaseController {
 	@PostMapping("/api/menu/app/module/clear")
 	public Result<Boolean> appModuleMenuClear(@Validated @RequestBody List<Long> moduleIds) {
 		return Result.success(sysMenuService.appModuleMenuClear(moduleIds));
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈获取应用模块〉
+	 * @return 正常返回:{@link Result<List<Long>>}
+	 * @author 蝉鸣
+	 */
+	@AuthIgnore
+	@PostMapping("/api/app/modules")
+	public Result<List<Long>> getAppModules() {
+		return Result.success(sysMenuService.getAppModules());
 	}
 
 }

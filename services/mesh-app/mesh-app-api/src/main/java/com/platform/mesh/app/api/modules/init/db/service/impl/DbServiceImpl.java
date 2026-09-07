@@ -3,16 +3,25 @@ package com.platform.mesh.app.api.modules.init.db.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.app.api.modules.app.constant.AppConst;
 import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleSetTransBO;
 import com.platform.mesh.app.api.modules.app.domain.bo.AppModuleSetTransSearchBO;
 import com.platform.mesh.app.api.modules.app.domain.dto.ModulePageDTO;
+import com.platform.mesh.app.api.modules.app.exception.AppExceptionEnum;
 import com.platform.mesh.app.api.modules.init.db.domain.bo.DbTransBO;
+import com.platform.mesh.app.api.modules.init.db.domain.bo.DbTransResBO;
 import com.platform.mesh.app.api.modules.init.db.domain.dto.DbTransDTO;
 import com.platform.mesh.app.api.modules.init.db.service.IDbService;
 import com.platform.mesh.app.api.modules.init.db.service.manual.DbServiceManual;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.redis.service.RedissonUtil;
+import com.platform.mesh.security.utils.UserCacheUtil;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgLevelBO;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberRelBO;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberTransBO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,32 +75,42 @@ public abstract class DbServiceImpl implements IDbService {
         ModulePageDTO pageDTO = new ModulePageDTO();
         pageDTO.setModuleSchemas(tableNames);
         Integer pageNum = NumberConst.NUM_1;
-        //根据过滤条件查询检索数据
-        while (true){
-            //获取对应转化设置
-            pageDTO.setPageNum(pageNum);
-            PageVO<AppModuleSetTransBO> setTransPage = dbServiceManual.getModuleSetTransPage(pageDTO);
-            if(CollUtil.isEmpty(setTransPage.getRecords())){
-                break;
-            }
-            for (AppModuleSetTransBO setTransBO : setTransPage.getRecords()) {
-                AppModuleSetTransSearchBO searchBO = BeanUtil.copyProperties(setTransBO, AppModuleSetTransSearchBO.class);
-                Integer transPage = NumberConst.NUM_1;
-                while (true){
-                    searchBO.setPageNum(transPage);
-                    PageVO<Object> dataList = dbServiceManual.searchSearchData(searchBO);
-                    List<Long> dataIds = dbServiceManual.getDataIds(dataList.getRecords(), searchBO.getModuleSearchRelColumn());
-                    if(CollUtil.isEmpty(dataIds)){
-                        break;
-                    }
-                    DbTransBO dbTransBO = new DbTransBO();
-                    dbTransBO.setTransBO(setTransBO);
-                    dbTransBO.setDataIds(dataIds);
-                    dbServiceManual.transData(dbTransBO);
-                    transPage++;
+        try{
+            //根据过滤条件查询检索数据
+            while (true){
+                //获取对应转化设置
+                pageDTO.setPageNum(pageNum);
+                PageVO<AppModuleSetTransBO> setTransAutoPage = dbServiceManual.getModuleSetTransAutoPage(pageDTO);
+                if(CollUtil.isEmpty(setTransAutoPage.getRecords())){
+                    break;
                 }
+                for (AppModuleSetTransBO setTransAutoBO : setTransAutoPage.getRecords()) {
+                    AppModuleSetTransSearchBO searchBO = BeanUtil.copyProperties(setTransAutoBO, AppModuleSetTransSearchBO.class);
+                    Integer transPage = NumberConst.NUM_1;
+                    while (true){
+                        searchBO.setPageNum(transPage);
+                        MPage<Long> dataPage = dbServiceManual.getTransDataIdsPage(searchBO);
+                        if(CollUtil.isEmpty(dataPage.getRecords())){
+                            break;
+                        }
+                        //缓存数量
+                        RedissonUtil.setCacheObject(AppConst.PICK_APP_DATA_COUNT.concat(setTransAutoBO.getTransId().toString()),dataPage.getTotal());
+                        DbTransBO dbTransBO = new DbTransBO();
+                        dbTransBO.setTransBO(setTransAutoBO);
+                        dbTransBO.setDataIds(dataPage.getRecords());
+                        dbServiceManual.transData(dbTransBO);
+                        transPage++;
+                    }
+                    //清除当前转化缓存
+                    RedissonUtil.deleteObject(AppConst.PICK_APP_DATA_TRANS.concat(setTransAutoBO.getTransId().toString()));
+                    RedissonUtil.deleteObject(AppConst.PICK_APP_DATA_COUNT.concat(setTransAutoBO.getTransId().toString()));
+                }
+                pageNum++;
             }
-            pageNum++;
+        }catch (Exception e){
+            log.error(">>>数据转化定时任务异常信息！！！");
+            log.error(e.getMessage());
+            log.error(">>>数据转化定时任务异常信息。。。");
         }
 
     }
@@ -102,11 +121,14 @@ public abstract class DbServiceImpl implements IDbService {
      * @author 蝉鸣
      */
     @Override
-    public Boolean transDbData(DbTransDTO transDTO) {
-
+    public DbTransResBO transDbData(DbTransDTO transDTO) {
         AppModuleSetTransBO setTransBO = dbServiceManual.getModuleSetTransById(transDTO.getTransId());
         if(ObjectUtil.isEmpty(setTransBO) || ObjectUtil.isEmpty(setTransBO.getModuleFrom()) || ObjectUtil.isEmpty(setTransBO.getModuleTo())){
-            return Boolean.FALSE;
+            throw AppExceptionEnum.ADD_DATA_TRANS_SET_INVALID.getBaseException();
+        }
+        List<Long> appModule = UserCacheUtil.getAppModules();
+        if(!appModule.contains(setTransBO.getModuleTo().getId())){
+            return null;
         }
         DbTransBO dbTransBO = new DbTransBO();
         dbTransBO.setTransBO(setTransBO);
@@ -117,7 +139,39 @@ public abstract class DbServiceImpl implements IDbService {
             dbTransBO.setUserRelBO(memberRelBO);
         }
         //转化数据
-        dbServiceManual.transData(dbTransBO);
-        return Boolean.TRUE;
+        return dbServiceManual.transData(dbTransBO);
+    }
+
+
+    /**
+     * 功能描述:
+     * 〈同步人员名称〉
+     * @param memberBO memberBO
+     * @author 蝉鸣
+     */
+    @Override
+    public void syncUserName(OrgMemberBO memberBO) {
+        dbServiceManual.syncUserName(memberBO);
+    }
+
+    /**
+     * 功能描述:
+     * 〈同步组织名称〉
+     * @param levelBO levelBO
+     * @author 蝉鸣
+     */
+    @Override
+    public void syncOrgName(OrgLevelBO levelBO) {
+        dbServiceManual.syncOrgName(levelBO);
+    }
+
+    /**
+     * 功能描述:
+     * 〈转换数据〉
+     * @author 蝉鸣
+     */
+    @Override
+    public void transOrgData(OrgMemberTransBO transBO) {
+        dbServiceManual.transOrgData(transBO);
     }
 }

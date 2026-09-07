@@ -127,7 +127,7 @@ public class BpmInstVariableServiceManual {
      * 功能描述:
      * 〈获取线变量参照〉
      * @param instVarRefers instVarRefers
-     * @return 正常返回:{@link Map<Long,List<BpmInstVarRefer>>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<Long,List<BpmInstVarRefer>> getReferMap(List<BpmInstVarRefer> instVarRefers){
@@ -138,7 +138,7 @@ public class BpmInstVariableServiceManual {
      * 功能描述:
      * 〈获取节点下变量值〉
      * @param instVarValues instVarValues
-     * @return 正常返回:{@link Map<String,BpmInstVarValue>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public Map<String, BpmInstVarValue> getValueMap(List<BpmInstVarValue> instVarValues){
@@ -150,7 +150,7 @@ public class BpmInstVariableServiceManual {
      * 功能描述:
      * 〈构建参照树形结构〉
      * @param varRefer varRefer
-     * @return 正常返回:{@link Map<String,BpmInstVarValue>}
+     * @return 正常返回:{@link Map}
      * @author 蝉鸣
      */
     public List<Tree<Long>> buildTree(List<BpmInstVarRefer> varRefer){

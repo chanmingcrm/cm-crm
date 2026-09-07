@@ -38,4 +38,9 @@ public @interface Log {
 	 */
 	boolean isSaveRequestData() default true;
 
+	/**
+	 * 是否保存返回数据
+	 */
+	boolean isSaveResponseData() default true;
+
 }

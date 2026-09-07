@@ -42,7 +42,6 @@ public class QueryWrapperUtil {
 
     /**
      * 根据给定的 Field 创建 SFunction 实例。
-     *
      * @param <T> 实体类的类型
      * @param <R> 字段的类型
      * @param field 要转换为 SFunction 的 Field 对象
@@ -63,7 +62,6 @@ public class QueryWrapperUtil {
 
     /**
      * 根据给定的 Field 创建 SFunction 实例。
-     *
      * @param <T> 实体类的类型
      * @param <R> 字段的类型
      * @param field 要转换为 SFunction 的 Field 对象
@@ -89,7 +87,6 @@ public class QueryWrapperUtil {
 
     /**
      * 根据 Field 创建方法引用。
-     *
      * @param field 字段
      * @return 方法引用
      * @throws NoSuchMethodException 如果找不到对应的 getter 方法
@@ -115,7 +112,6 @@ public class QueryWrapperUtil {
 
     /**
      * 将首字母大写的字符串。
-     *
      * @param str 字符串
      * @return 大写首字母的字符串
      */

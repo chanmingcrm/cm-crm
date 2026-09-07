@@ -2,7 +2,7 @@ package com.platform.mesh.bpm.biz.modules.hist.event.service.manual;
 
 
 import com.platform.mesh.bpm.biz.modules.hist.event.domain.po.BpmHistEvent;
-import com.platform.mesh.bpm.biz.soa.event.factory.EventFactory;
+import com.platform.mesh.bpm.biz.soa.event.type.factory.EventTypeFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class BpmHistEventServiceManual {
 
     @Autowired
-    EventFactory<BpmHistEvent> eventFactory;
+    EventTypeFactory<BpmHistEvent> eventTypeFactory;
 
 }
 

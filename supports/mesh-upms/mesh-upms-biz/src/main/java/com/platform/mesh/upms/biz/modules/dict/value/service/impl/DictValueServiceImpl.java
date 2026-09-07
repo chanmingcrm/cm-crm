@@ -7,6 +7,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.security.utils.UserCacheUtil;
+import com.platform.mesh.upms.biz.modules.dict.base.exception.DictBaseExceptionEnum;
 import com.platform.mesh.upms.biz.modules.dict.value.domain.dto.DictValueDTO;
 import com.platform.mesh.upms.biz.modules.dict.value.domain.dto.DictValuePageDTO;
 import com.platform.mesh.upms.biz.modules.dict.value.domain.po.DictValue;
@@ -15,7 +17,6 @@ import com.platform.mesh.upms.biz.modules.dict.value.exception.DictValueExceptio
 import com.platform.mesh.upms.biz.modules.dict.value.mapper.DictValueMapper;
 import com.platform.mesh.upms.biz.modules.dict.value.service.IDictValueService;
 import com.platform.mesh.upms.biz.modules.dict.value.service.manual.DictValueServiceManual;
-import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -89,9 +90,7 @@ public class DictValueServiceImpl extends ServiceImpl<DictValueMapper, DictValue
     @Override
     public DictValueVO editValue(DictValueDTO valueDTO) {
         if(ObjectUtil.isEmpty(valueDTO.getId())){
-            //获取字段名称
-            String fieldName = ObjFieldUtil.getFieldName(DictValueDTO::getId);
-            throw DictValueExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(fieldName));
+            throw DictValueExceptionEnum.ADD_NO_ARGS.getBaseException();
         }
         DictValue dictValue = BeanUtil.copyProperties(valueDTO, DictValue.class);
         this.updateById(dictValue);
@@ -107,7 +106,19 @@ public class DictValueServiceImpl extends ServiceImpl<DictValueMapper, DictValue
      */
     @Override
     public Boolean deleteValue(Long valueId) {
-        
         return this.removeById(valueId);
+    }
+
+    /**
+     * 功能描述:
+     * 〈查询字典值〉
+     * @param dictMac dictMac
+     * @param dictValue dictValue
+     * @return 正常返回:{@link DictValue}
+     * @author 蝉鸣
+     */
+    @Override
+    public DictValue getFistSysDictByMac(String dictMac, Integer dictValue) {
+        return this.getBaseMapper().getFistSysDictByMac(dictMac,dictValue);
     }
 }

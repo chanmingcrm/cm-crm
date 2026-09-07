@@ -23,7 +23,6 @@ import com.platform.mesh.app.biz.modules.app.formcolumnsetprocess.service.IAppFo
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.service.IAppFormColumnSetRequireService;
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.po.AppModuleBase;
-import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleBaseVO;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.es.service.IEsIndexService;
@@ -45,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -83,44 +83,27 @@ public class AppModuleBaseServiceManual{
 
     @Autowired
     private RemoteDictService remoteDictService;
-    
-    /**
-     * 功能描述: 
-     * 〈获取当前信息〉
-     * @param appModuleBase appModuleBase 
-     * @return 正常返回:{@link AppModuleBaseVO}
-     * @author 蝉鸣
-     */
-    public AppModuleBaseVO getModuleBaseInfoById(AppModuleBase appModuleBase) {
-        AppModuleBaseVO appModuleBaseVO = new AppModuleBaseVO();
-        if(ObjectUtil.isEmpty(appModuleBaseVO)){
-            return appModuleBaseVO;
-        }
-        //转换VO
-        BeanUtil.copyProperties(appModuleBase, appModuleBaseVO);
-        return appModuleBaseVO;
-    }
 
     /**
      * 功能描述:
      * 〈发布模块〉
-     * @param moduleBase moduleBase
+     * @param moduleIds moduleIds
      * @return 正常返回:{@link Boolean}
      * @author 蝉鸣
      */
-    public Boolean initModuleBaseToES(AppModuleBase moduleBase) {
-        if(StrUtil.isEmpty(moduleBase.getModuleIndex())){
+    public Boolean initModuleBaseToES(String moduleIndex,List<Long> moduleIds) {
+        if(StrUtil.isEmpty(moduleIndex)){
             return false;
         }
         //查询是否存在当前模块索引
-        boolean existIndex = esIndexService.existIndex(CollUtil.newArrayList(moduleBase.getModuleIndex()));
+        boolean existIndex = esIndexService.existIndex(CollUtil.newArrayList(moduleIndex));
         if(existIndex){
             return false;
         }
         //初始化索引
-        boolean createIndex = esIndexService.createIndex(moduleBase.getModuleIndex());
+        boolean createIndex = esIndexService.createIndex(moduleIndex);
         //初始化字段映射
-        boolean setMapping = esIndexService.setMapping(appFormColumnService.getFormColumnEsMapping(moduleBase.getParentId(), moduleBase.getModuleIndex()));
+        boolean setMapping = esIndexService.setMapping(appFormColumnService.getFormColumnEsMapping(moduleIndex, moduleIds));
         return createIndex && setMapping;
     }
 
@@ -137,6 +120,7 @@ public class AppModuleBaseServiceManual{
         appMenuBO.setModuleId(appModuleBase.getId());
         appMenuBO.setOperateType(operateTypeEnum.getValue());
         appMenuBO.setParentModuleId(appModuleBase.getParentId());
+        appMenuBO.setIcon(appModuleBase.getModuleLogo());
         if (ModuleTypeEnum.APPLICATION.getValue().equals(appModuleBase.getModuleType())) {
             appMenuBO.setMenuType(MenuTypeEnum.MODULE.getValue());
             //应用层级没有parentId,用appId代替，App在菜单中用的关联moduleId字段也是App模块的主键id
@@ -168,32 +152,125 @@ public class AppModuleBaseServiceManual{
 
     /**
      * 功能描述:
+     * 〈初始化模块下的表单〉
+     * @param appModuleBase appModuleBase
+     * @author 蝉鸣
+     */
+    public Map<Long, Long> addInitForm(AppModuleBase appModuleBase) {
+        Map<Long, Long> initForm = new HashMap<>();
+        //分类类型需要初始化
+        if(!ModuleTypeEnum.CATEGORY.getValue().equals(appModuleBase.getModuleType())){
+            return initForm;
+        }
+        //查询
+        List<AppFormBase> appFormBases = appFormBaseService.lambdaQuery()
+                .eq(AppFormBase::getModuleId, NumberConst.NUM_0.longValue())
+                .list();
+        if(CollUtil.isEmpty(appFormBases)){
+            return initForm;
+        }
+        List<AppFormBase> moduleFormBases = appFormBases.stream().map(formBase->{
+            Long formBaseId = IdUtil.getSnowflake().nextId();
+            initForm.put(formBase.getId(), formBaseId);
+            AppFormBase appFormBase = new AppFormBase();
+            BeanUtil.copyProperties(formBase,appFormBase,ObjFieldUtil.ignoreDefault());
+            appFormBase.setId(formBaseId);
+            appFormBase.setModuleId(appModuleBase.getId());
+            return appFormBase;
+        }).toList();
+        appFormBaseService.saveBatch(moduleFormBases);
+        return initForm;
+    }
+
+    /**
+     * 功能描述:
      * 〈初始化模块下的字段〉
      * @param appModuleBase appModuleBase
      * @author 蝉鸣
      */
-    public void addInitColumn(AppModuleBase appModuleBase) {
+    public Map<AppFormColumn, AppFormColumn> addInitColumn(AppModuleBase appModuleBase,Map<Long, Long> formMap,Map<Long, AppFormColumnSetRequire> copyRequire) {
+        Map<AppFormColumn, AppFormColumn> initColumn = new HashMap<>();
         //分类类型需要初始化
-        if(!ModuleTypeEnum.MODULE.getValue().equals(appModuleBase.getModuleType())){
+        List<AppFormColumn> appFormColumns = CollUtil.newArrayList();
+        if(ModuleTypeEnum.MODULE.getValue().equals(appModuleBase.getModuleType())){
+            //查询
+            appFormColumns = appFormColumnService.lambdaQuery()
+                    .eq(AppFormColumn::getModuleId, NumberConst.NUM_0.longValue())
+                    .eq(AppFormColumn::getFormId, NumberConst.NUM_0.longValue())
+                    .list();
+            if(CollUtil.isEmpty(appFormColumns)){
+                return initColumn;
+            }
+        }else if(ModuleTypeEnum.CATEGORY.getValue().equals(appModuleBase.getModuleType())){
+            //查询
+            appFormColumns = appFormColumnService.lambdaQuery()
+                    .eq(AppFormColumn::getModuleId, NumberConst.NUM_0.longValue())
+                    .ne(AppFormColumn::getFormId, NumberConst.NUM_0.longValue())
+                    .list();
+            if(CollUtil.isEmpty(appFormColumns)){
+                return initColumn;
+            }
+        }
+        //拷贝字段
+        return appFormColumnService.copyFormColumn(appFormColumns,appModuleBase,formMap,copyRequire);
+    }
+
+    /**
+     * 功能描述:
+     * 〈初始化模块下的动作〉
+     * @param appModuleBase appModuleBase
+     * @author 蝉鸣
+     */
+    public void addInitColumnSetAction(AppModuleBase appModuleBase, Map<Long, AppFormColumn> initColumn) {
+        //分类类型需要初始化
+        if(!ModuleTypeEnum.CATEGORY.getValue().equals(appModuleBase.getModuleType())){
             return;
         }
-        //查询
-        List<AppFormColumn> appFormColumns = appFormColumnService.lambdaQuery()
-                .eq(AppFormColumn::getModuleId, NumberConst.NUM_0.longValue())
-                .eq(AppFormColumn::getFormId, NumberConst.NUM_0.longValue())
-                .list();
-        if(CollUtil.isEmpty(appFormColumns)){
+        appFormColumnSetActionService.copyFormColumnSetAction(NumberConst.NUM_0.longValue(),appModuleBase.getId(),initColumn);
+    }
+
+    /**
+     * 功能描述:
+     * 〈初始化模块下的事件〉
+     * @param appModuleBase appModuleBase
+     * @author 蝉鸣
+     */
+    public void addInitColumnSetEvent(AppModuleBase appModuleBase, Map<AppFormColumn, AppFormColumn> initColumn, Map<Long, AppFormColumnSetRequire> copyRequire) {
+        //分类类型需要初始化
+        if(!ModuleTypeEnum.CATEGORY.getValue().equals(appModuleBase.getModuleType())){
             return;
         }
-        List<AppFormColumn> moduleFormColumns = appFormColumns.stream().map(column->{
-            AppFormColumn appFormColumn = new AppFormColumn();
-            BeanUtil.copyProperties(column,appFormColumn,ObjFieldUtil.ignoreDefault());
-            appFormColumn.setModuleId(appModuleBase.getId());
-            appFormColumn.setColumnHash(column.getCompMac().concat(IdUtil.fastSimpleUUID()));
-            appFormColumn.setColumnName(appModuleBase.getModuleName().concat(column.getColumnName()));
-            return appFormColumn;
-        }).toList();
-        appFormColumnService.saveBatch(moduleFormColumns);
+        appFormColumnSetEventService.copyFormColumnSetEvent(NumberConst.NUM_0.longValue(),appModuleBase.getId(),initColumn,copyRequire);
+    }
+
+    /**
+     * 功能描述:
+     * 〈获取新旧字段ID map〉
+     * @param initColumn initColumn
+     * @author 蝉鸣
+     */
+    public Map<Long, AppFormColumn> getColumnLongMap(Map<AppFormColumn, AppFormColumn> initColumn) {
+        //分类类型需要初始化
+        if(CollUtil.isEmpty(initColumn)){
+            return new HashMap<>();
+        }
+        Map<Long, AppFormColumn> resultMap = new HashMap<>(initColumn.size());
+        initColumn.forEach((key, value) -> resultMap.put(key.getId(), value));
+        return resultMap;
+    }
+
+    /**
+     * 功能描述:
+     * 〈初始化模块下的对接接口〉
+     * @param appModuleBase appModuleBase
+     * @author 蝉鸣
+     */
+    public Map<Long, AppFormColumnSetRequire> addInitColumnSetRequire(AppModuleBase appModuleBase) {
+        //分类类型需要初始化
+        if(!ModuleTypeEnum.CATEGORY.getValue().equals(appModuleBase.getModuleType())){
+            return new HashMap<>();
+        }
+        return appFormColumnSetRequireService.copyFormColumnSetRequire(NumberConst.NUM_0.longValue(),appModuleBase.getId());
     }
 
     /**
@@ -208,12 +285,16 @@ public class AppModuleBaseServiceManual{
         if(CollUtil.isEmpty(esModuleBases)){
             return initModule;
         }
-        for (AppModuleBase moduleBase : esModuleBases) {
-            Boolean initSuccess = initModuleBaseToES(moduleBase);
+        Map<String, List<AppModuleBase>> moduleMap = esModuleBases.stream()
+                .collect(Collectors.groupingBy(AppModuleBase::getModuleIndex));
+        moduleMap.forEach((key,modules)->{
+            //获取父模块ID,用于获取字段池字段
+            List<Long> parentIds = modules.stream().map(AppModuleBase::getParentId).distinct().toList();
+            Boolean initSuccess = this.initModuleBaseToES(key,parentIds);
             if(initSuccess){
-                initModule.add(moduleBase);
+                initModule.addAll(modules);
             }
-        }
+        });
         return initModule;
     }
 
@@ -261,29 +342,29 @@ public class AppModuleBaseServiceManual{
     /**
      * 功能描述:
      * 〈拷贝模块〉
-     * @param source source
+     * @param sourceId sourceId
      * @param target target
      * @author 蝉鸣
      */
-    public void copyModuleBase(AppModuleBase source, AppModuleBase target) {
+    public void copyModuleBase(Long sourceId, AppModuleBase target) {
         //添加菜单
         this.addOrEditMenu(target, OperateTypeEnum.INSERT);
         //复制表单
-        Map<Long,Long> copyForm = appFormBaseService.copyFormBase(source.getId(),target.getId());
+        Map<Long,Long> copyForm = appFormBaseService.copyFormBase(sourceId,target.getId());
+        //复制字段请求
+        Map<Long, AppFormColumnSetRequire> copyRequire = appFormColumnSetRequireService.copyFormColumnSetRequire(sourceId,target.getId());
         //复制字段
-        Map<Long, AppFormColumn> copyColumn = appFormColumnService.copyFormColumn(source,target,copyForm);
+        Map<AppFormColumn, AppFormColumn> copyColumn = appFormColumnService.copyFormColumn(sourceId,target,copyForm,copyRequire);
+        Map<Long, AppFormColumn> columnLongMap = this.getColumnLongMap(copyColumn);
         if(CollUtil.isEmpty(copyColumn)){
             return;
         }
-        //复制字段映射
         //复制字段动作
-        appFormColumnSetActionService.copyFormColumnSetAction(source.getId(),target.getId(),copyColumn);
+        appFormColumnSetActionService.copyFormColumnSetAction(sourceId,target.getId(),columnLongMap);
         //复制字段事件
-        Map<Long, AppFormColumnSetEvent> copyEvent = appFormColumnSetEventService.copyFormColumnSetEvent(source.getId(), target.getId(), copyColumn);
+        Map<Long, AppFormColumnSetEvent> copyEvent = appFormColumnSetEventService.copyFormColumnSetEvent(sourceId, target.getId(), copyColumn, copyRequire);
         //复制字段流程
-        appFormColumnSetProcessService.copyFormColumnSetProcess(source.getId(),target.getId(),copyEvent);
-        //复制字段请求
-        appFormColumnSetRequireService.copyFormColumnSetRequire(source.getId(),target.getId(),copyColumn);
+        appFormColumnSetProcessService.copyFormColumnSetProcess(sourceId,target.getId(),copyEvent);
     }
 
     /**

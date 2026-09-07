@@ -5,4 +5,7 @@ com.platform.mesh.upms.api.modules.org.member.feign.factory.RemoteOrgMemberFallb
 com.platform.mesh.upms.api.modules.msg.feign.factory.RemoteMsgFallbackFactory
 com.platform.mesh.upms.api.modules.doc.feign.factory.RemoteDocFallbackFactory
 com.platform.mesh.upms.api.modules.event.listener.SysMsgNoticeListener
-
+com.platform.mesh.upms.api.modules.event.listener.SysModifyLogListener
+com.platform.mesh.upms.api.pub.upms.config.UpmsListenerConfig
+com.platform.mesh.upms.api.pub.upms.factory.UpmsFeedbackFactory
+com.platform.mesh.upms.api.pub.upms.impl.UpmsListenerMsgImpl

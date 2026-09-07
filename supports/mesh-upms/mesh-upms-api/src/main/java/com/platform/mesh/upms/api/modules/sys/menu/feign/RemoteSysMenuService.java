@@ -7,8 +7,10 @@ import com.platform.mesh.upms.api.modules.sys.menu.feign.factory.RemoteSysMenuFa
 import com.platform.mesh.utils.result.Result;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -53,5 +55,15 @@ public interface RemoteSysMenuService {
      */
     @PostMapping(value = "/api/menu/app/module/clear", headers = HttpConst.HEADER_FROM_IN)
     Result<Boolean> appModuleMenuClear(@Validated @RequestBody List<Long> moduleIds);
+
+    /**
+     * 功能描述:
+     * 〈拷贝租户菜单〉
+     * @param sourceTenantId sourceTenantId
+     * @param targetTenantId targetTenantId
+     * @author 蝉鸣
+     */
+    @GetMapping(value = "/api/menu/tenant/copy", headers = HttpConst.HEADER_FROM_IN)
+    void copyTenantMenu(@RequestParam("sourceTenantId") Long sourceTenantId, @RequestParam("targetTenantId") Long targetTenantId);
 
 }

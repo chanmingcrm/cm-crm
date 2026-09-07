@@ -2,7 +2,6 @@ package com.platform.mesh.upms.biz.modules.sys.menu.domain.vo;
 
 import com.platform.mesh.core.application.domain.vo.BaseVO;
 import com.platform.mesh.core.constants.NumberConst;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.bo.RouteMetaBO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -43,12 +42,12 @@ public class RouteItemVO extends BaseVO {
 	 */
 	@Schema(description = "命名路由")
 	private String name;
-//
-//	/**
-//	 * 别名
-//	 */
-//	@Schema(description = "别名")
-//	private String alias;
+
+    /**
+     * 编码标识
+     */
+    @Schema(description = "编码标识")
+    private String mac;
 
 	/**
 	 * 命名视图组件
@@ -68,12 +67,6 @@ public class RouteItemVO extends BaseVO {
 	@Schema(description = "重定向路径")
 	private String redirect;
 
-//	/**
-//	 * 匹配规则是否大小写敏感
-//	 */
-//	@Schema(description = "匹配规则是否大小写敏感")
-//	private Boolean caseSensitive;
-
 	/**
 	 * 路由顺序，可用于菜单的排序
 	 */
@@ -84,7 +77,7 @@ public class RouteItemVO extends BaseVO {
 	 * 路由Meta
 	 */
 	@Schema(description = "路由Meta")
-	private RouteMetaBO meta;
+	private RouteMetaVO meta;
 
 	/**
 	 * 子路由

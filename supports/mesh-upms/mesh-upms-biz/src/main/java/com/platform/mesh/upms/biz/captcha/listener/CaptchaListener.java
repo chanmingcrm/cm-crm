@@ -2,7 +2,7 @@ package com.platform.mesh.upms.biz.captcha.listener;
 
 import cloud.tianai.captcha.common.constant.CaptchaTypeConstant;
 import cloud.tianai.captcha.common.constant.CommonConstant;
-import cloud.tianai.captcha.resource.ResourceStore;
+import cloud.tianai.captcha.resource.CrudResourceStore;
 import cloud.tianai.captcha.resource.common.model.dto.Resource;
 import cloud.tianai.captcha.resource.impl.provider.ClassPathResourceProvider;
 import cloud.tianai.captcha.resource.impl.provider.FileResourceProvider;
@@ -30,11 +30,11 @@ import java.util.List;
 @Component
 public class CaptchaListener {
 
-	private final ResourceStore resourceStore;
+	private final CrudResourceStore resourceStore;
 
 	private final IDocFileService docFileService;
 
-	public CaptchaListener(ResourceStore resourceStore,IDocFileService docFileService) {
+	public CaptchaListener(CrudResourceStore resourceStore,IDocFileService docFileService) {
 		this.resourceStore = resourceStore;
 		this.docFileService = docFileService;
 	}

@@ -75,6 +75,12 @@ public class MsgBase extends BasePO {
 
 
     /**
+    * 提醒时间
+    */
+    private LocalDateTime noticeTime;
+
+
+    /**
      * 创建人ID
      */
     @TableField(fill = FieldFill.INSERT)

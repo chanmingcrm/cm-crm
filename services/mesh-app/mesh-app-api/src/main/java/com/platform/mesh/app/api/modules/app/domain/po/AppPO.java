@@ -60,6 +60,11 @@ public class AppPO extends BasePO {
     private Integer dataPeriod;
 
     /**
+    * 删除标识
+    */
+    private Integer delFlag;
+
+    /**
     * 创建人ID
     */
     @TableField(fill = FieldFill.INSERT)

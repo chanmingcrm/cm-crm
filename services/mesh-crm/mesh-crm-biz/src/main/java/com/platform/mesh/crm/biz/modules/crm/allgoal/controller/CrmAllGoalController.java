@@ -1,15 +1,16 @@
 package com.platform.mesh.crm.biz.modules.crm.allgoal.controller;
 
 import com.platform.mesh.core.application.controller.BaseController;
-import com.platform.mesh.core.enums.custom.OperateTypeEnum;
-import com.platform.mesh.core.application.domain.dto.PageDTO;
 import com.platform.mesh.core.application.domain.vo.PageVO;
-import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalDTO;
+import com.platform.mesh.core.enums.custom.OperateTypeEnum;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalAddDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalEditDTO;
+import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.dto.CrmAllGoalPageDTO;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.po.CrmAllGoal;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.domain.vo.CrmAllGoalVO;
 import com.platform.mesh.crm.biz.modules.crm.allgoal.service.ICrmAllGoalService;
-import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.log.annotation.Log;
+import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,9 +46,8 @@ public class CrmAllGoalController extends BaseController{
 	 */
 	@Operation(summary = "获取客户关系目标分页")
 	@PostMapping("/crm/all/goal/page")
-	public Result<PageVO<CrmAllGoalVO>> selectPage(@RequestBody PageDTO pageDTO) {
-	    MPage<CrmAllGoal> allGoalMPage = MPageUtil.pageEntityToMPage(pageDTO, CrmAllGoal.class);
-        MPage<CrmAllGoal> page = crmAllGoalService.page(allGoalMPage);
+	public Result<PageVO<CrmAllGoalVO>> selectPage(@RequestBody CrmAllGoalPageDTO pageDTO) {
+        MPage<CrmAllGoal> page = crmAllGoalService.selectPage(pageDTO);
         PageVO<CrmAllGoalVO> voPage = MPageUtil.convertToVO(page, CrmAllGoalVO.class);
         return Result.success(voPage);
 	}
@@ -62,7 +62,7 @@ public class CrmAllGoalController extends BaseController{
     @Operation(summary = "新增客户关系目标")
     @Log(moduleName = "客户关系目标管理", operateType = OperateTypeEnum.INSERT)
     @PostMapping("/crm/all/goal/add")
-    public Result<CrmAllGoalVO> addAllGoal(@Validated @RequestBody CrmAllGoalDTO allGoalDTO) {
+    public Result<CrmAllGoalVO> addAllGoal(@Validated @RequestBody CrmAllGoalAddDTO allGoalDTO) {
         return Result.success(crmAllGoalService.addGoal(allGoalDTO));
     }
 
@@ -76,7 +76,7 @@ public class CrmAllGoalController extends BaseController{
     @Operation(summary = "修改客户关系目标")
     @Log(moduleName = "客户关系目标管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/all/goal/edit")
-    public Result<CrmAllGoalVO> editAllGoal(@Validated @RequestBody CrmAllGoalDTO allGoalDTO) {
+    public Result<CrmAllGoalVO> editAllGoal(@Validated @RequestBody CrmAllGoalEditDTO allGoalDTO) {
         return Result.success(crmAllGoalService.editGoal(allGoalDTO));
     }
     

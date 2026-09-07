@@ -27,6 +27,11 @@ public interface EsConst {
     Integer DEFAULT_PORT = 9200;
 
     /**
+     * 默认节点地址
+     */
+    String DEFAULT_URI = "http://" + DEFAULT_HOST + ":" + DEFAULT_PORT;
+
+    /**
      * HEADER_NAME
      */
     String URL_HEADER_NAME = "X-Elastic-Product";
@@ -47,6 +52,11 @@ public interface EsConst {
      *  keyword
      */
     String KEYWORD = "keyword";
+
+    /**
+     *  .keyword
+     */
+    String SUFFIX_KEYWORD = ".keyword";
 
     /**
      *  language
@@ -108,7 +118,57 @@ public interface EsConst {
     /**
      *  icu_analyzer
      */
+    String MAPPING_SUFFIX_ID = "_id";
+
+    /**
+     *  icu_analyzer
+     */
     String MAPPING_MATCH_ID = "*id";
+
+    /**
+     *  icu_analyzer
+     */
+    String MAPPING_MATCH_STR = "*_str";
+
+    /**
+     *  _str后缀
+     */
+    String MAPPING_SUFFIX_STR = "_str";
+
+    /**
+     *  icu_analyzer
+     */
+    String MAPPING_MATCH_TEXT = "*_text";
+
+    /**
+     *  icu_analyzer
+     */
+    String MAPPING_MATCH_TEXTAREA = "textarea_*";
+
+    /**
+     *  icu_analyzer
+     */
+    String MAPPING_MATCH_TEXT_MULTI = "text_multi_*";
+
+    /**
+     *  icu_analyzer
+     */
+    String MAPPING_PREFIX_SIGN = "sign_*";
+
+    /**
+     *  _text后缀
+     */
+    String MAPPING_SUFFIX_TEXT = "_text";
+
+    /**
+     *  _text前缀
+     */
+    String MAPPING_PREFIX_TEXTAREA = "textarea_";
+
+    /**
+     *  _text前缀
+     */
+    String MAPPING_PREFIX_TEXT_MULTI = "text_multi_";
 
     /**
      *  icu_analyzer
@@ -119,6 +179,26 @@ public interface EsConst {
      *  _num后缀
      */
     String MAPPING_SUFFIX_NUM = "_num";
+
+    /**
+     *  _money后缀
+     */
+    String MAPPING_MATCH_MONEY = "*_money";
+
+    /**
+     *  _money后缀
+     */
+    String MAPPING_SUFFIX_MONEY = "_money";
+
+    /**
+     *  icu_analyzer
+     */
+    String MAPPING_MATCH_DATE = "*_date";
+
+    /**
+     *  _date后缀
+     */
+    String MAPPING_SUFFIX_DATE = "_date";
 
     /**
      *  icu_analyzer
@@ -141,14 +221,29 @@ public interface EsConst {
     String MAPPING_SUFFIX_JSON = "_json";
 
     /**
+     *  icu_analyzer
+     */
+    String MAPPING_MATCH_ARRAY = "*_array";
+
+    /**
+     *  _list后缀
+     */
+    String MAPPING_SUFFIX_ARRAY = "_array";
+
+    /**
      *  string_to_long 模板名称
      */
     String MAPPING_TEMP_LONG = "string_to_long";
 
     /**
+     *  string_to_key 模板名称
+     */
+    String MAPPING_TEMP_KEY = "string_to_key";
+
+    /**
      *  string_to_text 模板名称
      */
-    String MAPPING_TEMP_STR = "string_to_text";
+    String MAPPING_TEMP_TEXT = "string_to_text";
 
     /**
      *  string_to_num 模板名称
@@ -165,7 +260,25 @@ public interface EsConst {
      */
     String MAPPING_TEMP_JSON = "object_to_json";
 
+    /**
+     *  object_to_array 模板名称
+     */
+    String MAPPING_TEMP_ARRAY = "object_to_array";
+
     /*=============================================响应信息 设置=============================================*/
 
     String BULK_RESPONSE_ERROR_VERSION = "version_conflict_engine_exception";
+
+
+    /*=============================================字段信息 设置=============================================*/
+
+    String BPM_PROCESS_PASS = "process_pass";
+
+    String BPM_PROCESS_PASS_JSON = "process_pass_json";
+
+    String CRM_CONFIRM_FLAG = "confirm_flag";
+
+    String CRM_CONFIRM_FLAG_JSON = "confirm_flag_json";
+
+    String CRM_DRAINAGE_SOURCE_JSON = "drainage_source_json";
 }

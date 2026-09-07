@@ -8,6 +8,7 @@ import com.platform.mesh.upms.biz.modules.msg.userrel.domain.dto.MsgUserRelPageD
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.po.MsgUserRel;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.MsgUserRelVO;
 import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadModuleVO;
+import com.platform.mesh.upms.biz.modules.msg.userrel.domain.vo.UnReadUserVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -22,4 +23,8 @@ public interface MsgUserRelMapper extends BaseMapper<MsgUserRel> {
 
     @InterceptorIgnore(tenantLine = "true")
     List<UnReadModuleVO> selectUnReadMsgCount(@Param("userId") Long userId, @Param("readFlag") Integer readFlag, @Param("delFlag") Integer delFlag);
+
+    List<UnReadUserVO> selectUnReadUserCount(@Param("userIds") List<Long> userIds,
+                                             @Param("readFlag") Integer readFlag,
+                                             @Param("delFlag") Integer delFlag);
 }

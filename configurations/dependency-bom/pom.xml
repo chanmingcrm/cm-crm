@@ -6,7 +6,7 @@
 
     <groupId>com.platform</groupId>
     <artifactId>dependency-bom</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <packaging>pom</packaging>
 
 
@@ -22,66 +22,65 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!--Spring 家族-->
-        <!-- SAS版本 -->
-        <spring-security-oauth2-authorization-server.version>1.5.0</spring-security-oauth2-authorization-server.version>
         <!-- 服务监控 -->
-        <spring-boot-admin.version>3.5.0</spring-boot-admin.version>
+        <spring-boot-admin.version>4.1.2</spring-boot-admin.version>
 
         <!-- 应用开发辅助工具组件 -->
         <!-- okhttp -->
-        <okhttp.version>4.12.0</okhttp.version>
+        <okhttp.version>5.5.0</okhttp.version>
         <!-- aviator 表达式引擎 -->
-        <aviator.version>5.4.3</aviator.version>
+        <aviator.version>5.4.4</aviator.version>
         <!-- 模板引擎 -->
         <velocity.version>2.3</velocity.version>
 
         <!-- 文档生成 -->
-        <swagger.version>2.2.30</swagger.version>
-        <springdoc.version>2.8.8</springdoc.version>
+        <swagger.version>2.2.53</swagger.version>
+        <springdoc.version>3.1.0</springdoc.version>
         <knife4j.version>4.5.0</knife4j.version>
 
         <!-- 阿里巴巴开源工具依赖 -->
-        <!-- FastExcel -->
-        <fastexcel.version>1.2.0</fastexcel.version>
+        <!-- FesodSheet -->
+        <fesod.version>2.0.2-incubating</fesod.version>
         <!-- fastjson2 -->
-        <fastjson2.version>2.0.57</fastjson2.version>
+        <fastjson2.version>2.0.61</fastjson2.version>
 
 
         <!--第三方starter-->
         <!-- mybatis-plus -->
         <!-- 多数据源 -->
-        <dynamic-datasource.version>4.3.1</dynamic-datasource.version>
+        <dynamic-datasource.version>4.5.0</dynamic-datasource.version>
         <!-- ORM -->
-        <mybatis-plus-boot.version>3.5.12</mybatis-plus-boot.version>
+        <mybatis-plus-boot.version>3.5.16</mybatis-plus-boot.version>
 
         <!-- redisson -->
-        <redisson.version>3.49.0</redisson.version>
+        <redisson.version>4.7.0</redisson.version>
 
         <!-- Elasticsearch -->
-        <elasticsearch-java.version>9.0.2</elasticsearch-java.version>
+        <elasticsearch-java.version>9.5.1</elasticsearch-java.version>
 
         <!-- 国内开源通用组件 -->
-        <hutool.version>5.8.38</hutool.version>
-        <justAuth.version>1.16.7</justAuth.version>
-        <tianai-captcha.version>1.5.2</tianai-captcha.version>
-        <xxl-job.version>3.1.0</xxl-job.version>
+        <ip2region.version>3.3.7</ip2region.version>
+        <hutool.version>5.8.47</hutool.version>
+        <justAuth.version>3.0.1</justAuth.version>
+        <tianai-captcha.version>1.5.5</tianai-captcha.version>
+        <xxl-job.version>3.4.2</xxl-job.version>
 
         <!-- commons -->
-        <commons-io.version>2.19.0</commons-io.version>
-        <commons-compress.version>1.27.1</commons-compress.version>
+        <commons-io.version>2.22.0</commons-io.version>
+        <commons-compress.version>1.28.0</commons-compress.version>
 
+        <!--netty-->
+        <netty-all.version>4.2.17.Final</netty-all.version>
         <!--start-file版本-->
-        <!-- 文档解析 -->
-        <tika-core.version>3.2.0</tika-core.version>
         <!-- 图片处理 -->
-        <thumbnailator.version>0.4.20</thumbnailator.version>
+        <thumbnailator.version>0.4.21</thumbnailator.version>
         <!-- 对象存储 -->
-        <awssdk-s3.version>2.31.63</awssdk-s3.version>
+        <awssdk-s3.version>2.53.3</awssdk-s3.version>
         <!-- 短信发送 -->
         <sms4j.version>3.3.5</sms4j.version>
-
+        <jpush.version>5.3.1</jpush.version>
         <!--项目版本-->
-        <platform.version>3.5.0</platform.version>
+        <platform.version>4.1.0</platform.version>
 
     </properties>
 
@@ -91,14 +90,6 @@
     <dependencyManagement>
         <dependencies>
             <!-- ================================spring家族服务开始================================ -->
-            <!-- spring 认证鉴权服务器 -->
-            <!-- Spring Authorization Server -->
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-oauth2-authorization-server</artifactId>
-                <version>${spring-security-oauth2-authorization-server.version}</version>
-            </dependency>
-
             <!-- SpringBoot Admin -->
             <dependency>
                 <groupId>de.codecentric</groupId>
@@ -142,6 +133,16 @@
                 <version>${swagger.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-models-jakarta</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-core-jakarta</artifactId>
+                <version>${swagger.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
@@ -159,9 +160,9 @@
 
             <!-- excel工具 -->
             <dependency>
-                <groupId>cn.idev.excel</groupId>
-                <artifactId>fastexcel</artifactId>
-                <version>${fastexcel.version}</version>
+                <groupId>org.apache.fesod</groupId>
+                <artifactId>fesod-sheet</artifactId>
+                <version>${fesod.version}</version>
             </dependency>
             <!-- 阿里巴巴开源工具依赖 -->
             <!--json工具-->
@@ -180,13 +181,13 @@
             <!-- 多数据源 -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>dynamic-datasource-spring-boot3-starter</artifactId>
+                <artifactId>dynamic-datasource-spring-boot4-starter</artifactId>
                 <version>${dynamic-datasource.version}</version>
             </dependency>
             <!-- ORM -->
             <dependency>
                 <groupId>com.baomidou</groupId>
-                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
                 <version>${mybatis-plus-boot.version}</version>
             </dependency>
             <dependency>
@@ -210,6 +211,12 @@
             </dependency>
 
             <!-- 国内开源通用组件 -->
+            <!--ip解析-->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
             <!--hutool-->
             <dependency>
                 <groupId>cn.hutool</groupId>
@@ -218,7 +225,7 @@
             </dependency>
             <!--JustAuth-->
             <dependency>
-                <groupId>me.zhyd.oauth</groupId>
+                <groupId>io.github.windtool</groupId>
                 <artifactId>JustAuth</artifactId>
                 <version>${justAuth.version}</version>
             </dependency>
@@ -248,12 +255,6 @@
             </dependency>
 
             <!--start-file版本-->
-            <!-- 文档解析Tika -->
-            <dependency>
-                <groupId>org.apache.tika</groupId>
-                <artifactId>tika-core</artifactId>
-                <version>${tika-core.version}</version>
-            </dependency>
             <!-- 图片处理 https://github.com/coobird/thumbnailator -->
             <dependency>
                 <groupId>net.coobird</groupId>
@@ -267,11 +268,25 @@
                 <version>${awssdk-s3.version}</version>
             </dependency>
 
+            <!-- netty -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty-all.version}</version>
+            </dependency>
+
             <!-- 短信框架 -->
             <dependency>
                 <groupId>org.dromara.sms4j</groupId>
                 <artifactId>sms4j-spring-boot-starter</artifactId>
                 <version>${sms4j.version}</version>
+            </dependency>
+
+            <!-- 极光推送 -->
+            <dependency>
+                <groupId>io.github.jpush</groupId>
+                <artifactId>jiguang-sdk</artifactId>
+                <version>${jpush.version}</version>
             </dependency>
 
             <!-- ================================第三方starter服务结束================================ -->
@@ -414,10 +429,46 @@
                 <version>${platform.version}</version>
             </dependency>
 
+            <!--企业微信-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-tencent-wxwork</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--抖音-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-bytedance-douyin</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--消息中心-->
             <!--短信中心-->
             <dependency>
                 <groupId>com.platform</groupId>
-                <artifactId>start-message-sms</artifactId>
+                <artifactId>start-msg-sms</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--极光推送-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-msg-jpush</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-msg-netty-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>netty-server</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--start-msg-mq-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>start-msg-mq</artifactId>
                 <version>${platform.version}</version>
             </dependency>
             <!-- ================================自定义服务结束================================ -->
@@ -451,6 +502,20 @@
                 <artifactId>mesh-bpm-api</artifactId>
                 <version>${platform.version}</version>
             </dependency>
+
+            <!--生成服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-gen-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
+
+            <!--AI服务 API-->
+            <dependency>
+                <groupId>com.platform</groupId>
+                <artifactId>mesh-ai-api</artifactId>
+                <version>${platform.version}</version>
+            </dependency>
             <!-- ===============================基础服务API结束================================ -->
 
             <!-- ===============================业务服务API开始================================ -->
@@ -461,15 +526,6 @@
                 <artifactId>mesh-crm-api</artifactId>
                 <version>${platform.version}</version>
             </dependency>
-
-
-            <!--任务计划服务 API-->
-            <dependency>
-                <groupId>com.platform</groupId>
-                <artifactId>mesh-tmp-api</artifactId>
-                <version>${platform.version}</version>
-            </dependency>
-
 
             <!-- ===============================业务服务API结束================================ -->
             <!-- =================================服务API结束================================= -->

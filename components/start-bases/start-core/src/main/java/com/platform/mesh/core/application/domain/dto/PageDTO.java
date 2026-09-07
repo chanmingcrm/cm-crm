@@ -30,6 +30,12 @@ public class PageDTO extends BaseDTO {
 	@Schema(description = "每页显示记录数")
 	private Integer pageSize = 20;
 
+    /**
+     * 是否正序:true 正序
+     */
+    @Schema(description = "是否正序")
+    private Boolean isAsc = Boolean.TRUE;
+
 	/**
 	 * 排序列
 	 */

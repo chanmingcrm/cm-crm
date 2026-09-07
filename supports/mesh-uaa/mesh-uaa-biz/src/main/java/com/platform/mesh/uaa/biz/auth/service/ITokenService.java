@@ -2,6 +2,7 @@ package com.platform.mesh.uaa.biz.auth.service;
 
 import cn.hutool.json.JSONObject;
 import com.platform.mesh.uaa.biz.auth.domain.dto.AuthCallbackDTO;
+import com.platform.mesh.uaa.biz.auth.domain.dto.AuthClientDTO;
 import com.platform.mesh.uaa.biz.auth.domain.dto.AuthRenderDTO;
 import com.platform.mesh.uaa.biz.auth.service.manual.TokenServiceManual;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
@@ -47,11 +48,11 @@ public interface ITokenService {
      * 功能描述:
      * 〈获取登录token〉
      * @param map map
-     * @param authorization authorization
+     * @param headMap headMap
      * @return 正常返回:{@link JSONObject}
      * @author 蝉鸣
      */
-    JSONObject getToken(Map<String, Object> map, String authorization);
+    JSONObject getToken(Map<String, Object> map, Map<String,String> headMap);
 
     /**
      * 功能描述:
@@ -79,4 +80,22 @@ public interface ITokenService {
      * @author 蝉鸣
      */
     SysAccountBO bindAccount(AuthCallbackDTO callbackDTO);
+
+    /**
+     * 功能描述:
+     * 〈获取企业微信凭证〉
+     * @param clientDTO clientDTO
+     * @return 正常返回:{@link SysAccountBO}
+     * @author 蝉鸣
+     */
+    Object getWxWorkTicket(AuthClientDTO clientDTO);
+
+    /**
+     * 功能描述:
+     * 〈获取企业微信签名〉
+     * @param clientDTO clientDTO
+     * @return 正常返回:{@link SysAccountBO}
+     * @author 蝉鸣
+     */
+    Object getWxWorkSign(AuthClientDTO clientDTO);
 }

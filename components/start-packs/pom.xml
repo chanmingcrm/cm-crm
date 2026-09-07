@@ -6,10 +6,10 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>components</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
     <artifactId>start-packs</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <packaging>pom</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,7 +17,7 @@
 
     <modules>
         <module>start-captcha</module>
-        <module>start-message</module>
+        <module>start-msg</module>
         <module>start-file</module>
         <module>start-search</module>
         <module>start-job</module>

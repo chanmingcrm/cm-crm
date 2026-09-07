@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberBO;
+import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberRelBO;
 import com.platform.mesh.upms.biz.modules.org.member.domain.po.OrgMember;
 import com.platform.mesh.upms.biz.modules.org.member.service.IOrgMemberService;
 import com.platform.mesh.utils.result.Result;
@@ -38,7 +39,7 @@ public class OrgMemberApi extends BaseController {
 	@Operation(summary = "获取成员信息缓存")
 	@PostMapping("/api/org/member/by/ids")
 	public Result<List<OrgMemberBO>> getOrgMemberByIds(@RequestBody List<Long> memberIds) {
-		List<OrgMember> orgMembers = orgMemberService.listByIds(memberIds);
+		List<OrgMemberBO> orgMembers = orgMemberService.getOrgMemberByIds(memberIds);
 		return Result.success(BeanUtil.copyToList(orgMembers,OrgMemberBO.class));
 	}
 
@@ -58,16 +59,58 @@ public class OrgMemberApi extends BaseController {
 
 	/**
 	 * 功能描述:
-	 * 〈获取成员〉
+	 * 〈获取账户下所有的成员〉
 	 * @param memberName memberName
 	 * @return 正常返回:{@link Result<OrgMemberBO>}
 	 * @author 蝉鸣
 	 */
 	@Operation(summary = "获取成员信息缓存")
 	@GetMapping("/api/org/member/by/{memberName}")
-	public Result<OrgMemberBO> getOrgMemberByName(@PathVariable("memberName") String memberName){
-		OrgMember orgMember = orgMemberService.lambdaQuery()
-				.eq(OrgMember::getMemberName,memberName).list().getFirst();
-		return Result.success(BeanUtil.copyProperties(orgMember,OrgMemberBO.class));
+	public Result<OrgMemberBO> getOrgMemberByNameFirst(@PathVariable("memberName") String memberName){
+		OrgMemberBO orgMember = orgMemberService.getOrgMemberByNameFirst(memberName);
+		return Result.success(orgMember);
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈获取根据userId获取成员信息〉
+	 * @param tenantId tenantId
+	 * @param userId userId
+	 * @return 正常返回:{@link Result<OrgMemberBO>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "获取成员信息缓存")
+	@GetMapping("/api/org/member/by/user/{userId}")
+	public Result<OrgMemberBO> getOrgMemberByUserIdFirst(@PathVariable("userId") Long userId){
+		OrgMemberBO orgMember = orgMemberService.getOrgMemberByUserIdFirst(userId);
+		return Result.success(orgMember);
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈获取直属上级〉
+	 * @param accountId accountId
+	 * @return 正常返回:{@link Result<OrgMemberRelBO>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "获取直属上级")
+	@GetMapping("/api/org/member/leader/direct/by/account/id")
+	public Result<OrgMemberBO> getLeaderDirect(@RequestParam("accountId") Long accountId) {
+		OrgMemberBO leader = orgMemberService.getLeaderDirect(accountId);
+		return Result.success(leader);
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈获取多层上级〉
+	 * @param accountId accountId
+	 * @return 正常返回:{@link Result<List<OrgMemberRelBO>>}
+	 * @author 蝉鸣
+	 */
+	@Operation(summary = "获取多层上级")
+	@GetMapping("/api/org/member/leader/loop/by/account/id")
+	public Result<List<OrgMemberBO>> getLeaderLoop(@RequestParam("accountId") Long accountId) {
+		List<OrgMemberBO> leaders = orgMemberService.getLeaderLoop(accountId);
+		return Result.success(leaders);
 	}
 }

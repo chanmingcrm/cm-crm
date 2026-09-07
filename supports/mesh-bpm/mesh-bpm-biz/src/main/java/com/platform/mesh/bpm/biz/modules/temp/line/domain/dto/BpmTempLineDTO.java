@@ -2,8 +2,6 @@ package com.platform.mesh.bpm.biz.modules.temp.line.domain.dto;
 
 
 import cn.hutool.json.JSONArray;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

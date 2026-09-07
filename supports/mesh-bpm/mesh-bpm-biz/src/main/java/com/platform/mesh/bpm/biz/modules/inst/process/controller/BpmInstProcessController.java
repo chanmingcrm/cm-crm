@@ -1,6 +1,7 @@
 package com.platform.mesh.bpm.biz.modules.inst.process.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.platform.mesh.bpm.api.modules.inst.domain.dto.BpmProcessStartDTO;
 import com.platform.mesh.bpm.biz.modules.inst.nodesub.domain.dto.BpmInstNodeSubDTO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.dto.BpmInstProcessPageDTO;
@@ -9,6 +10,7 @@ import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDe
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessOaVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessRunVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessVO;
+import com.platform.mesh.bpm.biz.modules.inst.process.exception.InstProcessExceptionEnum;
 import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
@@ -44,6 +46,9 @@ public class BpmInstProcessController extends BaseController {
     @Operation(summary = "启动流程实例")
     @PostMapping("/inst/process/start")
     public Result<BpmInstProcessVO> startInstProcessById(@RequestBody BpmProcessStartDTO startDTO) {
+        if(ObjectUtil.isEmpty(startDTO.getTempProcessId())){
+            throw InstProcessExceptionEnum.TEMP_NO_ARGS.getBaseException();
+        }
         BpmInstProcess bpmInstProcess = bpmInstProcessService.startProcessInst(startDTO);
         return Result.success(BeanUtil.copyProperties(bpmInstProcess, BpmInstProcessVO.class));
     }
@@ -158,5 +163,16 @@ public class BpmInstProcessController extends BaseController {
         Long accountId = SecurityUtils.getLoginUser().getAccountId();
         return Result.success(bpmInstProcessService.getProcessInstFollow(pageDTO,accountId));
     }
-  
+
+    /**
+     * 功能描述:
+     * 〈提交流程,可以进行审批〉
+     * @param instProcessId tempProcessId
+     * @return 正常返回:{@link Result<BpmInstProcessVO>}
+     */
+    @Operation(summary = "提交流程,可以进行审批")
+    @PostMapping("/inst/process/commit")
+    public Result<Boolean> commitInstProcess(@RequestParam("instProcessId")Long instProcessId) {
+        return Result.success(bpmInstProcessService.commitInstProcess(instProcessId));
+    }
 }

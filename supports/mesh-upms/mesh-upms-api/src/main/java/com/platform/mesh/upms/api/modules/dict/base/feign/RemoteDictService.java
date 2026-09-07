@@ -8,10 +8,7 @@ import com.platform.mesh.upms.api.modules.dict.base.feign.factory.RemoteDictFall
 import com.platform.mesh.utils.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -54,5 +51,15 @@ public interface RemoteDictService {
 	 */
 	@GetMapping(value = "/api/dict/value/by/{dictId}/{dictName}", headers = HttpConst.HEADER_FROM_IN)
 	Result<DictBaseValueBO> getFistSysDictByName(@PathVariable("dictId") Long dictId,@PathVariable("dictName") String dictName);
+
+	/**
+	 * 功能描述:
+	 * 〈根据字典值获取字典〉
+	 * @param dictMac dictMac
+	 * @return 正常返回:{@link Result<DictBaseValueBO>}
+	 * @author 蝉鸣
+	 */
+	@GetMapping(value = "/api/dict/value/by/mac", headers = HttpConst.HEADER_FROM_IN)
+	Result<DictBaseValueBO> getFistSysDictByMac(@RequestParam("dictMac") String dictMac, @RequestParam("dictValue") Integer dictValue);
 
 }

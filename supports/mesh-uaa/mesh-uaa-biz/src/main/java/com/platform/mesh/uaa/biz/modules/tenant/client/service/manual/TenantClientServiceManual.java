@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * 约定当前模块Manual 不引入当前模块Service,Manual是供Service引入，避免循环引入依赖
- * @description 授权客户端系统关系
+ * @description 授权客户端租户关系
  * @author 蝉鸣
  */
 @Service
@@ -19,7 +19,7 @@ public class TenantClientServiceManual{
     
     /**
      * 功能描述: 
-     * 〈获取当前授权客户端系统关系信息〉
+     * 〈获取当前授权客户端租户关系信息〉
      * @param tenantClient tenantClient 
      * @return 正常返回:{@link TenantClientVO}
      * @author 蝉鸣

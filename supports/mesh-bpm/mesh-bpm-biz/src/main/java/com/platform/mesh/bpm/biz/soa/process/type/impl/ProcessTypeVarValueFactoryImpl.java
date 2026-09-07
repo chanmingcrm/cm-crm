@@ -12,6 +12,7 @@ import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessDe
 import com.platform.mesh.bpm.biz.modules.inst.varvalue.domain.po.BpmInstVarValue;
 import com.platform.mesh.bpm.biz.modules.inst.varvalue.service.IBpmInstVarValueService;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
@@ -132,5 +133,17 @@ public class ProcessTypeVarValueFactoryImpl implements ProcessTypeService {
                 .eq(BpmHistVarValue::getInstProcessId, getVO.getInstProcessId())
                 .list();
         getVO.setVarValueVOs(BeanUtil.copyToList(histVarValues, BpmHistVarValueVO.class));
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+
     }
 }

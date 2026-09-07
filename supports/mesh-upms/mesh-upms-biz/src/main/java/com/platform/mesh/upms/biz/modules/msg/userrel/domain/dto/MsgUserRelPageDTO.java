@@ -9,6 +9,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * @description 消息接收分页DTO
  * @author 蝉鸣
@@ -30,7 +33,7 @@ public class MsgUserRelPageDTO extends PageDTO {
      * 消息标识
      */
     @SchemaEnum(value = MsgFlagEnum.class, description = "消息标识")
-    private Integer msgFlag;
+    private List<Integer> msgFlags;
 
     /**
      * 已读标识
@@ -43,5 +46,17 @@ public class MsgUserRelPageDTO extends PageDTO {
      */
     @SchemaEnum(value = YesOrNoEnum.class, description = "删除标识")
     private Integer delFlag;
+
+    /**
+     * 开始时间
+     */
+    @Schema(description = "提醒时间")
+    private LocalDateTime startTime;
+
+    /**
+     * 结束时间
+     */
+    @Schema(description = "提醒时间")
+    private LocalDateTime endTime;
 
 }

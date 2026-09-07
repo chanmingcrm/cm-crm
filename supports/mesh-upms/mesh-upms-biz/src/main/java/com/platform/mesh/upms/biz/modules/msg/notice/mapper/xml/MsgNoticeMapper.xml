@@ -8,7 +8,10 @@
         FROM
             msg_notice
         WHERE
-            NOW() &lt; notice_end_time
+            (notice_loop = 1)
+            OR (notice_loop = 2 AND ((NOW() &gt; notice_next_time AND NOW() &lt; notice_end_time) OR (notice_next_time = notice_end_time)))
+            OR notice_loop = 3
+        ORDER BY create_time ASC
     </select>
 
     <delete id="clearNotice">

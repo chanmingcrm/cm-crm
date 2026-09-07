@@ -4,17 +4,23 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.platform.mesh.core.constants.NumberConst;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.dto.DocDirDTO;
+import com.platform.mesh.upms.biz.modules.doc.dir.domain.dto.DocDirPageDTO;
+import com.platform.mesh.upms.biz.modules.doc.dir.domain.po.DocDir;
 import com.platform.mesh.upms.biz.modules.doc.dir.domain.vo.DocDirVO;
+import com.platform.mesh.upms.biz.modules.doc.dir.enums.DocFlagEnum;
 import com.platform.mesh.upms.biz.modules.doc.dir.exception.DocDirExceptionEnum;
 import com.platform.mesh.upms.biz.modules.doc.dir.mapper.DocDirMapper;
 import com.platform.mesh.upms.biz.modules.doc.dir.service.IDocDirService;
 import com.platform.mesh.upms.biz.modules.doc.dir.service.manual.DocDirServiceManual;
-import com.platform.mesh.upms.biz.modules.doc.dir.domain.po.DocDir;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 
 /**
@@ -28,6 +34,20 @@ public class DocDirServiceImpl extends ServiceImpl<DocDirMapper, DocDir> impleme
     @Autowired
     private DocDirServiceManual docDirServiceManual;
 
+
+    /**
+     * 功能描述:
+     * 〈获取官网目录〉
+     * @param pageDTO pageDTO
+     * @return 正常返回:{@link MPage<DocDir>}
+     * @author 蝉鸣
+     */
+    @Override
+    public MPage<DocDir> selectHomePage(DocDirPageDTO pageDTO) {
+        MPage<DocDir> dirMPage = MPageUtil.pageEntityToMPage(pageDTO, DocDir.class);
+        pageDTO.setDirFlag(DocFlagEnum.HOME.getValue());
+        return this.getBaseMapper().selectHomePage(dirMPage,pageDTO);
+    }
     
     /**
      * 功能描述: 
@@ -87,4 +107,16 @@ public class DocDirServiceImpl extends ServiceImpl<DocDirMapper, DocDir> impleme
         
         return this.removeById(dirId);
     }
+
+    /**
+     * 功能描述:
+     * 〈获取开放文件夹〉
+     * @return 正常返回:{@link DocDir}
+     * @author 蝉鸣
+     */
+    @Override
+    public DocDir getOneOpenDir() {
+        return this.getBaseMapper().getOneOpenDir(YesOrNoEnum.YES.getValue());
+    }
+
 }

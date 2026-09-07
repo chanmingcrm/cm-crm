@@ -14,12 +14,11 @@ import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.upms.api.modules.sys.account.enums.MenuTypeEnum;
 import com.platform.mesh.upms.api.modules.sys.menu.domain.bo.AppMenuBO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.bo.RouteItemBO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.bo.RouteMetaBO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.po.SysMenu;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.RouteItemVO;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.RouteMetaVO;
+import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.RouteVO;
 import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysMenuVO;
-import com.platform.mesh.upms.biz.modules.sys.menu.domain.vo.SysRouteVO;
 import com.platform.mesh.upms.biz.modules.sys.rolemenurel.domain.po.SysRoleMenuRel;
 import com.platform.mesh.upms.biz.modules.sys.rolemenurel.service.ISysRoleMenuRelService;
 import org.slf4j.Logger;
@@ -77,12 +76,7 @@ public class SysMenuServiceManual {
         //转换VO
         BeanUtil.copyProperties(sysMenu, sysMenuVO);
         //转换RouteItem
-        RouteItemBO routeItemBO = BeanUtil.copyProperties(sysMenu, RouteItemBO.class);
-        //转换RouteMate
-        RouteMetaBO routeMetaBO = BeanUtil.copyProperties(sysMenu, RouteMetaBO.class);
-        routeItemBO.setRouteMeta(routeMetaBO);
-        sysMenuVO.setRouteItem(routeItemBO);
-        return sysMenuVO;
+        return BeanUtil.copyProperties(sysMenu, SysMenuVO.class);
     }
 
 
@@ -125,19 +119,19 @@ public class SysMenuServiceManual {
      * 功能描述:
      * 〈获取路由信息〉
      * @param sysMenus sysMenus
-     * @return 正常返回:{@link SysRouteVO}
+     * @return 正常返回:{@link RouteVO}
      * @author 蝉鸣
      */
-    public SysRouteVO getMenuRouteInfo(List<SysMenu> sysMenus) {
-        SysRouteVO sysRouteVO = new SysRouteVO();
-        sysRouteVO.setHome("dashboard_analysis");
+    public RouteVO getMenuRouteInfo(List<SysMenu> sysMenus) {
+        RouteVO routeVO = new RouteVO();
+        routeVO.setHome("dashboard_analysis");
         //封装路由信息
         //转换VO
         List<RouteItemVO> sysRouteVos = sysMenus.stream().map(this::getRouteInfoById).collect(Collectors.toList());
         //封装树结构
-        List<RouteItemVO> routeTreeVO = this.packageRouteTree(sysRouteVos, 0L);
-        sysRouteVO.setRoutes(routeTreeVO);
-        return sysRouteVO;
+        List<RouteItemVO> routeTreeVO = this.packageRouteTree(sysRouteVos, NumberConst.NUM_0.longValue());
+        routeVO.setRoutes(routeTreeVO);
+        return routeVO;
     }
 
     /**
@@ -157,10 +151,10 @@ public class SysMenuServiceManual {
             routeItemVO.setOrderNo(NumberConst.NUM_0);
         }
         //转换RouteMate
-        RouteMetaBO routeMetaBO = BeanUtil.copyProperties(sysMenu, RouteMetaBO.class,"params");
+        RouteMetaVO routeMetaVO = BeanUtil.copyProperties(sysMenu, RouteMetaVO.class,"params");
         JSONArray params = JSONUtil.parseArray(sysMenu.getParams());
-        routeMetaBO.setParams(params);
-        routeItemVO.setMeta(routeMetaBO);
+        routeMetaVO.setParams(params);
+        routeItemVO.setMeta(routeMetaVO);
         return routeItemVO;
     }
 
@@ -214,6 +208,7 @@ public class SysMenuServiceManual {
         sysMenu.setName(IdUtil.fastSimpleUUID());
         sysMenu.setTitle(appMenuBO.getTitle());
         sysMenu.setPath(appMenuBO.getPath());
+        sysMenu.setIcon(appMenuBO.getIcon());
         sysMenu.setComponent(appMenuBO.getComponent());
         if(CollUtil.isNotEmpty(appMenuBO.getParams())){
             String params = JSONUtil.toJsonStr(appMenuBO.getParams());
@@ -229,7 +224,7 @@ public class SysMenuServiceManual {
         //todo 先随机生成
         String uuid = IdUtil.fastUUID();
         //路由路径
-        if(MenuTypeEnum.APP.getValue().equals(sysMenu.getMenuType())) {
+        if(MenuTypeEnum.APP.getValue().equals(sysMenu.getMenuType()) || sysMenu.getParentId().equals(NumberConst.NUM_0.longValue())) {
             sysMenu.setPath(SymbolConst.FORWARD_SLASH + uuid);
         }else{
             sysMenu.setPath(uuid);
@@ -248,25 +243,32 @@ public class SysMenuServiceManual {
         if(CollUtil.isEmpty(editMenus)){
             return CollUtil.newArrayList();
         }
-        return editMenus.stream().peek(menu->{
-            menu.setId(menu.getId());
-            menu.setModuleId(appMenuBO.getModuleId());
-            menu.setMenuType(appMenuBO.getMenuType());
-            menu.setComponent(appMenuBO.getComponent());
-            menu.setTitle(appMenuBO.getTitle());
-            menu.setPath(appMenuBO.getPath());
-            if(CollUtil.isNotEmpty(appMenuBO.getParams())){
-                String params = JSONUtil.toJsonStr(appMenuBO.getParams());
-                menu.setParams(params);
-            }
-            menu.setKeepAlive(YesOrNoEnum.YES.getValue());
-            if(MenuTypeEnum.MENU.getValue().equals(appMenuBO.getMenuType())) {
-                menu.setAlwaysShow(YesOrNoEnum.INIT.getValue());
-            }else {
-                menu.setAlwaysShow(YesOrNoEnum.YES.getValue());
-            }
-            menu.setHideMenu(YesOrNoEnum.INIT.getValue());
-        }).toList();
+        List<SysMenu> sysMenus = editMenus.stream()
+                .filter(menu -> menu.getMenuType().equals(appMenuBO.getMenuType()))
+                .filter(menu -> menu.getMac().equals(appMenuBO.getRelId().toString()))
+                .peek(menu -> {
+                    menu.setId(menu.getId());
+                    menu.setModuleId(appMenuBO.getModuleId());
+                    menu.setMenuType(appMenuBO.getMenuType());
+                    menu.setComponent(appMenuBO.getComponent());
+                    menu.setTitle(appMenuBO.getTitle());
+                    menu.setPath(appMenuBO.getPath());
+                    menu.setIcon(appMenuBO.getIcon());
+                    if (CollUtil.isNotEmpty(appMenuBO.getParams())) {
+                        String params = JSONUtil.toJsonStr(appMenuBO.getParams());
+                        menu.setParams(params);
+                    }
+                    menu.setKeepAlive(YesOrNoEnum.YES.getValue());
+                    if (MenuTypeEnum.MENU.getValue().equals(appMenuBO.getMenuType())) {
+                        menu.setAlwaysShow(YesOrNoEnum.INIT.getValue());
+                    } else {
+                        menu.setAlwaysShow(YesOrNoEnum.YES.getValue());
+                    }
+                    menu.setHideMenu(YesOrNoEnum.INIT.getValue());
+                    menu.setDelFlag(YesOrNoEnum.YES.getValue());
+                }).toList();
+        //只能修改与当前租户一致的数据
+        return sysMenus.stream().toList();
     }
 
     /**
@@ -280,6 +282,47 @@ public class SysMenuServiceManual {
             return;
         }
         sysRoleMenuRelService.lambdaUpdate().in(SysRoleMenuRel::getMenuId,menuIds).remove();
+    }
+
+    /***
+     * 功能描述:
+     * 〈初始化租户菜单〉
+     * @param roleMap roleMap
+     * @author 蝉鸣
+     */
+    public void initTenantMenu(Map<Long, Long> roleMap) {
+        Set<Long> sourceRoleIds = roleMap.keySet();
+        PageDTO pageDTO = new PageDTO();
+        Integer pageNum = NumberConst.NUM_1;
+        pageDTO.setPageSize(NumberConst.NUM_100);
+        while(true){
+            pageDTO.setPageNum(pageNum);
+            MPage<SysRoleMenuRel> mPage = MPageUtil.pageEntityToMPage(pageDTO, SysRoleMenuRel.class);
+            MPage<SysRoleMenuRel> relMPage = sysRoleMenuRelService.lambdaQuery().in(SysRoleMenuRel::getRoleId, sourceRoleIds).page(mPage);
+            if(CollUtil.isEmpty(relMPage.getRecords())){
+                break;
+            }
+            List<SysRoleMenuRel> menuRelList = copyRoleMenuRel(roleMap, relMPage.getRecords());
+            sysRoleMenuRelService.saveBatch(menuRelList);
+            pageNum++;
+        }
+    }
+
+    /***
+     * 功能描述:
+     * 〈初始化租户菜单关系〉
+     * @param roleMap roleMap
+     * @author 蝉鸣
+     */
+    public List<SysRoleMenuRel> copyRoleMenuRel(Map<Long, Long> roleMap, List<SysRoleMenuRel> sysRoleMenuRelList) {
+        return sysRoleMenuRelList.stream().map(rel->{
+            SysRoleMenuRel menuRel = BeanUtil.copyProperties(rel, SysRoleMenuRel.class);
+            menuRel.setId(IdUtil.getSnowflake().nextId());
+            menuRel.setRoleId(roleMap.get(rel.getRoleId()));
+            menuRel.setCreateUserId(NumberConst.NUM_0.longValue());
+            menuRel.setCreateTime(LocalDateTime.now());
+            return menuRel;
+        }).toList();
     }
 
 }

@@ -13,7 +13,6 @@ import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessRu
 import com.platform.mesh.bpm.biz.modules.inst.process.domain.vo.BpmInstProcessVO;
 import com.platform.mesh.bpm.biz.modules.inst.process.service.manual.BpmInstProcessServiceManual;
 import com.platform.mesh.bpm.biz.modules.temp.nodesub.domain.po.BpmTempNodeSub;
-import com.platform.mesh.core.application.domain.dto.PageDTO;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 
 /**
@@ -148,6 +147,22 @@ public interface IBpmInstProcessService extends IService<BpmInstProcess> {
      * @author 蝉鸣
      */
     PageVO<BpmInstProcessOaVO> getProcessInstFollow(BpmInstProcessPageDTO pageDTO, Long accountId);
+
+    /**
+     * 功能描述:
+     * 〈处理流程实例消息〉
+     * @param instProcessId instProcessId
+     * @author 蝉鸣
+     */
+    void handleInstProcessMsg(Long instProcessId);
+
+    /**
+     * 功能描述:
+     * 〈提交流程,可以进行审批〉
+     * @param instProcessId instProcessId
+     * @author 蝉鸣
+     */
+    Boolean commitInstProcess(Long instProcessId);
 
 }
 

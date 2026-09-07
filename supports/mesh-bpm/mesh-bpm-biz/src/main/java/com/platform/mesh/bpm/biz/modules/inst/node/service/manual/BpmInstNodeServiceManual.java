@@ -4,12 +4,18 @@ package com.platform.mesh.bpm.biz.modules.inst.node.service.manual;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.platform.mesh.bpm.biz.modules.data.inst.domain.po.BpmDataInstRel;
+import com.platform.mesh.bpm.biz.modules.data.inst.service.IBpmDataInstRelService;
+import com.platform.mesh.bpm.biz.modules.data.msg.domain.po.BpmDataMsgQueue;
+import com.platform.mesh.bpm.biz.modules.data.msg.service.IBpmDataMsgQueueService;
 import com.platform.mesh.bpm.biz.modules.inst.line.domain.po.BpmInstLine;
 import com.platform.mesh.bpm.biz.modules.inst.line.service.IBpmInstLineService;
 import com.platform.mesh.bpm.biz.modules.inst.node.domain.po.BpmInstNode;
 import com.platform.mesh.bpm.biz.modules.inst.node.domain.vo.BpmInstNodeLineVO;
 import com.platform.mesh.bpm.biz.modules.inst.node.domain.vo.BpmInstNodeVarVO;
 import com.platform.mesh.bpm.biz.modules.inst.nodeaudit.domain.bo.BpmInstNodePassBO;
+import com.platform.mesh.bpm.biz.modules.inst.process.domain.po.BpmInstProcess;
+import com.platform.mesh.bpm.biz.modules.inst.process.service.IBpmInstProcessService;
 import com.platform.mesh.bpm.biz.modules.inst.variable.domain.po.BpmInstVariable;
 import com.platform.mesh.bpm.biz.modules.inst.variable.domain.vo.BpmInstVariableVO;
 import com.platform.mesh.bpm.biz.modules.inst.variable.service.IBpmInstVariableService;
@@ -17,12 +23,15 @@ import com.platform.mesh.bpm.biz.modules.inst.varvalue.domain.po.BpmInstVarValue
 import com.platform.mesh.bpm.biz.modules.inst.varvalue.service.IBpmInstVarValueService;
 import com.platform.mesh.bpm.biz.pipe.flow.executor.FlowExecutor;
 import com.platform.mesh.bpm.biz.pipe.flow.factory.FlowPipeDefault;
+import com.platform.mesh.bpm.biz.soa.node.pass.enums.NodePassEnum;
 import com.platform.mesh.bpm.biz.soa.node.run.enums.NodeRunEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.NodeTypeService;
 import com.platform.mesh.bpm.biz.soa.node.type.enums.NodeTypeEnum;
 import com.platform.mesh.bpm.biz.soa.node.type.factory.NodeTypeFactory;
 import com.platform.mesh.core.enums.base.BaseEnum;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.utils.function.FutureHandleUtil;
+import com.platform.mesh.utils.spring.SpringContextHolderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +56,12 @@ public class BpmInstNodeServiceManual {
 
     @Autowired
     private IBpmInstVarValueService bpmInstVarValueService;
+
+    @Autowired
+    private IBpmDataInstRelService bpmDataInstRelService;
+
+    @Autowired
+    private IBpmDataMsgQueueService bpmDataMsgQueueService;
 
     @Autowired
     private NodeTypeFactory<BpmInstNode> nodeTypeFactory;
@@ -259,6 +274,47 @@ public class BpmInstNodeServiceManual {
         NodeTypeEnum enumByValue = BaseEnum.getEnumByValue(NodeTypeEnum.class, instNode.getNodeFlag());
         NodeTypeService<BpmInstNode> nodeTypeService = nodeTypeFactory.getNodeService(enumByValue);
         return nodeTypeService.passInstNode(instNode, auditAccountId, auditPass);
+    }
+
+    /**
+     * 功能描述:
+     * 〈发送审批回调消息〉
+     * @param instNode instNode
+     * @author 蝉鸣
+     */
+    public void sendBpmMsg(BpmInstNode instNode) {
+        //保存流程实例与数据关系
+        List<BpmDataInstRel> dataInstRelList = bpmDataInstRelService.lambdaQuery().eq(BpmDataInstRel::getInstProcessId, instNode.getInstProcessId()).list();
+        if(CollUtil.isEmpty(dataInstRelList)) {
+            return;
+        }
+        BpmDataInstRel bpmDataInstRel = CollUtil.getFirst(dataInstRelList);
+        //持久化消息信息
+        BpmDataMsgQueue bpmDataMsgQueue = bpmDataMsgQueueService.saveBpmMsg(instNode,bpmDataInstRel);
+//        BpmDataMsgQueue bpmDataMsgQueue = bpmDataMsgQueueService.getBpmMsgByInstProcessId(instNode.getInstProcessId());
+        //发送审批回调消息
+        bpmDataMsgQueueService.sendBpmMsg(bpmDataMsgQueue);
+    }
+
+    /**
+     * 功能描述:
+     * 〈节点通过功能处理〉
+     * @param bpmInstNode bpmInstNode
+     * @author 蝉鸣
+     */
+    public void handleNodePass(BpmInstNode bpmInstNode) {
+        //现在逻辑比较简单直接处理，后续复杂切换 NodePassFactory
+        if(NodePassEnum.PASS.getValue().equals(bpmInstNode.getPassFlag())){
+            return;
+        }
+        //非通过状态，需要设置当前流程未提交状态，待被驳回人修改提交信息
+        IBpmInstProcessService instProcessService = SpringContextHolderUtil.getBean(IBpmInstProcessService.class);
+        BpmInstProcess instProcess = instProcessService.getById(bpmInstNode.getInstProcessId());
+        if(ObjectUtil.isEmpty(instProcess)){
+            return;
+        }
+        instProcess.setCommitFlag(YesOrNoEnum.NO.getValue());
+        instProcessService.updateById(instProcess);
     }
 }
 

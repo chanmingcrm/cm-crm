@@ -43,8 +43,8 @@ public class BpmAllGroupController extends BaseController{
 	@Operation(summary = "获取模块分组分页")
 	@PostMapping("/bpm/all/group/page")
 	public Result<PageVO<BpmAllGroupVO>> selectPage(@RequestBody PageDTO pageDTO) {
-	    MPage<BpmAllGroup> allGroupMPage = MPageUtil.pageEntityToMPage(pageDTO, BpmAllGroup.class);
-        MPage<BpmAllGroup> page = appAllGroupService.page(allGroupMPage);
+	    MPage<BpmAllGroup> mPage = MPageUtil.pageEntityToMPage(pageDTO, BpmAllGroup.class);
+        MPage<BpmAllGroup> page = appAllGroupService.page(mPage);
         PageVO<BpmAllGroupVO> voPage = MPageUtil.convertToVO(page, BpmAllGroupVO.class);
         return Result.success(voPage);
 	}

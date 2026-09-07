@@ -5,12 +5,12 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>mesh-upms</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mesh-upms-biz</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>系统核心服务</description>
 
     <dependencies>
@@ -49,9 +49,33 @@
         <!--SMS短信服务-->
         <dependency>
             <groupId>com.platform</groupId>
-            <artifactId>start-message-sms</artifactId>
+            <artifactId>start-msg-sms</artifactId>
         </dependency>
 
+        <!--极光推送-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-msg-jpush</artifactId>
+        </dependency>
+
+        <!--飞书JDK-->
+        <dependency>
+            <groupId>com.larksuite.oapi</groupId>
+            <artifactId>oapi-sdk</artifactId>
+            <version>2.4.24</version>
+        </dependency>
+
+        <!--钉钉JDK-->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>dingtalk</artifactId>
+            <version>2.2.34</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>alibaba-dingtalk-service-sdk</artifactId>
+            <version>2.0.0</version>
+        </dependency>
     </dependencies>
 
     <!-- 需要以服务方式运行的包，按照以下进行build plugin的配置，以便支持docker打包；-->

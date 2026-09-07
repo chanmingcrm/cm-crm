@@ -1,0 +1,4 @@
+com.platform.mesh.wxwork.app.service.impl.WxWorkAppServiceImpl
+com.platform.mesh.wxwork.msg.service.impl.WxWorkMsgServiceImpl
+com.platform.mesh.wxwork.msg.service.manual.MsgTempServiceManual
+com.platform.mesh.wxwork.msg.service.manual.MsgSendServiceManual

@@ -3,6 +3,7 @@ package com.platform.mesh.upms.biz.modules.org.memberpostrel.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
@@ -50,9 +51,8 @@ public class OrgMemberPostRelServiceImpl extends ServiceImpl<OrgMemberPostRelMap
      */
     @Override
     public MPage<OrgMemberLevelVO> selectLevelPage(OrgMemberPostRelPageDTO pageDTO){
-        Long accountId = UserCacheUtil.getAccountId();
         MPage<OrgMemberLevelVO> levelMPage = MPageUtil.pageEntityToMPage(pageDTO, OrgMemberLevelVO.class);
-        return this.getBaseMapper().selectLevelPage(levelMPage,accountId);
+        return this.getBaseMapper().selectLevelPage(levelMPage, UserCacheUtil.getUserId());
     }
 
     /**
@@ -99,6 +99,7 @@ public class OrgMemberPostRelServiceImpl extends ServiceImpl<OrgMemberPostRelMap
                 OrgLevelPostRel levelPostRel = postRelMap.get(postId);
                 orgMemberPostRel.setLevelRootId(levelPostRel.getLevelRootId());
                 orgMemberPostRel.setLevelId(levelPostRel.getLevelId());
+                orgMemberPostRel.setLeadFlag(levelPostRel.getLeadFlag());
                 list.add(orgMemberPostRel);
             }
         }
@@ -108,7 +109,6 @@ public class OrgMemberPostRelServiceImpl extends ServiceImpl<OrgMemberPostRelMap
         //删除旧数据
         this.lambdaUpdate()
                 .eq(OrgMemberPostRel::getMemberId,memberPostRelDTO.getMemberId())
-                .in(OrgMemberPostRel::getPostId,memberPostRelDTO.getPostIds())
                 .remove();
         //新增数据
         this.saveBatch(list);
@@ -168,10 +168,31 @@ public class OrgMemberPostRelServiceImpl extends ServiceImpl<OrgMemberPostRelMap
             orgMemberPostRel.setMemberId(rel);
             orgMemberPostRel.setLevelId(orgLevelPostRel.getLevelId());
             orgMemberPostRel.setPostId(transDTO.getTargetId());
+            orgMemberPostRel.setLeadFlag(orgLevelPostRel.getLeadFlag());
             return orgMemberPostRel;
         }).toList();
         this.saveBatch(memberPostRels);
         return Boolean.TRUE;
+    }
+
+    /**
+     * 功能描述:
+     * 〈岗位变动，修改成员岗位关联信息〉
+     * @param levelPostRel levelPostRel
+     * @author 蝉鸣
+     */
+    @Override
+    public void editMemberPostRel(OrgLevelPostRel levelPostRel) {
+        if(YesOrNoEnum.YES.getValue().equals(levelPostRel.getLeadFlag())){
+            this.lambdaUpdate().set(OrgMemberPostRel::getLeadFlag,YesOrNoEnum.NO.getValue())
+                    .eq(OrgMemberPostRel::getLevelId,levelPostRel.getLevelId()).update();
+        }
+        this.lambdaUpdate()
+                .set(OrgMemberPostRel::getLevelRootId,levelPostRel.getLevelRootId())
+                .set(OrgMemberPostRel::getLevelId,levelPostRel.getLevelId())
+                .set(OrgMemberPostRel::getLeadFlag,levelPostRel.getLeadFlag())
+                .eq(OrgMemberPostRel::getPostId,levelPostRel.getPostId())
+                .update();
     }
 }
 

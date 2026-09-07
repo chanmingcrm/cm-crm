@@ -62,5 +62,6 @@ public interface ISysRoleService extends IService<SysRole> {
      * @author 蝉鸣
      */
     Boolean deleteRole(Long roleId);
+
 }
 

@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDateTime;
+
 /**
  * @description 地图打卡列表查询DTO
  * @author 蝉鸣
@@ -36,4 +38,15 @@ public class MapLogPageDTO extends PageDTO {
     @SchemaEnum(value = FormTypeEnum.class,description = "表单类型FormTypeEnum")
     private Integer logFlag;
 
+    /**
+     * 开始时间
+     */
+    @Schema(description = "开始时间")
+    private LocalDateTime startTime;
+
+    /**
+     * 结束时间
+     */
+    @Schema(description = "结束时间")
+    private LocalDateTime endTime;
 }

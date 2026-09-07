@@ -21,6 +21,8 @@ public enum CompTypeEnum implements BaseEnum<CompTypeEnum, Integer> {
     USER(5,  "user",  "id","name",DataTypeEnum.JSON_ARRAY.getValue()),
     DEP(6,  "dep",  "id","name",DataTypeEnum.JSON_ARRAY.getValue()),
     RELEVANCE(7,  "relevance",  "id","name",DataTypeEnum.JSON_ARRAY.getValue()),
+    RELEVANCE_ALL_FIELD(8,  "related_all_field",  "id","name",DataTypeEnum.JSON_ARRAY.getValue()),
+    FILE(9,  "file",  "id","name",DataTypeEnum.JSON_ARRAY.getValue()),
     ;
     private final Integer value;
 

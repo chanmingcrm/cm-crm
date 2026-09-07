@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.init.db.mapper.CrmDbMapper">
+
+    <select id="selectAppTables" resultType="java.lang.String">
+        SHOW TABLES LIKE '%_data';
+    </select>
+
+    <select id="dynamicDBMaxOne" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            crm_all_group
+        <where>
+            <if test=" createTime != null ">
+                AND create_time &gt; #{createTime}
+            </if>
+        </where>
+        ORDER BY
+            id DESC
+        LIMIT 1;
+    </select>
+
+    <insert id="dynamicDbInsert">
+        INSERT INTO crm_all_group
+        <foreach collection="dataMap.keys" item="key" open="(" separator="," close=")">
+            ${key}
+        </foreach>
+        VALUES
+        <foreach collection="dataMap.values" item="value" open="(" separator="," close=")">
+            #{value}
+        </foreach>
+    </insert>
+
+    <update id="dynamicDbDelete">
+        UPDATE
+            crm_all_group
+        SET
+            del_flag = 2
+        WHERE
+            id IN
+            <foreach collection="dataIds" item="dataId" open="(" separator="," close=")">
+                #{dataId}
+            </foreach>
+    </update>
+
+    <update id="dynamicDbUpdate">
+        UPDATE
+            crm_all_group
+        SET module_id = #{moduleId},update_time = NOW(),del_flag = 1
+        WHERE
+        id IN
+        <foreach collection="dataIds" item="dataId" open="(" separator="," close=")">
+            #{dataId}
+        </foreach>
+    </update>
+
+    <update id="dynamicDbDataUpdate">
+        UPDATE
+            crm_all_group
+        SET module_id = #{moduleId},update_time = NOW(),del_flag = 2
+        WHERE
+        data_id IN
+        <foreach collection="dataIds" item="dataId" open="(" separator="," close=")">
+            #{dataId}
+        </foreach>
+    </update>
+
+    <update id="dynamicDbDataDelete">
+        UPDATE
+            crm_all_group
+        SET
+            del_flag = 2
+        WHERE
+            data_id IN
+            <foreach collection="dataIds" item="dataId" open="(" separator="," close=")">
+                #{dataId}
+            </foreach>
+    </update>
+
+    <select id="getTransDataIdsPage" resultType="java.lang.Long">
+        SELECT
+            t1.id
+        FROM table_1 t1
+        WHERE
+            t1.module_id = #{fromModuleId}
+         AND NOT EXISTS (
+            SELECT 1
+            FROM table_2 t2
+            WHERE t2.column_mac = #{ruleMac}
+              AND t2.create_time &gt; #{dateTime}
+              AND INSTR(t2.data_value, t1.id) > 0
+        )
+    </select>
+
+    <select id="getIdsByUserId" resultType="java.lang.Long">
+        SELECT
+        id
+        FROM
+        crm_all_group
+        <where>
+            <if test=" sourceUserId != null ">
+                AND scope_user_id = #{sourceUserId}
+            </if>
+        </where>
+        ORDER BY id ASC
+    </select>
+
+    <select id="getIdsByOrgId" resultType="java.lang.Long">
+        SELECT
+        id
+        FROM
+        crm_all_group
+        <where>
+            <if test=" sourceUserId != null ">
+                AND scope_Org_id = #{sourceOrgId}
+            </if>
+        </where>
+        ORDER BY id ASC
+    </select>
+
+    <update id="dynamicDbUpdateOrg">
+        UPDATE
+        crm_all_group
+        <set>
+            update_time = NOW()
+            <if test="targetLevelId != null">
+                ,scope_org_id = #{targetLevelId}
+            </if>
+            <if test="targetUserId != null">
+                ,scope_user_id = #{targetUserId}
+            </if>
+        </set>
+        WHERE
+        id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="dynamicDbDataUpdateOrg">
+        UPDATE
+        crm_all_group
+        <set>
+            update_time = NOW()
+            <if test="targetUserId != null">
+                ,scope_user_id = #{targetUserId}
+            </if>
+            <if test="targetLevelId != null">
+                ,scope_org_id = #{targetLevelId}
+            </if>
+            ,data_value = CASE
+            <if test="userJson != null">
+                WHEN column_mac = 'scope_user_json' THEN #{userJson}
+            </if>
+            <if test="orgJson != null">
+                WHEN column_mac = 'scope_org_json' THEN #{orgJson}
+            </if>
+            ELSE data_value
+            END
+        </set>
+        WHERE
+        data_id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

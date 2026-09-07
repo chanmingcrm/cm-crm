@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@TableName(value = "msg_base", autoResultMap = true)
+@TableName(value = "msg_notice", autoResultMap = true)
 public class MsgNotice extends BasePO {
 
 
@@ -81,22 +81,27 @@ public class MsgNotice extends BasePO {
     private Integer noticeType;
 
     /**
-    * 提醒类型
+    * 设定时间
+    */
+    private LocalDateTime noticeSetTime;
+
+    /**
+    * 开始时间
     */
     private LocalDateTime noticeStartTime;
 
     /**
-    * 提醒类型
+    * 结束时间
     */
     private LocalDateTime noticeEndTime;
 
     /**
-    * 提醒类型
+    * 上次提醒
     */
     private LocalDateTime noticeLastTime;
 
     /**
-    * 提醒类型
+    * 下次提醒
     */
     private LocalDateTime noticeNextTime;
 
@@ -155,5 +160,6 @@ public class MsgNotice extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
+
 
 }

@@ -3,6 +3,7 @@ package com.platform.mesh.upms.biz.modules.doc.dir.domain.po;
 import com.baomidou.mybatisplus.annotation.*;
 import com.platform.mesh.core.application.domain.po.BasePO;
 import com.platform.mesh.mybatis.plus.annotation.IgnoreDataScope;
+import com.platform.mesh.mybatis.plus.annotation.TableParentId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -30,6 +31,7 @@ public class DocDir extends BasePO {
     /**
     * 父ID
     */
+    @TableParentId(value = "parent_id")
     private Long parentId;
 
 
@@ -43,6 +45,12 @@ public class DocDir extends BasePO {
     * 数据ID
     */
     private Long dataId;
+
+
+    /**
+    * 开放标识
+    */
+    private Integer openFlag;
 
 
     /**
@@ -100,5 +108,6 @@ public class DocDir extends BasePO {
     @IgnoreDataScope()
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
+
 
 }

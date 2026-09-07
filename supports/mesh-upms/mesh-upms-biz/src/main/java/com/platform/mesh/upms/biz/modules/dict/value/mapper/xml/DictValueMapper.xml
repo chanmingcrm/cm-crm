@@ -3,4 +3,15 @@
 <mapper namespace="com.platform.mesh.upms.biz.modules.dict.value.mapper.DictValueMapper">
 
 
+    <select id="getFistSysDictByMac"
+            resultType="com.platform.mesh.upms.biz.modules.dict.value.domain.po.DictValue">
+        SELECT
+            *
+        FROM
+            dict_value
+        WHERE
+            dict_mac = #{dictMac}
+        AND dict_value = #{dictValue}
+        LIMIT 1
+    </select>
 </mapper>

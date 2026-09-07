@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @description 事件信息
  * @author 蝉鸣
  */
-@Tag(description = "FlowTempEventController", name = "事件信息")
+@Tag(description = "BpmTempEventController", name = "事件信息")
 @RestController
 public class BpmTempEventController extends BaseController {
     /**

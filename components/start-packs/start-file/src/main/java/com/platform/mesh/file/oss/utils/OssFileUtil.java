@@ -3,9 +3,9 @@ package com.platform.mesh.file.oss.utils;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.platform.mesh.core.constants.HttpConst;
 import com.platform.mesh.core.constants.NumberConst;
@@ -15,8 +15,8 @@ import com.platform.mesh.file.oss.base.common.model.bo.DocFileBO;
 import com.platform.mesh.file.oss.base.extend.upload.constant.UploadExtendConst;
 import com.platform.mesh.file.oss.base.extend.upload.model.MultiPartBO;
 import com.platform.mesh.file.oss.exception.FileExceptionEnum;
+import com.platform.mesh.utils.file.DocFileUtil;
 import com.platform.mesh.utils.file.FileContentTypeEnum;
-import com.platform.mesh.utils.file.FileTypeUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ import java.util.zip.ZipOutputStream;
  */
 public class OssFileUtil {
 
-    private final static Logger log = LoggerFactory.getLogger(OssFileUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(OssFileUtil.class);
 
     /**
      * 功能描述:
@@ -131,6 +131,27 @@ public class OssFileUtil {
             throw new RuntimeException(e);
         }
         return files;
+    }
+
+    /**
+     * 功能描述:
+     * 〈生成唯一文件名〉
+     * @param originalFilename originalFilename
+     * @return 正常返回:{@link String}
+     * @author 蝉鸣
+     */
+    public static String uniqueFileName(String originalFilename) {
+        String uuid = IdUtil.fastSimpleUUID();
+        if (CharSequenceUtil.isBlank(originalFilename)) {
+            return uuid;
+        }
+        int separatorIndex = originalFilename.lastIndexOf(SymbolConst.PERIOD);
+        if (separatorIndex <= NumberConst.NUM_0) {
+            return originalFilename.concat(SymbolConst.UNDERLINE).concat(uuid);
+        }
+        String fileName = originalFilename.substring(NumberConst.NUM_0, separatorIndex);
+        String suffix = originalFilename.substring(separatorIndex);
+        return fileName.concat(SymbolConst.UNDERLINE).concat(uuid).concat(suffix);
     }
 
     /**
@@ -233,10 +254,10 @@ public class OssFileUtil {
      * @return 正常返回:{@link MultipartFile}
      * @author 蝉鸣
      */
-    public static DocFileBO MultipartFileToDocFile(MultipartFile file) {
+    public static DocFileBO multipartFileToDocFile(MultipartFile file) {
         DocFileBO docFileBO = new DocFileBO();
         String originalFilename = file.getOriginalFilename();
-        if(StrUtil.isNotBlank(originalFilename) && originalFilename.contains(SymbolConst.PERIOD)){
+        if(CharSequenceUtil.isNotBlank(originalFilename) && originalFilename.contains(SymbolConst.PERIOD)){
             String fileName = originalFilename.substring(NumberConst.NUM_0,originalFilename.lastIndexOf(SymbolConst.PERIOD));
             String suffix = originalFilename.substring(originalFilename.lastIndexOf(SymbolConst.PERIOD) + NumberConst.NUM_1);
             docFileBO.setFileName(fileName);
@@ -250,49 +271,59 @@ public class OssFileUtil {
     /**
      * 预览文件
      * @param response HttpServletResponse
-     * @param data 数据
+     * @param inputStream 数据
      * @throws IOException IOException
      */
-    public static void preview(HttpServletResponse response, byte[] data,String fileName) throws IOException {
-        if(ArrayUtil.isEmpty(data)){
+    public static void preview(HttpServletResponse response, InputStream inputStream, String fileName) throws IOException {
+        if (ObjectUtil.isEmpty(inputStream)) {
             return;
         }
         response.reset();
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
-        response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(data.length));
-        response.setCharacterEncoding(CharsetUtil.UTF_8);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         fileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, StrUtil.builder()
                 .append(HttpConst.FILE_NAME_PREFIX).append(SymbolConst.QUOTE)
                 .append(fileName).append(SymbolConst.QUOTE)
                 .toString());
-        String fileType = FileTypeUtil.getFileType(fileName);
+        String fileType = DocFileUtil.getFileType(fileName);
         FileContentTypeEnum enumByDesc = BaseEnum.getEnumByDesc(FileContentTypeEnum.class, fileType, FileContentTypeEnum.JPEG);
         response.setContentType(enumByDesc.getType());
-        IOUtils.write(data, response.getOutputStream());
+        try (OutputStream out = response.getOutputStream()) {
+            IoUtil.copy(inputStream, out);
+            // 主动刷新，确保数据完整
+            out.flush();
+        } catch (IOException ignore) {
+            // 处理异常
+        }
     }
 
     /**
      * 生成zip文件
      * @param response HttpServletResponse
-     * @param data 数据
+     * @param inputStream 数据
      * @throws IOException IOException
      */
-    public static void download(HttpServletResponse response, byte[] data,String fileName) throws IOException {
-        if(ArrayUtil.isEmpty(data)){
+    public static void download(HttpServletResponse response, InputStream inputStream, String fileName) throws IOException {
+        if (ObjectUtil.isEmpty(inputStream)) {
             return;
         }
         response.reset();
         response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
-        response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(data.length));
-        response.setCharacterEncoding(CharsetUtil.UTF_8);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         fileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, StrUtil.builder()
                 .append(HttpConst.FILE_NAME_PREFIX).append(SymbolConst.QUOTE)
                 .append(fileName).append(SymbolConst.QUOTE)
                 .toString());
         response.setContentType(HttpConst.APPLICATION_STREAM_CHARSET);
-        IOUtils.write(data, response.getOutputStream());
+        try (OutputStream out = response.getOutputStream()) {
+            IOUtils.copy(inputStream, out);
+            // 主动刷新，确保数据完整
+            out.flush();
+        } catch (IOException ignore) {
+            // 处理异常
+        }
     }
 
     /**
@@ -423,7 +454,6 @@ public class OssFileUtil {
      */
     public static byte[] getRemoteFile(String url) {
         InputStream inputStream = null;
-        ByteArrayOutputStream byteArrayOutputStream = null;
         try {
             // 网络地址
             URL urlObj = URI.create(url).toURL();
@@ -439,7 +469,6 @@ public class OssFileUtil {
         }
         finally {
             IOUtils.closeQuietly(inputStream);
-            IOUtils.closeQuietly(byteArrayOutputStream);
         }
     }
 }

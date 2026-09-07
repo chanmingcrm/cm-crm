@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -35,6 +34,11 @@ public class MsgBaseBO extends BaseBO {
     @Schema(description = "数据ID")
     private Long dataId;
 
+    /**
+     * 租户ID
+     */
+    @Schema(description = "租户ID")
+    private Long tenantId;
 
     /**
      * 消息标识

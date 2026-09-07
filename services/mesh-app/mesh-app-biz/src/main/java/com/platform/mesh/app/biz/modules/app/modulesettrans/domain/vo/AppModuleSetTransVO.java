@@ -2,6 +2,8 @@ package com.platform.mesh.app.biz.modules.app.modulesettrans.domain.vo;
 
 import com.platform.mesh.app.biz.modules.app.modulebase.domain.vo.AppModuleBaseVO;
 import com.platform.mesh.core.application.domain.vo.BaseVO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,13 +35,6 @@ public class AppModuleSetTransVO extends BaseVO {
 
 
     /**
-     * 模块查询
-     */
-    @Schema(description = "模块查询")
-    private AppModuleBaseVO moduleSearch;
-
-
-    /**
      * 模块目标
      */
     @Schema(description = "模块目标")
@@ -47,31 +42,9 @@ public class AppModuleSetTransVO extends BaseVO {
 
 
     /**
-     * 模块搜索字段
+     * 是否删除来源数据
      */
-    @Schema(description = "模块搜索字段")
-    private String moduleSearchRelColumn;
-
-
-    /**
-     * 规则字段标识
-     */
-    @Schema(description = "规则字段标识")
-    private String ruleMac;
-
-
-    /**
-     * 规则数据类型
-     */
-    @Schema(description = "规则数据类型")
-    private String ruleDataType;
-
-
-    /**
-     * 规则数据值
-     */
-    @Schema(description = "规则数据值")
-    private String ruleDataValue;
-
+    @SchemaEnum(value = YesOrNoEnum.class, description = "是否删除来源数据")
+    private Integer delFrom;
 
 }

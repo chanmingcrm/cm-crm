@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.app.biz.modules.data.importerror.mapper.DataImportErrorMapper">
+
+
+    <select id="selectImportErrorBatchPage"
+            resultType="com.platform.mesh.app.biz.modules.data.importerror.domain.vo.ErrorSVO">
+        SELECT
+            batch_id,
+            ANY_VALUE(module_id) module_id,
+            ANY_VALUE(user_id) user_id,
+            MIN(create_time) create_time
+        FROM
+            data_import_error
+        WHERE
+            module_id = #{pageDTO.moduleId}
+        <if test="pageDTO.userId != null">
+            AND user_id = #{pageDTO.userId}
+        </if>
+        GROUP BY
+            batch_id
+    </select>
+
+</mapper>

@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.dto.AppFormColumnSetEventDTO;
@@ -13,6 +14,7 @@ import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.exception.AppFor
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.mapper.AppFormColumnSetEventMapper;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.service.IAppFormColumnSetEventService;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.service.manual.AppFormColumnSetEventServiceManual;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,24 +106,43 @@ public class AppFormColumnSetEventServiceImpl extends ServiceImpl<AppFormColumnS
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<Long, AppFormColumnSetEvent> copyFormColumnSetEvent(Long sourceModuleId, Long targetModuleId, Map<Long, AppFormColumn> copyColumn) {
+    public Map<Long, AppFormColumnSetEvent> copyFormColumnSetEvent(Long sourceModuleId, Long targetModuleId
+            , Map<AppFormColumn, AppFormColumn> copyColumn, Map<Long, AppFormColumnSetRequire> copyRequire) {
         Map<Long, AppFormColumnSetEvent> copyMap = new HashMap<>();
         if(CollUtil.isEmpty(copyColumn)){
             return copyMap;
         }
+        //转换Map
+        Map<Long, AppFormColumn> idMap = new HashMap<>(copyColumn.size());
+        copyColumn.forEach((key, value) -> idMap.put(key.getId(), value));
+
+        Map<String, AppFormColumn> hashMap = new HashMap<>(copyColumn.size());
+        copyColumn.forEach((key, value) -> hashMap.put(key.getColumnHash(), value));
+
         List<AppFormColumnSetEvent> sourceSetEvents = this.lambdaQuery().eq(AppFormColumnSetEvent::getModuleId, sourceModuleId).list();
         if(CollUtil.isEmpty(sourceSetEvents)){
             return copyMap;
         }
         List<AppFormColumnSetEvent> targetSetEvents = sourceSetEvents.stream()
-                .filter(sourceEvent->copyColumn.containsKey(sourceEvent.getColumnId()))
+                .filter(sourceEvent->idMap.containsKey(sourceEvent.getColumnId()))
                 .map(sourceEvent -> {
             Long id = IdUtil.getSnowflake().nextId();
             AppFormColumnSetEvent targetEvent = new AppFormColumnSetEvent();
             BeanUtil.copyProperties(sourceEvent, targetEvent, ObjFieldUtil.ignoreDefault());
             targetEvent.setId(id);
             targetEvent.setModuleId(targetModuleId);
-            AppFormColumn appFormColumn = copyColumn.get(sourceEvent.getColumnId());
+            //替换事件流数据
+            //替换请求ID
+            copyRequire.forEach((key, value) -> {
+                String replaceAll = JSONUtil.toJsonStr(targetEvent.getEventFlow()).replaceAll(key.toString(), value.getId().toString());
+                targetEvent.setEventFlow(JSONUtil.parseObj(replaceAll));
+            });
+            //替换字段Hash
+            hashMap.forEach((key, value) -> {
+                String replaceAll = JSONUtil.toJsonStr(targetEvent.getEventFlow()).replaceAll(key, value.getColumnHash());
+                targetEvent.setEventFlow(JSONUtil.parseObj(replaceAll));
+            });
+            AppFormColumn appFormColumn = idMap.get(sourceEvent.getColumnId());
             targetEvent.setFormId(appFormColumn.getFormId());
             targetEvent.setColumnId(appFormColumn.getId());
             targetEvent.setColumnMac(appFormColumn.getColumnMac());

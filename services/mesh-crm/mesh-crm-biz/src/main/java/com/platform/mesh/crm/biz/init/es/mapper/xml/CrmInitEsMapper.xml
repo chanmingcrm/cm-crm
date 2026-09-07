@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.crm.biz.init.es.mapper.CrmInitEsMapper">
+
+    <select id="selectPageMaps" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            crm_all_group
+    </select>
+
+    <select id="selectModelDataByDataIds" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            crm_all_group
+        WHERE data_id IN
+        <foreach collection="dataIds" item="dataId" open="(" close=")" separator=",">
+            #{dataId}
+        </foreach>
+    </select>
+
+</mapper>

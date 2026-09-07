@@ -6,11 +6,11 @@
     <parent>
         <groupId>com.platform</groupId>
         <artifactId>mesh-crm</artifactId>
-        <version>3.5.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>mesh-crm-biz</artifactId>
-    <version>3.5.0</version>
+    <version>4.1.0</version>
     <description>系统核心服务</description>
 
     <dependencies>
@@ -46,9 +46,24 @@
             <artifactId>mesh-crm-api</artifactId>
         </dependency>
 
+        <!--MCP 工具服务通用契约-->
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>mesh-ai-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.platform</groupId>
             <artifactId>mesh-bpm-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-bytedance-douyin</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.platform</groupId>
+            <artifactId>start-tencent-wxwork</artifactId>
         </dependency>
 
     </dependencies>

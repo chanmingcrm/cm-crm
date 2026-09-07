@@ -2,6 +2,9 @@ package com.platform.mesh.upms.biz.modules.doc.dir.domain.dto;
 
 import java.time.LocalDateTime;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
+import com.platform.mesh.core.enums.custom.YesOrNoEnum;
+import com.platform.mesh.swagger.config.enums.SchemaEnum;
+import com.platform.mesh.upms.biz.modules.doc.dir.enums.DocFlagEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,9 +51,15 @@ public class DocDirDTO extends BaseDTO {
 
 
     /**
+     * 开放标识
+     */
+    @SchemaEnum(value = YesOrNoEnum.class, description = "开放标识")
+    private Integer openFlag;
+
+    /**
      * 目录标识
      */
-    @Schema(description = "目录标识")
+    @SchemaEnum(value = DocFlagEnum.class, description = "目录标识")
     private Integer dirFlag;
 
 
@@ -108,5 +117,6 @@ public class DocDirDTO extends BaseDTO {
      */
     @Schema(description = "数据权限机构ID")
     private Long scopeOrgId;
+
 
 }

@@ -1,0 +1,2 @@
+com.platform.mesh.message.jpush.configuration.JPushAutoConfiguration
+com.platform.mesh.message.jpush.service.JPushService

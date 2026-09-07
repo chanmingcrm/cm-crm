@@ -15,13 +15,13 @@ public enum AdminFlagEnum implements BaseEnum<AdminFlagEnum, Integer> {
      */
     SYSTEM(1,  "系统管理员"),
     /**
-     * 普通管理员
+     * 租户管理员
      */
-    TENANT(2,  "普通管理员"),
+    TENANT(2,  "租户管理员"),
     /**
      * 普通账户
      */
-    COMMON(2,  "普通账户"),
+    COMMON(3,  "普通账户"),
     ;
 
 

@@ -5,6 +5,7 @@ import com.platform.mesh.app.biz.modules.app.formcolumn.domain.po.AppFormColumn;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.dto.AppFormColumnSetEventDTO;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.po.AppFormColumnSetEvent;
 import com.platform.mesh.app.biz.modules.app.formcolumnsetevent.domain.vo.AppFormColumnSetEventVO;
+import com.platform.mesh.app.biz.modules.app.formcolumnsetrequire.domain.po.AppFormColumnSetRequire;
 
 import java.util.Map;
 
@@ -61,5 +62,5 @@ public interface IAppFormColumnSetEventService extends IService<AppFormColumnSet
      * @param copyColumn copyColumn
      * @author 蝉鸣
      */
-    Map<Long, AppFormColumnSetEvent> copyFormColumnSetEvent(Long sourceModuleId, Long targetModuleId, Map<Long, AppFormColumn> copyColumn);
+    Map<Long, AppFormColumnSetEvent> copyFormColumnSetEvent(Long sourceModuleId, Long targetModuleId, Map<AppFormColumn, AppFormColumn> copyColumn, Map<Long, AppFormColumnSetRequire> copyRequire);
 }

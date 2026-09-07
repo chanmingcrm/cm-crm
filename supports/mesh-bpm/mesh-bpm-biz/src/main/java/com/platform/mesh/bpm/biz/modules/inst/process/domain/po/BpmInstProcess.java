@@ -76,6 +76,11 @@ public class BpmInstProcess extends BasePO {
     private Integer passFlag;
 
     /**
+     * 提交标识
+     */
+    private Integer commitFlag;
+
+    /**
      * 创建人ID
      */
     @TableField(fill = FieldFill.INSERT)
@@ -110,6 +115,7 @@ public class BpmInstProcess extends BasePO {
      */
     @TableField(fill = FieldFill.INSERT)
     private Long scopeOrgId;
+
 
 }
 

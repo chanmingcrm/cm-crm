@@ -1,5 +1,7 @@
 package com.platform.mesh.resource.configuration;
 
+import com.platform.mesh.resource.accesskey.web.AccessKeyAuthenticationFilter;
+import com.platform.mesh.resource.inner.InnerIdentityFilter;
 import com.platform.mesh.security.service.impl.AuthorizationBearerTokenExtractor;
 import com.platform.mesh.security.service.impl.ResourceAuthExceptionEntryPoint;
 import com.platform.mesh.security.config.AuthIgnoreConfiguration;
@@ -12,6 +14,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -33,6 +36,12 @@ public class ResourceServerConfiguration {
 
 	@Autowired
 	private OpaqueTokenIntrospector customOpaqueTokenIntrospector;
+
+	@Autowired
+	private AccessKeyAuthenticationFilter accessKeyAuthenticationFilter;
+
+	@Autowired
+	private InnerIdentityFilter innerIdentityFilter;
 
 	/**
 	 * 功能描述:
@@ -56,7 +65,8 @@ public class ResourceServerConfiguration {
 				.headers(AbstractHttpConfigurer::disable)
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(AbstractHttpConfigurer::disable);
-
+		http.addFilterBefore(innerIdentityFilter, BearerTokenAuthenticationFilter.class);
+		http.addFilterBefore(accessKeyAuthenticationFilter, BearerTokenAuthenticationFilter.class);
 		return http.build();
 	}
 

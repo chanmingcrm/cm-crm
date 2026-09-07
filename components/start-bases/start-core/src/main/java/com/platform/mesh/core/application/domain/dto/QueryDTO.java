@@ -18,10 +18,28 @@ import java.util.List;
 public class QueryDTO extends PageDTO {
 
 	/**
-	 * 每页显示记录数
+	 * 是否忽略权限
 	 */
-	@Schema(description = "每页显示记录数")
-	private List<Long> conditions;
+	@Schema(description = "是否忽略权限", hidden = true)
+	private Boolean ignoreScope = Boolean.FALSE;
+
+	/**
+	 * 数据权限
+	 */
+	@Schema(description = "数据权限")
+	private Integer dataScope;
+
+	/**
+	 * 数据标识
+	 */
+	@Schema(description = "数据标识")
+	private Integer dataFlag;
+
+	/**
+	 * 数据ID
+	 */
+	@Schema( description = "数据ID")
+	private List<Long> dataIds;
 
 	/**
 	 * 条件

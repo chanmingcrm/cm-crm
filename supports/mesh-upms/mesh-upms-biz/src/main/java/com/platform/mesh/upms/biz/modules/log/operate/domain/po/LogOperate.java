@@ -111,5 +111,6 @@ public class LogOperate extends BasePO {
      */
     private Long scopeOrgId;
 
+
 }
 

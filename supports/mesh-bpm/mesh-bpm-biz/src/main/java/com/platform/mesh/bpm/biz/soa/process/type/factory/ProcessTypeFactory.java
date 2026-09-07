@@ -24,7 +24,7 @@ public class ProcessTypeFactory implements InitializingBean {
 
     /**
      * 功能描述:
-     * 〈根绝类型获取对应的流程实现〉
+     * 〈根据类型获取对应的流程实现〉
      * @param processType processType
      * @return 正常返回:{@link ProcessTypeService}
      * @author 蝉鸣

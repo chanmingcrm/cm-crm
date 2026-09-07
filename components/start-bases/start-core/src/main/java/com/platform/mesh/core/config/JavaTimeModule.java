@@ -1,15 +1,15 @@
 package com.platform.mesh.core.config;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.PackageVersion;
-import com.fasterxml.jackson.datatype.jsr310.deser.InstantDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.InstantSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
+import tools.jackson.core.json.PackageVersion;
+import tools.jackson.databind.ext.javatime.deser.InstantDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalTimeDeserializer;
+import tools.jackson.databind.ext.javatime.ser.InstantSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalTimeSerializer;
+import tools.jackson.databind.module.SimpleModule;
 import com.platform.mesh.core.constants.DateConst;
 
 import java.time.Instant;
@@ -28,8 +28,8 @@ public class JavaTimeModule extends SimpleModule {
 		super(PackageVersion.VERSION);
 
 		// 新增 Long 类型序列化规则，数值超过 2^53-1，在 JS 会出现精度丢失问题，因此 Long 自动序列化为字符串类型
-		this.addSerializer(Long.class, NumberSerializer.INSTANCE);
-		this.addSerializer(Long.TYPE, NumberSerializer.INSTANCE);
+		this.addSerializer(Long.class, NumSerializer.INSTANCE);
+		this.addSerializer(Long.TYPE, NumSerializer.INSTANCE);
 		// ======================= 时间序列化规则 ===============================
 		// yyyy-MM-dd HH:mm:ss
 		this.addSerializer(LocalDateTime.class,

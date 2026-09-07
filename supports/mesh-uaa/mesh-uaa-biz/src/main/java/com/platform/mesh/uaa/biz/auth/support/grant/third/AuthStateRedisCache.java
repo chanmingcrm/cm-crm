@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @description 自定义JustAuth state 存储。避免集群环境state校验失败
@@ -26,7 +26,7 @@ public class AuthStateRedisCache implements AuthStateCache {
      */
     @Override
     public void cache(String key, String value) {
-        redisTemplate.opsForValue().set(key, value, AuthCacheConfig.timeout, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(key, value, Duration.ofMillis(AuthCacheConfig.timeout));
     }
 
     /**
@@ -37,7 +37,7 @@ public class AuthStateRedisCache implements AuthStateCache {
      */
     @Override
     public void cache(String key, String value, long timeout) {
-        redisTemplate.opsForValue().set(key, value, timeout, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(key, value, Duration.ofMillis(timeout));
     }
 
     /**

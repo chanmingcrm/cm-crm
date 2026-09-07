@@ -34,10 +34,8 @@ public class SysLogUtils {
 				.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
 		LogLoginBO logLoginBO = new LogLoginBO();
 		logLoginBO.setLoginIp(IpUtil.getHostIp());
-		logLoginBO.setLoginAddr(IpUtil.getIpAddr());
-		logLoginBO.setLoginUrl(URLUtil.getPath(request.getRequestURI()));
+		logLoginBO.setLoginAddr(IpUtil.getIpAddr(logLoginBO.getLoginIp()));
 		logLoginBO.setLoginAgent(request.getHeader(HttpHeaders.USER_AGENT));
-		logLoginBO.setLoginParam(HttpUtil.toParams(request.getParameterMap()));
 		return logLoginBO;
 	}
 

@@ -97,18 +97,45 @@ public interface SecurityConstant {
 	 * 账户来源
 	 */
 	String SOURCE_FLAG = "sourceFlag";
+
+	/*=============================================认证请求属性变量=============================================*/
+
+	/**
+	 * URL 编码后的登录用户请求属性
+	 */
+	String AUTHENTICATION_ENCODED_USER_ATTRIBUTE = "platform.security.authentication.encoded-user";
+
+	/**
+	 * 当前登录用户对象请求属性
+	 */
+	String AUTHENTICATION_PRINCIPAL_ATTRIBUTE = "platform.security.authentication.principal";
+
+	/**
+	 * 当前请求是否通过 Access Key 完成认证
+	 */
+	String AUTHENTICATION_ACCESS_KEY_ATTRIBUTE = "platform.security.authentication.access-key";
+
 	/**
 	 * 用户信息
 	 */
 	List<String> STATIC_IGNORE_URLS = CollUtil.newArrayList(
 			"/api/token/*",
-			"/captcha/*",
-			"/sms/send",
 			"/token/**",
 			"/actuator/**",
 			"/assets/**", "/error",
 			"/v3/api-docs/**",
 			"/tenant/client/info",
-			"/tenant/base/register"
+			"/tenant/base/register",
+			"/captcha/*",
+			"/sms/send",
+			"/log/update/page",
+			"/log/update/last",
+			"/doc/dir/home/page",
+			"/doc/online/home/page",
+			"/doc/online/home/last/one",
+			"/doc/online/home/info/*",
+			"/doc/file/open/*",
+			"/ws/**",
+            "/cc/session/msg/page"
 	);
 }

@@ -5,9 +5,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.platform.mesh.bpm.biz.data.noderel.domain.dto.BpmDataFormNodeRelDTO;
-import com.platform.mesh.bpm.biz.data.noderel.domain.vo.BpmDataFormNodeRelVO;
-import com.platform.mesh.bpm.biz.data.noderel.service.IBpmDataFormNodeRelService;
+import com.platform.mesh.bpm.biz.modules.data.noderel.domain.dto.BpmDataFormNodeRelDTO;
+import com.platform.mesh.bpm.biz.modules.data.noderel.domain.vo.BpmDataFormNodeRelVO;
+import com.platform.mesh.bpm.biz.modules.data.noderel.service.IBpmDataFormNodeRelService;
 import com.platform.mesh.bpm.biz.modules.hist.node.domain.po.BpmHistNode;
 import com.platform.mesh.bpm.biz.modules.hist.node.domain.vo.BpmHistNodeVO;
 import com.platform.mesh.bpm.biz.modules.hist.node.service.IBpmHistNodeService;
@@ -27,8 +27,12 @@ import com.platform.mesh.bpm.biz.modules.temp.node.domain.po.BpmTempNode;
 import com.platform.mesh.bpm.biz.modules.temp.node.domain.vo.BpmTempNodeVO;
 import com.platform.mesh.bpm.biz.modules.temp.node.service.IBpmTempNodeService;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessDesignDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessEditDTO;
+import com.platform.mesh.bpm.biz.modules.temp.process.domain.po.BpmTempProcess;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessDesignVO;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.vo.BpmTempProcessVO;
+import com.platform.mesh.bpm.biz.modules.temp.process.enums.ProcessFlagEnum;
+import com.platform.mesh.bpm.biz.soa.node.audit.enums.NodeAuditFlagEnum;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.NodeAuditDataService;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.domain.vo.NodeAuditDataVO;
 import com.platform.mesh.bpm.biz.soa.node.auditdata.enums.NodeAuditDataTypeEnum;
@@ -39,14 +43,15 @@ import com.platform.mesh.bpm.biz.soa.process.type.ProcessTypeService;
 import com.platform.mesh.bpm.biz.soa.process.type.enums.ProcessTypeEnum;
 import com.platform.mesh.core.constants.SymbolConst;
 import com.platform.mesh.core.enums.base.BaseEnum;
-import com.platform.mesh.upms.api.modules.doc.feign.RemoteDocService;
 import com.platform.mesh.utils.reflect.ObjFieldUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -80,9 +85,6 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
     @Autowired
     private NodeAuditDataFactory nodeAuditDataFactory;
 
-    @Autowired
-    private RemoteDocService remoteDocService;
-
     /**
      * 功能描述:
      * 〈过程类型〉
@@ -104,6 +106,7 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
         if(CollUtil.isEmpty(addDTO.getNodeDTOs())){
             return;
         }
+        BpmTempProcessEditDTO processDTO = addDTO.getProcessDTO();
         List<BpmDataFormNodeRelDTO> nodeRelDTOS = CollUtil.newArrayList();
         //转换对象
         List<BpmTempNode> tempNodes = addDTO.getNodeDTOs().stream().map(nodeDTO -> {
@@ -114,6 +117,11 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
             //转换对象
             BpmTempNode bpmTempNode = BeanUtil.copyProperties(nodeDTO, BpmTempNode.class);
             bpmTempNode.setId(nodeId);
+            //添加默认审批类型
+            if(processDTO.getProcessFlag().equals(ProcessFlagEnum.STAGE.getValue())
+                    && ObjectUtil.isEmpty(bpmTempNode.getAuditFlag())){
+                bpmTempNode.setAuditFlag(NodeAuditFlagEnum.INIT.getValue());
+            }
             //设置节点与表单关系
             BpmDataFormNodeRelDTO nodeFormRelDTO = nodeDTO.getNodeFormRelDTO();
             if(ObjectUtil.isEmpty(nodeFormRelDTO) || ObjectUtil.isEmpty(nodeFormRelDTO.getFormId())){
@@ -142,7 +150,7 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
     @Override
     public void getTemp(BpmTempProcessDesignVO getVO) {
         BpmTempProcessVO processVO = getVO.getProcessVO();
-        if(ObjectUtil.isEmpty(processVO.getId())){
+        if(ObjectUtil.isEmpty(processVO) || ObjectUtil.isEmpty(processVO.getId())){
             return;
         }
         List<BpmTempNode> tempNodes = bpmTempNodeService.lambdaQuery().eq(BpmTempNode::getTempProcessId,processVO.getId()).list();
@@ -231,7 +239,11 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
             bpmInstNode.setInFlag(InstNodeInEnum.INIT.getValue());
             bpmInstNode.setOutFlag(InstNodeOutEnum.INIT.getValue());
             bpmInstNode.setPassFlag(NodePassEnum.INIT.getValue());
-
+            //如果是阶段流程，并且是父流程，并且审批标识空值则赋值初始化状态，初始化状态只用判断通过参数，无需其他条件
+            if(instProcess.getProcessFlag().equals(ProcessFlagEnum.STAGE.getValue())
+                && ObjectUtil.isEmpty(item.getAuditFlag())){
+                bpmInstNode.setAuditFlag(NodeAuditFlagEnum.INIT.getValue());
+            }
             //节点审批信息
             List<Long> auditDataIds = bpmInstNodeAuditService.getAuditDataIds(item.getAuditDataType(),item.getAuditDataIds());
             if(CollUtil.isNotEmpty(auditDataIds)){
@@ -292,16 +304,26 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
         }
         List<BpmInstNodeVO> instNodeVOS = bpmInstNodeService.selectInstNodeByInstProcessId(processVO.getId());
         //获取节点下表单配置
-        List<Long> nodeIds = instNodeVOS.stream().map(BpmInstNodeVO::getTempNodeId).toList();
-        List<BpmDataFormNodeRelVO> nodeRelList = bpmDataFormNodeRelService.getDataFormNodeRelInfoByNodeId(nodeIds);
-        if (CollUtil.isNotEmpty(nodeRelList)) {
-            Map<Long, BpmDataFormNodeRelVO> relVOMap = nodeRelList.stream().collect(Collectors.toMap(BpmDataFormNodeRelVO::getTempNodeId, Function.identity(), (v1, v2) -> v2));
-            for (BpmInstNodeVO instNodeVO : instNodeVOS) {
-                if (relVOMap.containsKey(instNodeVO.getTempNodeId())) {
-                    BpmDataFormNodeRelVO nodeRelVO = relVOMap.get(instNodeVO.getTempNodeId());
-                    instNodeVO.setNodeFormRelVO(nodeRelVO);
-                }
+        List<Long> tempNodeIds = instNodeVOS.stream().map(BpmInstNodeVO::getTempNodeId).toList();
+        List<Long> instNodeIds = instNodeVOS.stream().map(BpmInstNodeVO::getId).toList();
+        List<BpmDataFormNodeRelVO> nodeRelList = bpmDataFormNodeRelService.getDataFormNodeRelInfoByNodeId(tempNodeIds);
+        Map<Long, List<Long>> auditMap = new HashMap<>();
+        if(CollUtil.isNotEmpty(instNodeIds)){
+            List<BpmInstNodeAudit> nodeAuditList = bpmInstNodeAuditService.lambdaQuery().in(BpmInstNodeAudit::getInstNodeId, instNodeIds).list();
+            auditMap = nodeAuditList.stream().collect(Collectors.groupingBy(BpmInstNodeAudit::getInstNodeId, Collectors.mapping(BpmInstNodeAudit::getAuditDataId,Collectors.toList())));
+        }
+        Map<Long, BpmDataFormNodeRelVO> relVOMap = nodeRelList.stream().collect(Collectors.toMap(BpmDataFormNodeRelVO::getTempNodeId, Function.identity(), (v1, v2) -> v2));
+        for (BpmInstNodeVO instNodeVO : instNodeVOS) {
+            //关联表单信息
+            if (CollUtil.isNotEmpty(relVOMap) && relVOMap.containsKey(instNodeVO.getTempNodeId())) {
+                BpmDataFormNodeRelVO nodeRelVO = relVOMap.get(instNodeVO.getTempNodeId());
+                instNodeVO.setNodeFormRelVO(nodeRelVO);
             }
+            //关联审批人信息
+            if (CollUtil.isNotEmpty(auditMap) && auditMap.containsKey(instNodeVO.getId())) {
+                instNodeVO.setAuditDataIds(auditMap.get(instNodeVO.getId()));
+            }
+
         }
         getVO.setNodeVOs(instNodeVOS);
     }
@@ -316,5 +338,31 @@ public class ProcessTypeNodeFactoryImpl implements ProcessTypeService {
     public void getHist(BpmHistProcessInfoVO getVO) {
         List<BpmHistNodeVO> histNodeVOs = bpmHistNodeService.selectHistNodeByInstProcessId(getVO.getInstProcessId());
         getVO.setNodeVOs(histNodeVOs);
+    }
+
+    /**
+     * 功能描述:
+     * 〈拷贝流程模板〉
+     * @param sourceProcess sourceProcess
+     * @param targetProcess targetProcess
+     * @author 蝉鸣
+     */
+    @Override
+    public void copyTemp(BpmTempProcess sourceProcess, BpmTempProcess targetProcess) {
+        List<BpmTempNode> bpmTempNodes = bpmTempNodeService.selectNodesByTemplateId(sourceProcess.getId());
+        if(CollUtil.isEmpty(bpmTempNodes)){
+            return;
+        }
+        bpmTempNodes.forEach(bpmTempNode -> {
+            bpmTempNode.setId(null);
+            bpmTempNode.setTempProcessId(targetProcess.getId());
+            bpmTempNode.setCreateTime(LocalDateTime.now());
+            bpmTempNode.setCreateUserId(targetProcess.getCreateUserId());
+            bpmTempNode.setUpdateTime(LocalDateTime.now());
+            bpmTempNode.setUpdateUserId(targetProcess.getUpdateUserId());
+            bpmTempNode.setScopeOrgId(targetProcess.getScopeOrgId());
+            bpmTempNode.setScopeUserId(targetProcess.getScopeUserId());
+        });
+        bpmTempNodeService.saveBatch(bpmTempNodes);
     }
 }

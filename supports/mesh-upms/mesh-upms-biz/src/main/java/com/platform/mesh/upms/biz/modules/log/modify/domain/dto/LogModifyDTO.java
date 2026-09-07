@@ -1,14 +1,12 @@
 package com.platform.mesh.upms.biz.modules.log.modify.domain.dto;
 
-import com.platform.mesh.utils.excel.enums.DataTypeEnum;
 import com.platform.mesh.core.application.domain.dto.BaseDTO;
+import com.platform.mesh.core.enums.custom.OperateTypeEnum;
 import com.platform.mesh.swagger.config.enums.SchemaEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-
-import java.time.LocalDateTime;
 
 
 /**
@@ -43,7 +41,7 @@ public class LogModifyDTO extends BaseDTO {
      * 字段名称
      */
     @Schema(description = "字段名称")
-    private String fieldName;
+    private String keyName;
 
     /**
      * 原始值
@@ -58,27 +56,9 @@ public class LogModifyDTO extends BaseDTO {
     private String valueNew;
 
     /**
-     * 数据类型
+     * 操作类型
      */
-    @SchemaEnum(value = DataTypeEnum.class, description = "数据类型")
-    private Integer dataType;
-
-    /**
-     * 创建时间
-     */
-    @Schema(description = "创建时间")
-    private LocalDateTime createTime;
-
-    /**
-     * 所属用户ID
-     */
-    @Schema(description = "所属用户ID")
-    private Long scopeUserId;
-
-    /**
-     * 所属部门ID
-     */
-    @Schema(description = "所属部门ID")
-    private Long scopeOrgId;
+    @SchemaEnum(value = OperateTypeEnum.class, description = "操作类型")
+    private Integer operateType;
 
 }

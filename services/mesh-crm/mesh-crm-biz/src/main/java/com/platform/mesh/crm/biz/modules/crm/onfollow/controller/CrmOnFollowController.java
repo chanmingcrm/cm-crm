@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.onfollow.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -109,7 +110,7 @@ public class CrmOnFollowController extends BaseController{
     @Log(moduleName = "客户关系跟进拜访管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/follow/edit")
     public Result<CrmOnFollowVO> editOnFollow(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnFollow crmOnFollow = crmOnFollowService.editData(dataEditDTO, CrmOnFollow.class);
+        CrmOnFollow crmOnFollow = crmOnFollowService.editData(dataEditDTO, CrmOnFollow.class, CrmOnFollowData.class);
         return Result.success(BeanUtil.copyProperties(crmOnFollow,CrmOnFollowVO.class));
     }
     
@@ -179,8 +180,12 @@ public class CrmOnFollowController extends BaseController{
     @Operation(summary = "导入客户关系跟进拜访")
     @Log(moduleName = "客户关系跟进拜访管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/follow/import")
-    public Result<Boolean> importOnFollow(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnFollowService.importData(moduleId,formId,file, CrmOnFollow.class, CrmOnFollowData.class));
+    public Result<ImportVO> importOnFollow(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnFollowService.importData(importDTO, CrmOnFollow.class, CrmOnFollowData.class));
     }
     
     /**

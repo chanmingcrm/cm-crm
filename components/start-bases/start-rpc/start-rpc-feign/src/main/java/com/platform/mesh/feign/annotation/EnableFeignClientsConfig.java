@@ -41,7 +41,7 @@ public @interface EnableFeignClientsConfig {
 	/**
 	 * 功能描述:
 	 * 〈文件扫描路径〉
-	 * @return 正常返回:{@link Class<?>}
+	 * @return 正常返回:{@link Class}
 	 * @author 蝉鸣
 	 */
 	Class<?>[] basePackageClasses() default {};
@@ -49,7 +49,7 @@ public @interface EnableFeignClientsConfig {
 	/**
 	 * 功能描述:
 	 * 〈默认配置〉
-	 * @return 正常返回:{@link Class<?>}
+	 * @return 正常返回:{@link Class}
 	 * @author 蝉鸣
 	 */
 	Class<?>[] defaultConfiguration() default {};
@@ -57,7 +57,7 @@ public @interface EnableFeignClientsConfig {
 	/**
 	 * 功能描述:
 	 * 〈FeignClient客户端〉
-	 * @return 正常返回:{@link Class<?>}
+	 * @return 正常返回:{@link Class}
 	 * @author 蝉鸣
 	 */
 	Class<?>[] clients() default {};

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.upms.api.modules.org.member.domain.bo.OrgMemberRelBO;
 import com.platform.mesh.upms.biz.modules.org.memberuserrel.domain.dto.OrgMemberAddDTO;
+import com.platform.mesh.upms.biz.modules.org.memberuserrel.domain.dto.OrgMemberUserDTO;
 import com.platform.mesh.upms.biz.modules.org.memberuserrel.domain.po.OrgMemberUserRel;
 import com.platform.mesh.upms.biz.modules.org.memberuserrel.mapper.OrgMemberUserRelMapper;
 import com.platform.mesh.upms.biz.modules.org.memberuserrel.service.IOrgMemberUserRelService;
@@ -38,7 +39,7 @@ public class OrgMemberUserRelServiceImpl extends ServiceImpl<OrgMemberUserRelMap
     @Transactional(rollbackFor = Exception.class)
     public Boolean addMemberUser(OrgMemberAddDTO addDTO) {
         //初始化成员信息
-        List<Long> userIds = addDTO.getUserIds();
+        List<Long> userIds = addDTO.getUserDTOS().stream().map(OrgMemberUserDTO::getUserId).toList();
         if(CollUtil.isEmpty(userIds)){
             return Boolean.FALSE;
         }

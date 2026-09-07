@@ -11,8 +11,10 @@ import com.platform.mesh.core.enums.custom.YesOrNoEnum;
 import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.mybatis.plus.extention.MPage;
 import com.platform.mesh.mybatis.plus.handler.DataScopeHandler;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
 import com.platform.mesh.security.utils.SecurityUtils;
+import com.platform.mesh.security.utils.UserCacheUtil;
 import com.platform.mesh.upms.api.modules.sys.account.domain.bo.SysAccountBO;
 import com.platform.mesh.upms.api.modules.sys.account.enums.SourceFlagEnum;
 import com.platform.mesh.upms.api.modules.sys.user.enums.ActiveFlagEnum;
@@ -74,39 +76,69 @@ public class SysAccountServiceImpl extends ServiceImpl<SysAccountMapper, SysAcco
 	 * @author 蝉鸣
 	 */
 	@Override
-	public SysAccount getByAccountCode(String accountCode, Integer sourceFlag) {
+	public SysAccountBO getByAccountCode(String accountCode, Integer sourceFlag) {
+		//开启取消租户隔离设定
+		
 		//开启取消数据隔离设定
 		DataScopeHandler.setEnableDataScope(Boolean.FALSE);
-		List<SysAccount> sysAccounts = this.lambdaQuery().eq(SysAccount::getAccountCode, accountCode).eq(SysAccount::getSourceFlag, sourceFlag).list();
+		List<SysAccount> sysAccounts = this.lambdaQuery().eq(SysAccount::getAccountCode, accountCode)
+				.eq(SysAccount::getSourceFlag, sourceFlag).eq(SysAccount::getDelFlag,YesOrNoEnum.YES.getValue())
+                .orderByDesc(SysAccount::getCreateTime)
+                .list();
 		//取消数据权限隔离
 		DataScopeHandler.unEnableDataScope();
+		//关闭租户隔离设定
+		
 		if(CollUtil.isEmpty(sysAccounts)){
-			return new SysAccount();
+			return new SysAccountBO();
 		}
-		return CollUtil.getFirst(sysAccounts);
+		return BeanUtil.copyProperties(CollUtil.getFirst(sysAccounts), SysAccountBO.class);
+	}
+
+    /**
+     * 功能描述:
+     * 〈获取当前帐户信息〉
+     * @param openId openId
+     * @return 正常返回:{@link SysAccountVO}
+     * @author 蝉鸣
+     */
+    @Override
+    public SysAccountVO getByOpenId(Long openId) {
+        SysAccount sysAccount = this.lambdaQuery()
+                .ne(SysAccount::getDelFlag, YesOrNoEnum.NO.getValue())
+                .one();
+        if(ObjectUtil.isEmpty(sysAccount)){
+            //获取字段名称
+            String accountCode = ObjFieldUtil.getFieldName(SysAccount::getAccountCode);
+            throw AccountExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(accountCode));
+        }
+        SysAccountVO accountVO = BeanUtil.toBean(sysAccount, SysAccountVO.class);
+        accountVO.setOpenId(openId);
+        return accountVO;
+    }
+
+	/**
+	 * 功能描述:
+	 * 〈获取当前帐户信息〉
+	 * @param accountId accountId
+	 * @return 正常返回:{@link SysAccount}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public SysAccountVO getByAccountId(Long accountId) {
+        return this.getBaseMapper().getByAccountId(accountId);
 	}
 
 	/**
 	 * 功能描述:
 	 * 〈获取当前帐户信息〉
-	 * @param openId openId
-	 * @return 正常返回:{@link SysAccount}
+	 * @param accountId accountId
+	 * @return 正常返回:{@link SysAccountBO}
 	 * @author 蝉鸣
 	 */
 	@Override
-	public SysAccountVO getByOpenId(Long openId) {
-		SysAccount sysAccount = this.lambdaQuery()
-				.eq(SysAccount::getAccountId, openId)
-				.ne(SysAccount::getDelFlag, YesOrNoEnum.NO.getValue())
-				.one();
-		if(ObjectUtil.isEmpty(sysAccount)){
-			//获取字段名称
-			String accountCode = ObjFieldUtil.getFieldName(SysAccount::getAccountCode);
-			throw AccountExceptionEnum.ADD_NO_ARGS.getBaseException(CollUtil.newArrayList(accountCode));
-		}
-		SysAccountVO accountVO = BeanUtil.toBean(sysAccount, SysAccountVO.class);
-		accountVO.setOpenId(openId);
-		return accountVO;
+	public SysAccountBO getBOByAccountId(Long accountId) {
+		return BeanUtil.copyProperties(this.getBaseMapper().getByAccountId(accountId), SysAccountBO.class);
 	}
 
 	/**
@@ -118,24 +150,46 @@ public class SysAccountServiceImpl extends ServiceImpl<SysAccountMapper, SysAcco
 	 */
 	@Override
 	public AccountVO addAccount(AccountAddDTO accountAddDTO) {
+        //校验当前账户码是否已经存在
+        boolean exists = this.getBaseMapper().getExistedByUserId(accountAddDTO.getUserId(),accountAddDTO.getSourceFlag());
+        if(exists){
+            throw AccountExceptionEnum.ACCOUNT_CODE_EXISTS.getBaseException();
+        }
+        //查询最近使用的账户
 		SysAccount sysAccount = BeanUtil.copyProperties(accountAddDTO, SysAccount.class);
-		//解密后的密码
-		String decrypted = sysAccountServiceManual.decryptWebPassword(accountAddDTO.getCheckCode(), accountAddDTO.getEncryptCode());
-		sysAccount.setCheckCode(decrypted);
-		//检测校验码
-		Boolean checkCode = sysAccountServiceManual.checkAccountCheckCode(sysAccount);
-		if(!checkCode){
-			throw AccountExceptionEnum.ACCOUNT_CHECK_CODE.getBaseException();
+        //查询是否具有账户
+		SysAccount accountByCode = this.lambdaQuery()
+				.eq(SysAccount::getAccountCode, accountAddDTO.getAccountCode())
+				.eq(SysAccount::getSourceFlag, accountAddDTO.getSourceFlag())
+				.eq(SysAccount::getUserId, accountAddDTO.getUserId()).one();
+		if(ObjectUtil.isNotEmpty(accountByCode)){
+			sysAccount.setAccountId(accountByCode.getAccountId());
 		}
-		//加密校验码
-		String encryptedPassword = SecurityUtils.encryptPassword(sysAccount.getCheckCode());
-		sysAccount.setCheckCode(SecurityUtils.removePrefix(encryptedPassword));
+        if(SourceFlagEnum.SYSTEM.getValue().equals(accountAddDTO.getSourceFlag())){
+			//解密后的密码
+			String decrypted = sysAccountServiceManual.decryptWebPassword(accountAddDTO.getCheckCode(), accountAddDTO.getEncryptCode());
+			sysAccount.setCheckCode(decrypted);
+			//检测校验码
+			Boolean checkCode = sysAccountServiceManual.checkAccountCheckCode(sysAccount);
+			if(!checkCode){
+				throw AccountExceptionEnum.ACCOUNT_CHECK_CODE.getBaseException();
+			}
+			//加密校验码
+			String encryptedPassword = SecurityUtils.encryptPassword(sysAccount.getCheckCode());
+			sysAccount.setCheckCode(SecurityUtils.removePrefix(encryptedPassword));
+		}else{
+			sysAccount.setCheckCode(null);
+		}
 		sysAccount.setDelFlag(YesOrNoEnum.YES.getValue());
 		sysAccount.setCreateTime(LocalDateTime.now());
 		sysAccount.setUpdateTime(LocalDateTime.now());
 		//保存账户信息
-		this.save(sysAccount);
-		return BeanUtil.copyProperties(sysAccount, AccountVO.class);
+		this.saveOrUpdate(sysAccount);
+		//添加账户租户关系
+		AccountVO accountVO = BeanUtil.copyProperties(sysAccount, AccountVO.class);
+        //设置当前租户昵称
+        sysAccount.setNickName(accountAddDTO.getNickName());
+		return accountVO;
 	}
 
 	/**
@@ -147,9 +201,22 @@ public class SysAccountServiceImpl extends ServiceImpl<SysAccountMapper, SysAcco
 	 */
 	@Override
 	public AccountVO editAccount(AccountEditDTO accountEditDTO) {
+		//获取当前账户
 		SysAccount sysAccount = getById(accountEditDTO.getAccountId());
 		if(ObjectUtil.isEmpty(sysAccount)){
 			throw AccountExceptionEnum.RESULT_NO_DATA.getBaseException();
+		}
+		//校验当前账户码是否已经存在
+		boolean existsCode = this.lambdaQuery()
+				.eq(SysAccount::getAccountCode, accountEditDTO.getAccountCode())
+				.ne(SysAccount::getAccountId, sysAccount.getAccountId()).exists();
+		if(existsCode){
+			throw AccountExceptionEnum.ACCOUNT_CODE_EXISTS.getBaseException();
+		}
+		//校验当前账户类型是否存在
+		boolean exists = this.getBaseMapper().getExistedByUserId(sysAccount.getUserId(), accountEditDTO.getSourceFlag());
+		if(exists){
+			throw AccountExceptionEnum.ACCOUNT_CODE_EXISTS.getBaseException();
 		}
 		BeanUtil.copyProperties(accountEditDTO, sysAccount);
 		sysAccount.setUpdateTime(LocalDateTime.now());
@@ -159,7 +226,7 @@ public class SysAccountServiceImpl extends ServiceImpl<SysAccountMapper, SysAcco
 
 	/**
 	 * 功能描述:
-	 * 〈根据OpenId删除账户〉
+	 * 〈修改账户成本中心〉
 	 * @param changeDTO changeDTO
 	 * @author 蝉鸣
 	 */
@@ -180,6 +247,9 @@ public class SysAccountServiceImpl extends ServiceImpl<SysAccountMapper, SysAcco
 		}
 		sysAccount.setUpdateTime(LocalDateTime.now());
 		updateById(sysAccount);
+        //清理账户缓存
+		SysAccountBO accountBO = this.getBOByAccountId(sysAccount.getAccountId());
+		UserCacheUtil.setAccountInfoCache(accountBO);
 		return Boolean.TRUE;
 	}
 
@@ -319,23 +389,81 @@ public class SysAccountServiceImpl extends ServiceImpl<SysAccountMapper, SysAcco
 				.eq(SysAccount::getSourceFlag, accountBO.getSourceFlag()).exists();
 		//如果存在
 		if (exists) {
-			SysAccount sysAccount = getByAccountCode(accountBO.getAccountCode(), accountBO.getSourceFlag());
-			return BeanUtil.copyProperties(sysAccount, SysAccountBO.class);
+			return getByAccountCode(accountBO.getAccountCode(), accountBO.getSourceFlag());
 		}
-		//不存在则新增
 		SysAccount sysAccount = BeanUtil.copyProperties(accountBO, SysAccount.class);
-		//加密校验码
-		if(ObjectUtil.isNotEmpty(accountBO.getCheckCode())){
-			String encryptedPassword = SecurityUtils.encryptPassword(accountBO.getCheckCode());
-			sysAccount.setCheckCode(encryptedPassword);
-		}
+		SysAccountBO infoCache = UserCacheUtil.getAccountInfoCache(UserCacheUtil.getAccountId());
 		sysAccount.setAccountFlag(ActiveFlagEnum.USING.getValue());
 		sysAccount.setCreateTime(LocalDateTime.now());
 		sysAccount.setUpdateTime(LocalDateTime.now());
+		sysAccount.setUpdateTime(LocalDateTime.now());
+		sysAccount.setDelFlag(YesOrNoEnum.YES.getValue());
+		sysAccount.setScopeRootId(infoCache.getScopeRootId());
+		sysAccount.setScopeOrgId(infoCache.getScopeOrgId());
 		//保存账户信息
 		this.save(sysAccount);
 		BeanUtil.copyProperties(sysAccount, accountBO);
 		return accountBO;
 	}
 
+	/**
+	 * 功能描述:
+	 * 〈绑定租户授权账户〉
+	 * @param bindDTO bindDTO
+	 * @return 正常返回:{@link Boolean}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public Boolean bindByTenantAuth(AccountBindDTO bindDTO) {
+		if(CollUtil.isEmpty(bindDTO.getAccountIds())){
+			return Boolean.FALSE;
+		}
+		List<SysAccount> sysAccounts = this.listByIds(bindDTO.getAccountIds());
+		if(CollUtil.isEmpty(sysAccounts)){
+			return Boolean.FALSE;
+		}
+		return Boolean.FALSE;
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈查询无效组织的账户〉
+	 * @param userIds userIds
+	 * @return 正常返回:{@link List<Long>}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public List<Long> getInvalidOrgAccountByUserIds(List<Long> userIds) {
+		return this.lambdaQuery().in(SysAccount::getUserId, userIds).isNull(SysAccount::getScopeOrgId)
+				.list().stream().map(SysAccount::getUserId).distinct().toList();
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈查询已经绑定的账户类型〉
+	 * @return 正常返回:{@link List<Integer>}
+	 * @author 蝉鸣
+	 */
+	@Override
+	public List<Integer> bindSourceType(Long userId) {
+		return this.lambdaQuery().eq(SysAccount::getUserId, userId).list().stream()
+				.map(SysAccount::getSourceFlag).distinct().toList();
+	}
+
+	/**
+	 * 功能描述:
+	 * 〈解绑账户〉
+	 * @param sourceFlag sourceFlag
+	 * @author 蝉鸣
+	 */
+	@Override
+	public void unBindAccount(Integer sourceFlag, Long userId) {
+		if(SourceFlagEnum.SYSTEM.getValue().equals(sourceFlag)
+			|| SourceFlagEnum.SMS.getValue().equals(sourceFlag)
+		){
+			return;
+		}
+		this.lambdaUpdate().eq(SysAccount::getSourceFlag, sourceFlag)
+				.eq(SysAccount::getUserId, userId).remove();
+	}
 }

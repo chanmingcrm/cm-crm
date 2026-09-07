@@ -32,7 +32,7 @@ public class MybatisPlusScopeProperties {
 	private String orgColumn = DataScopeConst.DEFAULT_SCOPE_ORG_ID;
 
 	/**
-	 * 需要忽略数据权限的表名
+	 * 需要忽略多租户的表名
 	 */
 	private Set<String> ignoreTables = CollUtil.newHashSet();
 

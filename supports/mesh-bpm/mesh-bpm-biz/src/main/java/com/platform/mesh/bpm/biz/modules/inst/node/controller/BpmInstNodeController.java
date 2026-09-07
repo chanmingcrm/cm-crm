@@ -94,5 +94,18 @@ public class BpmInstNodeController extends BaseController {
         BpmInstNode bpmInstNode = bpmInstNodeService.handleInstNode(handleDTO);
         return Result.success(bpmInstNode);
     }
+
+    /**
+     * 功能描述:
+     * 〈跳至目标节点〉
+     * @return 正常返回:{@link Result<BpmInstNode>}
+     * @author 蝉鸣
+     */
+    @Operation(summary = "执行节点实例")
+    @PostMapping("/inst/node/goto/target/{instNodeId}")
+    public Result<Boolean> gotoTargetNode(@PathVariable("instNodeId")Long instNodeId) {
+        Boolean gotoed = bpmInstNodeService.gotoTargetNode(instNodeId);
+        return Result.success(gotoed);
+    }
   
 }

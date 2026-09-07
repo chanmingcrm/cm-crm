@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.platform.mesh.app.biz.modules.app.search.mapper.AppSearchMapper">
+
+
+    <select id="selectMPage" resultType="com.platform.mesh.app.biz.modules.app.search.domain.vo.AppSearchVO">
+        SELECT
+            *
+        FROM
+            app_search
+        WHERE del_flag != 2
+        AND module_id IN (0,#{pageDTO.moduleId})
+        AND create_user_id IN (0,#{pageDTO.scopeUserId})
+    </select>
+
+    <select id="getById" resultType="com.platform.mesh.app.biz.modules.app.search.domain.po.AppSearch">
+        SELECT
+            *
+        FROM
+            app_search
+        WHERE id = #{id}
+    </select>
+</mapper>

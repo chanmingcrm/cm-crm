@@ -2,6 +2,7 @@ package com.platform.mesh.crm.biz.modules.crm.onbusiness.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.platform.mesh.app.api.modules.app.domain.dto.*;
+import com.platform.mesh.app.api.modules.app.domain.vo.ImportVO;
 import com.platform.mesh.core.application.controller.BaseController;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.enums.custom.OperateTypeEnum;
@@ -109,7 +110,7 @@ public class CrmOnBusinessController extends BaseController{
     @Log(moduleName = "客户关系商机跟进管理", operateType = OperateTypeEnum.UPDATE)
     @PostMapping("/crm/on/business/edit")
     public Result<CrmOnBusinessVO> editOnBusiness(@Validated @RequestBody DataEditSimpDTO dataEditDTO) {
-        CrmOnBusiness crmOnBusiness = crmOnBusinessService.editData(dataEditDTO, CrmOnBusiness.class);
+        CrmOnBusiness crmOnBusiness = crmOnBusinessService.editData(dataEditDTO, CrmOnBusiness.class, CrmOnBusinessData.class);
         return Result.success(BeanUtil.copyProperties(crmOnBusiness,CrmOnBusinessVO.class));
     }
     
@@ -179,8 +180,12 @@ public class CrmOnBusinessController extends BaseController{
     @Operation(summary = "导入客户关系商机跟进")
     @Log(moduleName = "客户关系商机跟进管理", operateType = OperateTypeEnum.IMPORT)
     @PostMapping("/crm/on/business/import")
-    public Result<Boolean> importOnBusiness(@RequestParam("moduleId") Long moduleId,@RequestParam("formId") Long formId,@RequestParam("file") MultipartFile file) {
-        return Result.success(crmOnBusinessService.importData(moduleId,formId,file,CrmOnBusiness.class,CrmOnBusinessData.class));
+    public Result<ImportVO> importOnBusiness(@RequestParam("moduleId") Long moduleId, @RequestParam("formId") Long formId, @RequestParam("file") MultipartFile file) {
+        DataImportDTO importDTO = new DataImportDTO();
+        importDTO.setModuleId(moduleId);
+        importDTO.setFormId(formId);
+        importDTO.setFile(file);
+        return Result.success(crmOnBusinessService.importData(importDTO,CrmOnBusiness.class,CrmOnBusinessData.class));
     }
     
     /**

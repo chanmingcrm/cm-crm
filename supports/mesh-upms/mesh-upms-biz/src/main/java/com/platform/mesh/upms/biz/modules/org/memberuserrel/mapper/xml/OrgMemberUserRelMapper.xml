@@ -8,14 +8,15 @@
             omur.member_id,
             m.member_name,
             omur.user_id,
-            sa.scope_org_id AS level_id,
+            l.id AS level_id,
             l.level_name
         FROM
             org_member_user_rel omur
                 LEFT JOIN org_member m ON m.id = omur.member_id
-                LEFT JOIN sys_account sa ON sa.user_id = omur.user_id
-                LEFT JOIN org_level l ON l.id = sa.scope_org_id
+                LEFT JOIN org_member_post_rel ompr ON ompr.member_id = omur.member_id
+                LEFT JOIN org_level l ON l.id = ompr.level_id
         WHERE omur.user_id = #{userId}
+        ORDER BY ompr.default_flag, ompr.id
         LIMIT 1
     </select>
 
@@ -25,14 +26,21 @@
             omur.member_id,
             m.member_name,
             omur.user_id,
-            sa.scope_org_id AS level_id,
+            ompr.level_id,
             l.level_name
         FROM
-            org_member_user_rel omur
-                LEFT JOIN org_member m ON m.id = omur.member_id
-                LEFT JOIN sys_account sa ON sa.user_id = omur.user_id
-                LEFT JOIN org_level l ON l.id = sa.scope_org_id
-        WHERE omur.member_id = #{memberId}
+            org_member m
+                LEFT JOIN org_member_user_rel omur ON m.id = omur.member_id
+                LEFT JOIN org_member_post_rel ompr ON m.id = ompr.member_id
+                LEFT JOIN org_level l ON l.id = ompr.level_id
+        WHERE m.id = #{memberId}
+        ORDER BY
+            CASE
+                WHEN ompr.default_flag = 1 THEN 1  -- 默认的排最前
+                WHEN ompr.default_flag = 2 THEN 2  -- 非默认的排第二
+                ELSE 3  -- 为空的排最后
+                END,
+            ompr.id
         LIMIT 1
     </select>
 
@@ -42,29 +50,37 @@
             omur.member_id,
             m.member_name,
             omur.user_id,
-            sa.scope_org_id AS level_id,
+            ompr.level_id,
             l.level_name
         FROM
-        org_member_user_rel omur
-                LEFT JOIN org_member m ON m.id = omur.member_id
-                LEFT JOIN sys_account sa ON sa.user_id = omur.user_id
-                LEFT JOIN org_level l ON l.id = sa.scope_org_id
-        WHERE omur.member_id IN
+            org_member m
+            LEFT JOIN org_member_user_rel omur ON m.id = omur.member_id
+            LEFT JOIN org_member_post_rel ompr ON m.id = ompr.member_id
+            LEFT JOIN org_level l ON l.id = ompr.level_id
+        WHERE m.id IN
         <if test="memberIds != null and memberIds.size() > 0">
             <foreach collection="memberIds" item="memberId" open="(" close=")" separator=",">
                 #{memberId}
             </foreach>
         </if>
+        ORDER BY
+            CASE
+                WHEN ompr.default_flag = 1 THEN 1  -- 默认的排最前
+                WHEN ompr.default_flag = 2 THEN 2  -- 非默认的排第二
+                ELSE 3  -- 为空的排最后
+            END,
+            ompr.id
     </select>
 
     <select id="getOrgChildLevelRelByAccountId" resultType="java.lang.Long">
         SELECT
             ompr.level_id
         FROM
-            org_member_post_rel ompr
-        LEFT JOIN org_member_user_rel omur ON ompr.member_id = omur.member_id
+            sys_account a
+                LEFT JOIN org_member_user_rel omur ON a.user_id = omur.user_id
+                LEFT JOIN org_member_post_rel ompr ON ompr.member_id = omur.member_id
         WHERE
-            omur.user_id = #{userId}
+            a.account_id = #{accountId}
             AND ompr.lead_flag = #{leadFlag}
 
     </select>

@@ -49,17 +49,5 @@ public class SysRoleMenuRel extends BasePO {
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
-    /**
-     * 用户ID
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeUserId;
-
-    /**
-     * 组织ID
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private Long scopeOrgId;
-
 }
 

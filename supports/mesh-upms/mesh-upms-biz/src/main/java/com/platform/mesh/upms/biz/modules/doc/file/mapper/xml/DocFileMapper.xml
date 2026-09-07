@@ -11,4 +11,56 @@
         WHERE
             file_flag = #{fileFlag}
     </select>
+
+    <select id="getFileById" resultType="com.platform.mesh.upms.biz.modules.doc.file.domain.po.DocFile">
+        SELECT
+            *
+        FROM
+            doc_file
+        WHERE
+            id = #{fileId}
+            <if test=" tenantId != null and tenantId != 0 ">
+                AND tenant_id = #{tenantId}
+            </if>
+
+    </select>
+
+    <select id="selectPageWithDir" resultType="com.platform.mesh.upms.biz.modules.doc.file.domain.po.DocFile">
+        SELECT
+        f.*
+        FROM
+        doc_file f
+        LEFT JOIN doc_dir_rel r ON f.id = r.doc_id
+        <where>
+            <if test=" pageDTO.dataId != null ">
+                AND data_id = #{pageDTO.dataId}
+            </if>
+            <if test=" dirIds!=null and dirIds.size() > 0 ">
+                AND r.dir_id IN
+                <foreach collection="dirIds" item="dirId" open="(" close=")" separator=",">
+                    #{dirId}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY f.create_time DESC
+    </select>
+
+    <select id="selectOpenPage" resultType="com.platform.mesh.upms.biz.modules.doc.file.domain.po.DocFile">
+        SELECT
+            f.*
+        FROM
+        doc_file f
+        LEFT JOIN doc_dir_rel r ON f.id = r.doc_id
+        LEFT JOIN doc_dir d ON r.dir_id = d.id
+        WHERE
+            f.open_flag = #{openFlag}
+        <if test=" dirIds!=null and dirIds.size() > 0 ">
+            AND d.id IN
+            <foreach collection="dirIds" item="dirId" open="(" close=")" separator=",">
+                #{dirId}
+            </foreach>
+        </if>
+        ORDER BY f.create_time DESC
+    </select>
+
 </mapper>

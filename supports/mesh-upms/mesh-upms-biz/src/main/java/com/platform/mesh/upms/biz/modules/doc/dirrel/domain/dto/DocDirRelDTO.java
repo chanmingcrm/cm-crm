@@ -37,7 +37,7 @@ public class DocDirRelDTO extends BaseDTO {
      * 文件ID
      */
     @Schema(description = "文件ID")
-    private Long fileId;
+    private Long docId;
 
 
     /**
@@ -80,5 +80,6 @@ public class DocDirRelDTO extends BaseDTO {
      */
     @Schema(description = "数据权限机构ID")
     private Long scopeOrgId;
+
 
 }

@@ -37,6 +37,11 @@ public class OrgLevelPostRel extends BasePO {
     private Long postId;
 
     /**
+    * 领导标识
+    */
+    private Integer leadFlag;
+
+    /**
      * 创建人ID
      */
     @TableField(fill = FieldFill.INSERT)

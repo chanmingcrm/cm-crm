@@ -1,6 +1,7 @@
 package com.platform.mesh.bpm.biz.modules.temp.process.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.mesh.bpm.biz.modules.temp.process.domain.dto.BpmTempProcessAddDTO;
@@ -14,16 +15,24 @@ import com.platform.mesh.bpm.biz.modules.temp.process.exception.TempProcessExcep
 import com.platform.mesh.bpm.biz.modules.temp.process.mapper.BpmTempProcessMapper;
 import com.platform.mesh.bpm.biz.modules.temp.process.service.IBpmTempProcessService;
 import com.platform.mesh.bpm.biz.modules.temp.process.service.manual.BpmTempProcessServiceManual;
-import com.platform.mesh.bpm.biz.soa.process.run.enums.ProcessRunEnum;
 import com.platform.mesh.core.application.domain.vo.PageVO;
 import com.platform.mesh.core.constants.NumberConst;
 import com.platform.mesh.core.exception.BaseException;
 import com.platform.mesh.mybatis.plus.extention.MPage;
+import com.platform.mesh.mybatis.plus.handler.DataScopeHandler;
+
 import com.platform.mesh.mybatis.plus.utils.MPageUtil;
+import com.platform.mesh.core.enums.bpm.ProcessRunEnum;
 import com.platform.mesh.utils.result.Result;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 约定当前serviceImpl 只实现当前service 相关方法，所有封装转换方法在Manual中进行
@@ -33,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service()
 public class BpmTempProcessServiceImpl extends ServiceImpl<BpmTempProcessMapper, BpmTempProcess> implements IBpmTempProcessService {
 
+    protected final Logger log = LoggerFactory.getLogger(BpmTempProcessServiceImpl.class);
 
     @Autowired
     private BpmTempProcessServiceManual bpmTempProcessServiceManual;
@@ -55,6 +65,8 @@ public class BpmTempProcessServiceImpl extends ServiceImpl<BpmTempProcessMapper,
     @Override
     public PageVO<BpmTempProcessVO> selectPage(BpmTempProcessPageDTO pageDTO) {
         MPage<BpmTempProcess> processMPage = MPageUtil.pageEntityToMPage(pageDTO, BpmTempProcess.class);
+        List<Long> groupList = bpmTempProcessServiceManual.getChildGroupIds(pageDTO.getGroupId());
+        pageDTO.setGroupIds(groupList);
         MPage<BpmTempProcessVO> page = this.getBaseMapper().selectMPage(processMPage, pageDTO);
         return MPageUtil.convertToVO(page, BpmTempProcessVO.class);
     }
@@ -72,6 +84,9 @@ public class BpmTempProcessServiceImpl extends ServiceImpl<BpmTempProcessMapper,
         BpmTempProcess bpmTempProcess = BeanUtil.copyProperties(bpmTempProcessAddDTO, BpmTempProcess.class);
         bpmTempProcess.setTempRootId(NumberConst.NUM_0.longValue());
         bpmTempProcess.setRunFlag(ProcessRunEnum.INIT.getValue());
+        if(ObjectUtil.isEmpty(bpmTempProcess.getProcessHash())) {
+            bpmTempProcess.setProcessHash(IdUtil.fastSimpleUUID());
+        }
         this.save(bpmTempProcess);
         //添加分组关系
         bpmTempProcessServiceManual.addGroupRel(bpmTempProcessAddDTO.getGroupId(),bpmTempProcess.getId());
@@ -101,7 +116,7 @@ public class BpmTempProcessServiceImpl extends ServiceImpl<BpmTempProcessMapper,
     /**
      * 功能描述:
      * 〈新建流程模板〉
-     * @return 正常返回:{@link Result <FlowTempProcess>}
+     * @return 正常返回:{@link Result<BpmTempProcess>}
      * @author 蝉鸣
      */
     @Override
@@ -130,6 +145,9 @@ public class BpmTempProcessServiceImpl extends ServiceImpl<BpmTempProcessMapper,
             tempProcess.setId(bpmTempProcessDesignDTO.getProcessDTO().getProcessId());
             tempProcess.setTempRootId(parentTempProcess.getId());
             tempProcess.setTempRootHash(parentTempProcess.getProcessHash());
+            if(ObjectUtil.isEmpty(tempProcess.getProcessHash())){
+                tempProcess.setProcessHash(IdUtil.fastSimpleUUID());
+            }
             this.saveOrUpdate(tempProcess);
         }
         BpmTempProcessEditDTO bpmTempProcessEditDTO = BeanUtil.copyProperties(tempProcess, BpmTempProcessEditDTO.class);
@@ -210,14 +228,15 @@ public class BpmTempProcessServiceImpl extends ServiceImpl<BpmTempProcessMapper,
         //查询是否有运行的流程实例
         Boolean hasRun = bpmTempProcessServiceManual.checkRunProcessTemp(tempProcessId);
         //如果有则不能删除
-        if(hasRun) {
-            return Boolean.FALSE;
-        }
+//        if(hasRun) {
+//            throw InstProcessExceptionEnum.DATA_HAS_RUNNING.getBaseException();
+//        }
         //如果没有则可以删除
         Boolean aBoolean = bpmTempProcessServiceManual.delProcessTemp(tempProcessId);
         //删除其他信息
         removeById(tempProcessId);
         return aBoolean;
     }
+
 }
 
