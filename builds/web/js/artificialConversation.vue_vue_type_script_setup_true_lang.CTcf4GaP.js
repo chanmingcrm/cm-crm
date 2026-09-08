@@ -1,1 +1,0 @@
-import{_ as s}from"./prompt.vue_vue_type_script_setup_true_lang.BcnvR6h8.js";import{c_ as t,eR as a,cP as e,cT as _}from"./index.BfsrU8ll.js";const p=t({__name:"artificialConversation",setup:t=>(t,p)=>(a(),e("div",null,[_(s)]))});export{p as _};

@@ -1,1 +1,0 @@
-import{c_ as a,f$ as e,g0 as s,eR as r,cP as t}from"./index.BfsrU8ll.js";const p=a({__name:"index",setup(a){const p=e(),n=s(),{params:c,query:o}=p,{path:u}=c;return n.replace({path:"/"+u,query:o}),(a,e)=>(r(),t("div"))}});export{p as default};
