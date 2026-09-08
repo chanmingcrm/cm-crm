@@ -1,0 +1,1 @@
+import{cZ as s,eP as a,cO as c,cS as e,c7 as o}from"./index.nH5Yldkd.js";const r={class:"w-full"},m=s({name:"MapForm",__name:"MapForm",setup:s=>(s,m)=>{const n=o;return a(),c("div",r,[e(n)])}});export{m as _};

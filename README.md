@@ -65,7 +65,6 @@
 - 多账户
 
   同一个用户可以创建多个登录账号，支持不同类型的登录方式。[**参考文档**](http://doc.woscosmos.com/zh/tutorial/third/dingtalk.html)
-  ![](builds/assets/intro/account.png)
   例如：**账号1**：手机/密码，**账号2**：手机/验证码，**账号3**：邮箱/密码，**账号4**：钉钉登录，**账号5**：企微登录，**账号6**：飞书登录。
 - 多组织
   
@@ -171,19 +170,10 @@
 ## 💻 界面说明
 <table>
     <tr>
-        <td><img src="./builds/assets/views/主题更换.png" alt="前端界面1"/></td>
-        <td><img src="./builds/assets/views/夜间模式.png" alt="前端界面2"/></td>
-        <td><img src="./builds/assets/views/系统配置.png" alt="前端界面1"/></td>
-    </tr>
-    <tr>
-        <td><img src="./builds/assets/views/卡片布局.png" alt="前端界面1"/></td>
-        <td><img src="./builds/assets/views/仪表盘.png" alt="前端界面2"/></td>
-        <td><img src="./builds/assets/views/自定义配置.png" alt="前端界面1"/></td>
-    </tr>
-    <tr>
-        <td><img src="./builds/assets/views/列表页1.png" alt="前端界面1"/></td>
-        <td><img src="./builds/assets/views/列表页2.png" alt="前端界面2"/></td>
-        <td><img src="./builds/assets/views/列表页3.png" alt="前端界面2"/></td>
+        <td><img src="./builds/assets/views/仪表盘.jpg" alt="仪表盘"/></td>
+        <td><img src="./builds/assets/views/客户列表.jpg" alt="客户列表"/></td>
+        <td><img src="./builds/assets/views/系统设置.jpg" alt="系统设置"/></td>
+        <td><img src="./builds/assets/views/个人设置.jpg" alt="个人设置"/></td>
     </tr>
 </table>
 

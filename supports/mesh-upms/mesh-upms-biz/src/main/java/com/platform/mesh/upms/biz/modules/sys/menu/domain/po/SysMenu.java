@@ -2,15 +2,11 @@ package com.platform.mesh.upms.biz.modules.sys.menu.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.platform.mesh.core.application.domain.po.BasePO;
-import com.platform.mesh.core.application.domain.vo.BaseVO;
 import com.platform.mesh.mybatis.plus.annotation.TableParentId;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**

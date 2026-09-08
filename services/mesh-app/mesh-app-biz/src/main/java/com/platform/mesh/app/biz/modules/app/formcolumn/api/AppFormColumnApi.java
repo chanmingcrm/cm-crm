@@ -37,9 +37,9 @@ public class AppFormColumnApi extends BaseController{
      */
     @AuthIgnore
     @Operation(summary = "获取当前表单字段平铺结构关联信息")
-    @GetMapping("/api/app/form/column/list/{moduleId}/{formId}")
-    public Result<List<AppFormColumnBO>> getFormColumnList(@PathVariable("moduleId")Long moduleId
-            , @PathVariable("formId")Long formId) {
+    @GetMapping("/api/app/form/column/list")
+    public Result<List<AppFormColumnBO>> getFormColumnList(@RequestParam("moduleId")Long moduleId
+            , @RequestParam("formId")Long formId) {
         List<AppFormColumnBO> appFormColumnBOS = appFormColumnService.getFormColumnBOList(moduleId,formId);
         return Result.success(appFormColumnBOS);
     }

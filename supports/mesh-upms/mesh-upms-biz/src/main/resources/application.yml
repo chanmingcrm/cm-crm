@@ -34,3 +34,11 @@ spring:
       - optional:nacos:mesh-captcha-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
       - optional:nacos:mesh-sms-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
       - optional:nacos:${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+
+netty:
+  server:
+    enabled: true
+    port: 8888
+    coding-type: http
+    http-config:
+      max-content-length: 10240

@@ -246,8 +246,7 @@ public class SysUserServiceManual  {
 		sysUserInfoVO.setMemberVOS(memberVOS);
 		//菜单组
 		//如果当前账户开启预览模式或者没有所属部门则不能进行任何操作
-        // || ObjectUtil.isEmpty(account.getScopeOrgId())
-        if(YesOrNoEnum.YES.getValue().equals(account.getPreviewFlag())|| CollUtil.isEmpty(sysOrgBOS)){
+        if(!UserCacheUtil.isTenantAdmin() && (YesOrNoEnum.YES.getValue().equals(account.getPreviewFlag()) || CollUtil.isEmpty(sysOrgBOS))){
 			sysUserInfoVO.setMenuVOS(CollUtil.newArrayList());
 		}else{
 			List<Integer> filterMenuTypes = CollUtil.newArrayList();
