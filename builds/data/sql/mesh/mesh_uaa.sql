@@ -1,8 +1,21 @@
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : 192.168.0.84
+ Source Server Type    : MySQL
+ Source Server Version : 80032 (8.0.32)
+ Source Host           : 192.168.0.84:3306
+ Source Schema         : mesh_uaa
+
+ Target Server Type    : MySQL
+ Target Server Version : 80032 (8.0.32)
+ File Encoding         : 65001
+
+ Date: 07/09/2026 12:38:05
+*/
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-
-USE `mesh_uaa`;
 
 -- ----------------------------
 -- Table structure for oauth2_authorization
@@ -89,13 +102,13 @@ CREATE TABLE `oauth2_registered_client`  (
 -- ----------------------------
 -- Records of oauth2_registered_client
 -- ----------------------------
-INSERT INTO `oauth2_registered_client` VALUES ('1623661791272706050', 'my_client', '2023-02-09 20:35:12', '{bcrypt}$2a$10$CRnmSmLr.niPXhWtfRNsUO4SwxPMEPPuNt8/8L3D42nVIN7DkHQkO', NULL, '测试客户端00', NULL, 'client_secret_post,client_secret_basic', 'refresh_token,client_credentials,authorization_code,password,sms,third', 'https://www.baidu.com', 'server', '', '', 1);
+INSERT INTO `oauth2_registered_client`  VALUES ('2096823007748706304', 'new_client', '2026-09-07 12:49:28', '{bcrypt}$2a$10$PPSSMd9QwvqIGg3OA2Q1ruY9vvLVQwSzPColn37b4wEwyWN9ob0PO', NULL, 'my_client_name', NULL, 'client_secret_basic', 'refresh_token,password,third,authorization_code,sms', 'http://www.baidu.com', 'server', '{\"settings\":{\"settings.client.require-proof-key\":true,\"settings.client.require-authorization-consent\":false}}', '{\"settings\":{\"settings.token.reuse-refresh-tokens\":true,\"settings.token.x509-certificate-bound-access-tokens\":false,\"settings.token.id-token-signature-algorithm\":\"RS256\",\"settings.token.access-token-time-to-live\":\"PT168H\",\"settings.token.access-token-format\":{\"value\":\"self-contained\"},\"settings.token.refresh-token-time-to-live\":\"PT744H\",\"settings.token.authorization-code-time-to-live\":\"PT5M\",\"settings.token.device-code-time-to-live\":\"PT5M\"}}', 0);
 
 -- ----------------------------
--- Table structure for tenant_client
+-- Table structure for oauth2_third_client
 -- ----------------------------
-DROP TABLE IF EXISTS `tenant_client`;
-CREATE TABLE `tenant_client`  (
+DROP TABLE IF EXISTS `oauth2_third_client`;
+CREATE TABLE `oauth2_third_client`  (
   `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT 'id',
   `user_id` bigint NOT NULL DEFAULT 0 COMMENT '用户ID',
   `app_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '应用ID',
@@ -109,9 +122,5 @@ CREATE TABLE `tenant_client`  (
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间 ',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin COMMENT = '授权客户端租户关系表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of tenant_client
--- ----------------------------
 
 SET FOREIGN_KEY_CHECKS = 1;

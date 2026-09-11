@@ -198,6 +198,10 @@ bash builds/script/shell/deploy.sh deploy
 
 详细教程：[2. Shell 部署](https://doc.woscosmos.com/zh/tutorial/deploy/shell.html)。后端 JAR 统一放在 `/opt/server/`，前端通过 Nginx 访问。
 
+| 账户  | 初始密码 |
+|-------|----------|
+| admin | 123456a  |
+
 ## 🗂️ 目录说明
 
 ```
