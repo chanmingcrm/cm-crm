@@ -1,1 +1,0 @@
-import{cZ as a,fZ as e,f_ as s,eP as r,cO as t}from"./index.nH5Yldkd.js";const p=a({__name:"index",setup(a){const p=e(),n=s(),{params:c,query:o}=p,{path:u}=c;return n.replace({path:"/"+u,query:o}),(a,e)=>(r(),t("div"))}});export{p as default};

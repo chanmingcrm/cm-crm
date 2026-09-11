@@ -1,1 +1,0 @@
-var a=(a=>(a[a.APP=3]="APP",a[a.CATALOG=4]="CATALOG",a[a.MENU=5]="MENU",a[a.GROUP=6]="GROUP",a[a.BUTTON=7]="BUTTON",a))(a||{});const A={3:"应用",4:"模块",5:"菜单",6:"分类",7:"按钮"},O={3:"#e6a23c",4:"#2ba1d8ff",5:"#f56c6c",6:"#909399",7:"#67c23a"};export{A as M,O as a,a as b};
