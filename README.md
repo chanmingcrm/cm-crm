@@ -20,8 +20,9 @@
 
 <p align="center">
     <a href="https://gitee.com/woscosmos/mesh-platform">Gitee 仓库</a> &nbsp; | &nbsp;
-    <a href="http://doc.woscosmos.com">系统文档</a> &nbsp; | &nbsp;
-    <a href="http://www.woscosmos.com">官网地址</a>
+    <a href="https://doc.woscosmos.com/?utm_source=repository&amp;utm_medium=readme&amp;utm_campaign=cm_crm&amp;utm_content=header_docs">系统文档</a> &nbsp; | &nbsp;
+    <a href="https://www.woscosmos.com/?utm_source=repository&amp;utm_medium=readme&amp;utm_campaign=cm_crm&amp;utm_content=header_website">官网地址</a> &nbsp; | &nbsp;
+    <a href="https://www.woscosmos.com/?utm_source=repository&amp;utm_medium=readme&amp;utm_campaign=cm_crm&amp;utm_content=header_support">商业支持</a>
 </p>
 
 <h1 align="center">如果这个项目可以帮助您，请记得 ✨Star 鼓励与支持一下❤️!!!</h1>
@@ -34,15 +35,17 @@
 
 | 说明    | 地址                           | 
 |-------|------------------------------|
-| 官网地址  | 🌐<http://www.woscosmos.com> |
-| CRM地址 | 🌐<http://crm.woscosmos.com> |
-| 文档地址  | 🌐<http://doc.woscosmos.com> |
+| 官网地址  | [🌐https://www.woscosmos.com](https://www.woscosmos.com/?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=website) |
+| CRM地址 | [🌐https://crm.woscosmos.com](https://crm.woscosmos.com/?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=crm_demo) |
+| 文档地址  | [🌐https://doc.woscosmos.com](https://doc.woscosmos.com/?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=docs) |
 
 ## 🔍 仓库说明
 
+[更新日志](https://www.woscosmos.com/changelog?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=changelog) ｜ [路线图](ROADMAP.md) ｜ [安全反馈](SECURITY.md)
+
 | 项目   | 地址                                                         |
 |--------|------------------------------------------------------------|
-| <img src="./builds/assets/logo/github.svg" width="20" height="20" alt="GitHub"> GitHub | [🚀mesh-platform](https://gitee.com/woscosmos/mesh-platform) |
+| <img src="./builds/assets/logo/github.svg" width="20" height="20" alt="GitHub"> GitHub | [🚀mesh-platform](https://github.com/chanmingcrm/cm-crm) |
 | <img src="./builds/assets/logo/gitee.svg" width="20" height="20" alt="Gitee"> Gitee | [🚀mesh-platform](https://gitee.com/woscosmos/mesh-platform) |
 
 ## 🎨设计说明
@@ -64,7 +67,7 @@
 
 - 多账户
 
-  同一个用户可以创建多个登录账号，支持不同类型的登录方式。[**参考文档**](http://doc.woscosmos.com/zh/tutorial/third/dingtalk.html)
+  同一个用户可以创建多个登录账号，支持不同类型的登录方式。[**参考文档**](https://doc.woscosmos.com/zh/tutorial/third/dingtalk.html?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=dingtalk_tutorial)
   例如：**账号1**：手机/密码，**账号2**：手机/验证码，**账号3**：邮箱/密码，**账号4**：钉钉登录，**账号5**：企微登录，**账号6**：飞书登录。
 - 多组织
   
@@ -183,12 +186,25 @@
 
 **Docker 部署：**
 
+首次部署先在仓库根目录复制环境变量示例，并编辑 `.env`，替换密码占位值：
+
 ```bash
+cp .env.example .env
+```
+
+完成配置后，在同一个 Bash 终端加载变量并部署；后续执行部署命令前也需要加载：
+
+```bash
+set -a
+source ./.env
+set +a
 sudo sysctl -w vm.max_map_count=262144
 bash builds/script/docker/deploy.sh deploy
 ```
 
-详细教程：[1. Docker 部署](https://doc.woscosmos.com/zh/tutorial/deploy/docker.html)。启动后访问 `http://服务器IP/`。
+变量说明见 [.env.example](.env.example)。该文件用于 Docker 部署，不包含全部 Nacos 业务配置；`BUILD_LOCAL=0` 在 Maven 容器中构建源码，设为 `1` 使用宿主机 Maven 构建，前端产物需提前放入 `builds/web`。已有 MySQL 数据目录的账户密码不会因修改 `.env` 自动更新。本地 `.env` 已被 Git 忽略，请勿提交实际密码。
+
+详细教程：[1. Docker 部署](https://doc.woscosmos.com/zh/tutorial/docker/home.html?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=docker_tutorial)。启动后访问 `http://服务器IP/`。
 
 **Shell 部署：**
 
@@ -196,7 +212,7 @@ bash builds/script/docker/deploy.sh deploy
 bash builds/script/shell/deploy.sh deploy
 ```
 
-详细教程：[2. Shell 部署](https://doc.woscosmos.com/zh/tutorial/deploy/shell.html)。后端 JAR 统一放在 `/opt/server/`，前端通过 Nginx 访问。
+详细教程：[2. Shell 部署](https://doc.woscosmos.com/zh/tutorial/deploy/shell.html?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=shell_tutorial)。后端 JAR 统一放在 `/opt/server/`，前端通过 Nginx 访问。
 
 | 账户  | 初始密码 |
 |-------|----------|
@@ -323,3 +339,5 @@ mesh-platform
 
 ## 🤝 项目外包
 如果你有项目想要商业合作，可以微信联系哦。
+
+[商业支持：前往官网咨询](https://www.woscosmos.com/?utm_source=repository&utm_medium=readme&utm_campaign=cm_crm&utm_content=footer_support)

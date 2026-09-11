@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 使用文档
+    url: https://doc.woscosmos.com/?utm_source=repository&utm_medium=issue_template&utm_campaign=cm_crm&utm_content=docs
+    about: 查看部署教程和使用说明
+  - name: 商业支持
+    url: https://www.woscosmos.com/?utm_source=repository&utm_medium=issue_template&utm_campaign=cm_crm&utm_content=business_support
+    about: 前往官网咨询商业合作

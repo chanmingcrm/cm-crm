@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mesh CRM Module Generator"
+  short_description: "Generate mesh-crm-biz business modules from PRD documents."
+  default_prompt: "Use $mesh-crm-module-generator to create a mesh-crm-biz business module from the PRD requirements document."

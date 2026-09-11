@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mesh 后端代码规范"
+  short_description: "遵循 mesh-platform 后端编码约定。"
+  default_prompt: "在 mesh-platform 中开发后端功能时使用本 Skill。"

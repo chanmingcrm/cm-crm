@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mesh CRM Biz 业务理解"
+  short_description: "mesh-crm-biz 业务域、流程和术语共识"
+  default_prompt: "使用 $mesh-crm-biz-business 理解 mesh-crm-biz 业务逻辑。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PRD Document Generator"
+  short_description: "Generate structured PRD documents from brief product ideas."
+  default_prompt: "Use $prd-document-generator to turn this one-line requirement into a complete PRD document."

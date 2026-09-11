@@ -21,7 +21,6 @@
         <module>mesh-uaa</module>
         <module>mesh-upms</module>
         <module>mesh-bpm</module>
-        <module>mesh-gen</module>
         <module>mesh-monitor</module>
     </modules>
 
