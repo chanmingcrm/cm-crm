@@ -1,0 +1,1 @@
+import{d as s,g as a,f as m,m as o,f1 as r}from"./index.DRtc59Sy.js";const e={class:"w-full"},n=s({name:"MapForm",__name:"MapForm",setup:s=>(s,n)=>{const t=r;return m(),a("div",e,[o(t)])}});export{n as _};

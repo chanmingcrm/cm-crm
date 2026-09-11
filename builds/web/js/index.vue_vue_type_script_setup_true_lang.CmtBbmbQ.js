@@ -1,0 +1,1 @@
+import{_ as s}from"./index.vue_vue_type_script_setup_true_lang.DfKJX40G.js";import{Q as t}from"./constants.DEXn5HLL.js";import{d as e,e as a,f as n,i as m}from"./index.DRtc59Sy.js";const o=e({name:"CommonQywxConfig",inheritAttrs:!1,__name:"index",setup:e=>(e,o)=>(n(),a(s,{meta:m(t)},null,8,["meta"]))});export{o as _};

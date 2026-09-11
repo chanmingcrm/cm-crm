@@ -1,1 +1,0 @@
-import{_ as e}from"./Trans.vue_vue_type_script_setup_true_lang.B3mXWvxw.js";import"./index.nH5Yldkd.js";export{e as default};

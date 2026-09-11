@@ -503,13 +503,6 @@
                 <version>${platform.version}</version>
             </dependency>
 
-            <!--生成服务 API-->
-            <dependency>
-                <groupId>com.platform</groupId>
-                <artifactId>mesh-gen-api</artifactId>
-                <version>${platform.version}</version>
-            </dependency>
-
             <!--AI服务 API-->
             <dependency>
                 <groupId>com.platform</groupId>

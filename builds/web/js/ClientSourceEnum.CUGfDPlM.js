@@ -1,0 +1,1 @@
+var a=(a=>(a[a.SYSTEM=1]="SYSTEM",a[a.SMS=2]="SMS",a[a.DING=3]="DING",a[a.WXWORK=4]="WXWORK",a[a.FEISHU=5]="FEISHU",a))(a||{});const l={1:"密码",2:"短信",3:"钉钉",4:"企业微信",5:"飞书"},e=a=>l[a]||"",S=[{value:1,label:e(1)},{value:2,label:e(2)},{value:3,label:e(3),icon:"Dingtalk"},{value:4,label:e(4),icon:"Enterprisewechat"},{value:5,label:e(5),icon:"flybook"}];export{S as C,a,l as b};
