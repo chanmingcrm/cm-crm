@@ -30,6 +30,7 @@ jobs:
         with:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
+          token: ${{ secrets.GH_MIRROR_TOKEN }}
 
       - name: Fetch Gitee and sync
         shell: bash
