@@ -1,0 +1,56 @@
+name: Sync from Gitee
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-from-gitee
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'chanmingcrm/cm-crm'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      SOURCE_URL: https://gitee.com/woscosmos/mesh-platform.git
+      SOURCE_BRANCH: master
+      TARGET_BRANCH: master
+
+    steps:
+      - name: Checkout GitHub
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+
+      - name: Fetch Gitee and sync
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags "$SOURCE_URL" \
+            "refs/heads/$SOURCE_BRANCH:refs/remotes/gitee/$SOURCE_BRANCH"
+
+          source_ref="refs/remotes/gitee/$SOURCE_BRANCH"
+          source_sha="$(git rev-parse "$source_ref")"
+          target_sha="$(git rev-parse HEAD)"
+
+          if [ "$source_sha" = "$target_sha" ]; then
+            echo "Already synchronized: $source_sha"
+            exit 0
+          fi
+
+          if ! git merge-base --is-ancestor "$target_sha" "$source_sha"; then
+            echo "::error::GitHub has commits not contained in Gitee. Reconcile the histories before retrying."
+            exit 1
+          fi
+
+          git -c push.followTags=false push origin "$source_ref:refs/heads/$TARGET_BRANCH"
+          echo "Synchronized: $source_sha"
