@@ -3,7 +3,8 @@ name: Sync from Gitee
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 * * * *'
+    # 每周一北京时间 09:17（UTC 01:17）运行，其他时间可手动触发。
+    - cron: '17 1 * * 1'
 
 permissions:
   contents: write
